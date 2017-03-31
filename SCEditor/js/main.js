@@ -46,6 +46,16 @@ function UpdateHideFunction(){
         tooltip: "hide text"
     });
     
+    
+    
+    $(function(){
+        $(function(){
+            $('<a class="sceditor-button sceditor-button-Hide" unselectable="on" title="hide"><div unselectable="on" style="background-image:url(../development/themes/HideTagImg.png)">ide</div></a>').insertBefore('.sceditor-button-size').click(function(){
+                jQuery('textarea').sceditor('instance').insertText('[hide]','[/hide]');
+            });
+        });
+    });
+    
     console.log("Update End");
 }
 function Login() {
