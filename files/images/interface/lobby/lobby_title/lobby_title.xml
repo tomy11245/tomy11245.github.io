@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<STATIC>
+	<NAME_ID NAME="stageselect" ID="102"/>
+ 	<SIZE X="249" Y="18"/>
+ 	<NORMAL_IMAGE NAME="lobby\lobby_title\title_lobby.pgf" LOAD_TYPE="LOAD_SIZE"/>
+ 	<STYLE>IWS_BACKMOST</STYLE>
+</STATIC>
