@@ -9,6 +9,7 @@
   --bg:#0d1117; --panel:#161b22; --line:#30363d;
   --banker:#e74c3c; --player:#3498db; --tie:#2ecc71;
   --text:#c9d1d9; --muted:#8b949e; --gold:#f0b90b;
+  --red-mark:#ff6b6b; --blue-mark:#5dade2;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;}
@@ -27,53 +28,62 @@ h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-wei
 #status-dot.err{background:#e74c3c;}
 @keyframes pulse{50%{opacity:.4;}}
 
-/* 輸入區 - 全新設計 */
-.hand-input{
-  display:flex;align-items:center;gap:6px;margin-bottom:10px;
-  background:#0d1117;border-radius:8px;padding:8px;
+.machine-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;}
+.machine-bar::-webkit-scrollbar{height:5px;}
+.machine-bar::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
+.machine-tab{
+  flex:0 0 auto;padding:10px 16px;border-radius:8px;
+  background:#21262d;border:1px solid var(--line);color:var(--muted);
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  white-space:nowrap;letter-spacing:1px;
 }
-.hand-label{
-  flex:0 0 44px;text-align:center;font-weight:800;font-size:15px;
-  padding:8px 0;border-radius:6px;
-}
-.hand-label.p{background:rgba(52,152,219,.2);color:var(--player);border:1px solid rgba(52,152,219,.5);}
-.hand-label.b{background:rgba(231,76,60,.2);color:var(--banker);border:1px solid rgba(231,76,60,.5);}
-.hand-input select{
-  flex:1;background:#21262d;color:var(--text);border:1px solid var(--line);
-  border-radius:6px;padding:12px 4px;font-size:18px;font-weight:700;
-  text-align:center;text-align-last:center;font-family:inherit;
-  -webkit-appearance:none;appearance:none;min-width:0;
-}
-.hand-input select:focus{outline:none;border-color:var(--gold);}
-.hand-score{
-  flex:0 0 40px;text-align:center;font-size:22px;font-weight:800;
-  font-variant-numeric:tabular-nums;color:var(--gold);
-}
-.hand-input select.suit-hidden{display:none;}
+.machine-tab:hover{border-color:#484f58;color:var(--text);}
+.machine-tab.active{background:var(--gold);color:#0d1117;border-color:var(--gold);}
+.machine-tab .count{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.2);font-size:11px;font-weight:700;}
+.machine-tab.active .count{background:rgba(0,0,0,.25);}
+.machine-tab.add{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:500;}
+.machine-tab.add:hover{border-color:var(--gold);color:var(--gold);}
 
-/* 快捷按鈕 */
-.quick-actions{display:flex;gap:6px;margin-top:6px;}
-.quick-actions button{
-  flex:1;padding:14px 6px;font-size:13px;font-weight:700;border-radius:8px;
-  border:none;cursor:pointer;font-family:inherit;letter-spacing:1px;
-  background:#21262d;color:var(--text);
+.hand-section{margin-bottom:14px;}
+.hand-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.hand-title{font-size:15px;font-weight:800;letter-spacing:2px;padding:6px 14px;border-radius:6px;}
+.hand-title.p{background:rgba(52,152,219,.2);color:var(--player);}
+.hand-title.b{background:rgba(231,76,60,.2);color:var(--banker);}
+.hand-total{font-size:22px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
+.slots{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.slot{
+  flex:1;min-width:60px;height:52px;border-radius:8px;
+  background:#0d1117;border:2px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;color:var(--text);
+  cursor:pointer;transition:all .15s;position:relative;
 }
-.quick-actions button:hover{background:#30363d;}
-.quick-actions button.primary{
-  background:var(--gold);color:#0d1117;font-size:15px;letter-spacing:2px;
-}
-.quick-actions button.primary:hover{filter:brightness(1.1);}
-.quick-actions button.undo{color:var(--muted);}
-.quick-actions button.undo:hover{color:#e74c3c;}
+.slot.filled{border-style:solid;border-color:var(--gold);background:#1c2128;}
+.slot.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,185,11,.3);}
+.slot.empty::after{content:'?';color:#30363d;font-size:24px;}
+.slot.filled::after{content:none;}
 
-/* 最近輸入的小提示 */
-.last-hint{
-  font-size:11px;color:var(--muted);text-align:center;
-  margin-top:8px;min-height:16px;
+.rank-grid-buttons{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px;background:#0d1117;border-radius:8px;}
+.rank-btn{
+  padding:14px 2px;border-radius:6px;border:1px solid var(--line);
+  background:#21262d;color:var(--text);font-size:16px;font-weight:800;
+  cursor:pointer;font-family:inherit;transition:all .1s;
 }
+.rank-btn:hover{background:#30363d;border-color:var(--gold);}
+.rank-btn:active{transform:scale(.95);}
+.rank-btn.p-active{background:rgba(52,152,219,.3);border-color:var(--player);color:#fff;}
+.rank-btn.b-active{background:rgba(231,76,60,.3);border-color:var(--banker);color:#fff;}
+
+.action-row{display:flex;gap:6px;margin-top:10px;}
+.action-row button{flex:1;padding:16px 8px;font-size:15px;font-weight:800;border-radius:8px;border:none;cursor:pointer;font-family:inherit;letter-spacing:2px;}
+.btn-record{background:var(--gold);color:#0d1117;}
+.btn-record:hover{filter:brightness(1.1);}
+.btn-undo{background:#21262d;color:var(--muted);}
+.btn-undo:hover{color:#e74c3c;background:#30363d;}
+
+.last-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;min-height:16px;}
 .last-hint b{color:var(--text);}
 
-/* 通用 */
 .settings-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .settings-row label{font-size:12px;color:var(--muted);}
 select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;-webkit-appearance:none;appearance:none;}
@@ -89,16 +99,47 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:4px;}
 .scroll::-webkit-scrollbar{height:6px;}
 .scroll::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
+
 .cell{position:relative;width:22px;height:22px;flex:0 0 auto;}
 .dot{position:absolute;inset:3px;border-radius:50%;}
 .dot.banker{background:var(--banker);}
 .dot.player{background:var(--player);}
 .dot.tie{background:var(--tie);}
+.cell.has-tie::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:var(--tie);border-radius:1px;transform:rotate(-45deg);pointer-events:none;}
+
 .bead{display:grid;grid-template-rows:repeat(6,22px);grid-auto-flow:column;grid-auto-columns:22px;gap:2px;width:max-content;}
 .bigroad{display:flex;gap:2px;width:max-content;}
 .br-col{display:flex;flex-direction:column;gap:2px;}
-.cell.has-tie::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:var(--tie);border-radius:1px;transform:rotate(-45deg);pointer-events:none;}
-.empty{color:#484f58;font-size:13px;padding:8px 2px;}
+
+.derived-grid{display:grid;gap:6px;margin-top:4px;}
+.derived-row{display:flex;align-items:flex-start;gap:8px;}
+.derived-label{flex:0 0 62px;font-size:11px;color:var(--muted);font-weight:600;padding-top:4px;letter-spacing:.5px;}
+.derived-canvas{overflow-x:auto;padding-bottom:2px;}
+.derived-canvas::-webkit-scrollbar{height:5px;}
+.derived-canvas::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
+.road-grid{
+  display:grid;gap:1px;width:max-content;
+  grid-template-columns:repeat(30,10px);
+  grid-template-rows:repeat(6,10px);
+}
+.road-cell{position:relative;width:10px;height:10px;}
+.road-cell .hoop{position:absolute;inset:0.5px;border-radius:50%;border:1.5px solid var(--muted);}
+.road-cell .hoop.red{border-color:var(--red-mark);}
+.road-cell .hoop.blue{border-color:var(--blue-mark);}
+.road-cell .slash{position:absolute;left:0.5px;right:0.5px;top:4px;height:2px;border-radius:1px;transform:rotate(-45deg);}
+.road-cell .slash.red{background:var(--red-mark);}
+.road-cell .slash.blue{background:var(--blue-mark);}
+
+.road-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:#0d1117;border-radius:6px;}
+.road-legend span{display:flex;align-items:center;gap:4px;}
+.road-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;}
+.road-legend i.red{background:var(--red-mark);}
+.road-legend i.blue{background:var(--blue-mark);}
+.road-legend i.hoop-red{border:2px solid var(--red-mark);background:transparent;}
+.road-legend i.hoop-blue{border:2px solid var(--blue-mark);background:transparent;}
+.road-legend i.slash-red{width:12px;height:2px;border-radius:1px;background:var(--red-mark);transform:rotate(-45deg);}
+.road-legend i.slash-blue{width:12px;height:2px;border-radius:1px;background:var(--blue-mark);transform:rotate(-45deg);}
+
 .rank-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .rank-item{background:#21262d;border-radius:6px;padding:4px 2px;text-align:center;}
 .rank-item .r{font-size:10px;color:var(--muted);display:block;}
@@ -134,6 +175,11 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .data-row button{flex:1;min-width:80px;}
 .btn-mini{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
 .btn-mini:hover{border-color:#484f58;}
+.btn-mini.danger{color:#e74c3c;border-color:rgba(231,76,60,.3);}
+.btn-mini.danger:hover{background:rgba(231,76,60,.15);border-color:#e74c3c;}
+.empty{color:#484f58;font-size:12px;padding:6px 2px;}
+.tip{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;letter-spacing:.5px;}
+.tip b{color:var(--gold);}
 </style>
 </head>
 <body>
@@ -141,31 +187,34 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 <h1>百家樂牌組分析</h1>
 <div id="top-status"><span id="status-dot"></span><span id="status-text">初始化…</span></div>
 
-<!-- 主要輸入區 -->
-<div class="panel" style="padding:14px 10px;">
-  <div class="hand-input">
-    <span class="hand-label p">閒</span>
-    <select id="p1"></select>
-    <select id="p2"></select>
-    <select id="p3"></select>
-    <span class="hand-score" id="p-score">–</span>
-  </div>
-  <div class="hand-input">
-    <span class="hand-label b">莊</span>
-    <select id="b1"></select>
-    <select id="b2"></select>
-    <select id="b3"></select>
-    <span class="hand-score" id="b-score">–</span>
-  </div>
+<div class="panel" style="padding:10px;">
+  <div class="machine-bar" id="machine-bar"></div>
+</div>
 
-  <div class="quick-actions">
-    <button class="primary" id="record">記錄</button>
-    <button class="undo" id="undo">撤銷</button>
+<div class="panel" style="padding:14px 10px;">
+  <div class="hand-section">
+    <div class="hand-header">
+      <span class="hand-title p">閒</span>
+      <span class="hand-total" id="p-score">–</span>
+    </div>
+    <div class="slots" id="p-slots"></div>
+  </div>
+  <div class="hand-section">
+    <div class="hand-header">
+      <span class="hand-title b">莊</span>
+      <span class="hand-total" id="b-score">–</span>
+    </div>
+    <div class="slots" id="b-slots"></div>
+  </div>
+  <div class="rank-grid-buttons" id="rank-buttons"></div>
+  <div class="tip" id="tip">點 <b>閒家第一格</b> 開始輸入</div>
+  <div class="action-row">
+    <button class="btn-record" id="record">記錄</button>
+    <button class="btn-undo" id="undo">撤銷</button>
   </div>
   <div class="last-hint" id="last-hint"></div>
 </div>
 
-<!-- 統計 -->
 <div class="stats">
   <div class="stat"><span class="k">局數</span><span class="v" id="s-total">0</span></div>
   <div class="stat"><span class="k">莊</span><span class="v b" id="s-b">0</span></div>
@@ -173,11 +222,34 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   <div class="stat"><span class="k">和</span><span class="v t" id="s-t">0</span></div>
 </div>
 
+<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead" id="bead"></div></div></div>
+<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad" id="bigroad"></div></div></div>
+
+<div class="panel">
+  <h2>下三路</h2>
+  <div class="road-legend">
+    <span><i class="hoop-red"></i>紅圈</span>
+    <span><i class="hoop-blue"></i>藍圈</span>
+  </div>
+  <div class="derived-grid">
+    <div class="derived-row">
+      <div class="derived-label">大眼仔</div>
+      <div class="derived-canvas"><div class="road-grid" id="bigeye-road"></div></div>
+    </div>
+    <div class="derived-row">
+      <div class="derived-label">小路</div>
+      <div class="derived-canvas"><div class="road-grid" id="small-road"></div></div>
+    </div>
+    <div class="derived-row">
+      <div class="derived-label">蟑螂路</div>
+      <div class="derived-canvas"><div class="road-grid" id="cockroach-road"></div></div>
+    </div>
+  </div>
+</div>
+
 <div class="panel"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
 <div class="panel"><h2>下一手預測</h2><div id="analysis"></div></div>
 <div class="panel"><h2>歷史紀錄</h2><div class="history-list" id="history"></div></div>
-<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead" id="bead"></div></div></div>
-<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad" id="bigroad"></div></div></div>
 
 <div class="panel">
   <h2>牌靴設定</h2>
@@ -190,7 +262,8 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
       <option value="6">6 副</option>
       <option value="8" selected>8 副</option>
     </select>
-    <button id="reset-all" class="btn-ghost">全部重置</button>
+    <button id="rename-machine" class="btn-ghost">重新命名</button>
+    <button id="delete-machine" class="btn-ghost" style="color:#e74c3c;border-color:rgba(231,76,60,.3);">刪除機台</button>
   </div>
 </div>
 
@@ -199,6 +272,7 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   <div class="data-row" style="margin-bottom:6px;">
     <button id="sync-now" class="btn-mini">立即同步</button>
     <button id="force-pull" class="btn-mini">從雲端覆蓋</button>
+    <button id="clear-cloud" class="btn-mini danger">清空雲端</button>
   </div>
   <div class="data-row">
     <button id="export-btn" class="btn-ghost">匯出</button>
@@ -211,19 +285,14 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 (function(){
 'use strict';
 
-/* =====================================================
-   ★★★ 你的設定 ★★★
-   ===================================================== */
 const CONFIG = {
   dbUrl: 'https://baccarat-sync-f6f05-default-rtdb.firebaseio.com',
   roomCode: 'my-baccarat-7f3k9x2m'
 };
-/* ===================================================== */
 
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-// 花色固定用 ♠（不影響百家樂點數計算，只是讓資料格式一致）
 const DEFAULT_SUIT = '♠';
-const STORAGE_KEY = 'baccarat.cards.fb2';
+const STORAGE_KEY = 'baccarat.cards.roads';
 const BASELINE = { banker: 0.4586, player: 0.4462, tie: 0.0952 };
 const SIM_ITER = 2000;
 const POLL_MS = 5000;
@@ -241,11 +310,23 @@ function setStatus(text, cls){
   document.getElementById('status-dot').className = cls || '';
 }
 
-let state = { decks: 8, hands: [], lastModified: 0 };
-let pushTimer = null;
-let pollTimer = null;
-let isPulling = false;
-let lastPushAt = 0;
+let state = { machines: [], activeId: null, lastModified: 0 };
+
+function newMachine(name){
+  return {
+    id: 'm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    name: name || '機台',
+    decks: 8,
+    hands: []
+  };
+}
+
+function getActive(){
+  return state.machines.find(m => m.id === state.activeId) || state.machines[0];
+}
+
+let pushTimer = null, pollTimer = null, isPulling = false, lastPushAt = 0;
+let currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
 
 function loadLocal(){
   if(!storage) return;
@@ -253,14 +334,30 @@ function loadLocal(){
     const raw = storage.getItem(STORAGE_KEY);
     if(!raw) return;
     const d = JSON.parse(raw);
-    if(d && typeof d.decks === 'number') state.decks = d.decks;
-    if(d && Array.isArray(d.hands)) state.hands = d.hands;
-    if(d && typeof d.lastModified === 'number') state.lastModified = d.lastModified;
+    if(d && Array.isArray(d.machines) && d.machines.length){
+      state = d;
+      // 修正：確保每個機台的 hands 是陣列
+      state.machines.forEach(m => {
+        if(!Array.isArray(m.hands)) m.hands = [];
+        if(typeof m.decks !== 'number') m.decks = 8;
+        if(!m.name) m.name = '機台';
+      });
+      if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
+        state.activeId = state.machines[0].id;
+      }
+    }
   }catch(e){}
 }
 function saveLocal(){
   if(!storage) return;
   try{ storage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function ensureDefaultMachine(){
+  if(!state.machines.length){
+    const m = newMachine('機台 1');
+    state.machines.push(m);
+    state.activeId = m.id;
+  }
 }
 
 function rankValue(rank){
@@ -273,13 +370,13 @@ function handValue(cards){
   for(const c of cards) s += rankValue(c.rank);
   return s % 10;
 }
-function getAllUsedCards(){
+function getAllUsedCards(machine){
   const out = [];
-  for(const h of state.hands) out.push(...h.player, ...h.banker);
+  for(const h of machine.hands) out.push(...h.player, ...h.banker);
   return out;
 }
-function getRemainingCards(){
-  const used = getAllUsedCards();
+function getRemainingCards(machine){
+  const used = getAllUsedCards(machine);
   const usedMap = {};
   for(const c of used){
     const k = c.rank + '|' + c.suit;
@@ -290,7 +387,7 @@ function getRemainingCards(){
     for(const s of ['♠','♥','♦','♣']){
       const k = r + '|' + s;
       const usedCount = usedMap[k] || 0;
-      for(let i = 0; i < state.decks - usedCount; i++) remaining.push({ rank: r, suit: s });
+      for(let i = 0; i < machine.decks - usedCount; i++) remaining.push({ rank: r, suit: s });
     }
   }
   return remaining;
@@ -301,18 +398,15 @@ function getWinner(pCards, bCards){
   if(b > p) return 'B';
   return 'T';
 }
-function validateNewCards(newCards){
-  const all = [...getAllUsedCards(), ...newCards];
+function validateNewCards(machine, newCards){
+  const all = [...getAllUsedCards(machine), ...newCards];
   const counts = {};
   for(const c of all){
     const k = c.rank + c.suit;
     counts[k] = (counts[k] || 0) + 1;
   }
-  // 因為花色都被固定為 ♠，所以同一點數最多用 decks 次（寬鬆檢查）
   for(const k in counts){
-    if(counts[k] > state.decks * 4){
-      return '點數 ' + k.split('|')[0] + ' 出現次數超過牌靴上限';
-    }
+    if(counts[k] > machine.decks * 4) return '點數 ' + k.split('|')[0] + ' 出現次數超過牌靴上限';
   }
   return null;
 }
@@ -363,7 +457,6 @@ function syncUrl(){
   const base = CONFIG.dbUrl.replace(/\/+$/, '');
   return base + '/workspaces/' + encodeURIComponent(CONFIG.roomCode) + '.json';
 }
-
 async function cloudRead(){
   const res = await fetch(syncUrl() + '?t=' + Date.now(), { cache: 'no-store' });
   if(!res.ok) throw new Error('HTTP ' + res.status);
@@ -378,17 +471,21 @@ async function cloudWrite(data){
   if(!res.ok) throw new Error('HTTP ' + res.status);
   return await res.json();
 }
-
+async function cloudDelete(){
+  const res = await fetch(syncUrl(), { method: 'DELETE' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return true;
+}
 function schedulePush(){
   if(!isConfigured) return;
   if(pushTimer) clearTimeout(pushTimer);
   pushTimer = setTimeout(pushNow, 600);
 }
-
 async function pushNow(){
   if(!isConfigured) return;
   setStatus('同步中…', 'syncing');
   try{
+    state.lastModified = Date.now();
     await cloudWrite(state);
     lastPushAt = Date.now();
     setStatus('已同步 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
@@ -396,15 +493,14 @@ async function pushNow(){
     setStatus('同步失敗：' + e.message, 'err');
   }
 }
-
 async function pullAndMerge(silent){
   if(!isConfigured || isPulling) return;
   isPulling = true;
   try{
     const remote = await cloudRead();
-    if(!remote || !Array.isArray(remote.hands) || remote.hands.length === 0){
+    if(!remote || !Array.isArray(remote.machines) || remote.machines.length === 0){
       isPulling = false;
-      if(state.hands.length > 0) await pushNow();
+      if(state.machines.length > 0) await pushNow();
       else setStatus('雲端尚無資料', 'on');
       return;
     }
@@ -414,13 +510,19 @@ async function pullAndMerge(silent){
       return;
     }
     if(remoteTime > (state.lastModified || 0)){
-      state = {
-        decks: typeof remote.decks === 'number' ? remote.decks : state.decks,
-        hands: remote.hands,
-        lastModified: remoteTime
-      };
+      const localActive = state.activeId;
+      state = remote;
+      state.machines.forEach(m => {
+        if(!Array.isArray(m.hands)) m.hands = [];
+        if(typeof m.decks !== 'number') m.decks = 8;
+        if(!m.name) m.name = '機台';
+      });
+      if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
+        state.activeId = state.machines[0].id;
+      } else if(localActive && state.machines.find(m => m.id === localActive)){
+        state.activeId = localActive;
+      }
       saveLocal();
-      document.getElementById('decks').value = state.decks;
       render();
       setStatus('已從雲端更新 · ' + new Date(remoteTime).toLocaleTimeString('zh-TW', {hour12:false}), 'on');
     } else if(!silent){
@@ -434,7 +536,6 @@ async function pullAndMerge(silent){
     isPulling = false;
   }
 }
-
 function startPolling(){
   stopPolling();
   pollTimer = setInterval(() => pullAndMerge(true), POLL_MS);
@@ -443,89 +544,81 @@ function stopPolling(){
   if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
 }
 
-/* ========== 輸入 UI（簡化版） ========== */
-function buildRankSelects(){
-  // 三個閒家牌 + 三個莊家牌
-  ['p1','p2','p3','b1','b2','b3'].forEach(id => {
-    const sel = document.getElementById(id);
-    let opts = '<option value="">–</option>';
-    for(const r of RANKS) opts += '<option value="' + r + '">' + r + '</option>';
-    sel.innerHTML = opts;
-    sel.addEventListener('change', onSelectChange);
-    sel.addEventListener('focus', () => sel.select && sel.select());
-  });
-  // 第三張牌預設隱藏，需要時才顯示
-  document.getElementById('p3').classList.add('suit-hidden');
-  document.getElementById('b3').classList.add('suit-hidden');
+/* ========== 路單計算 ========== */
+function getResults(machine){
+  return machine.hands.map(h => getWinner(h.player, h.banker)).filter(r => r !== 'T');
 }
-
-function onSelectChange(){
-  // 判斷是否需要顯示第三張
-  const p1 = document.getElementById('p1').value;
-  const p2 = document.getElementById('p2').value;
-  const b1 = document.getElementById('b1').value;
-  const b2 = document.getElementById('b2').value;
-
-  const pFilled = p1 && p2;
-  const bFilled = b1 && b2;
-
-  // 前兩張都選好後，第三張可以選
-  document.getElementById('p3').classList.toggle('suit-hidden', !pFilled);
-  document.getElementById('b3').classList.toggle('suit-hidden', !bFilled);
-
-  // 更新點數顯示
-  updateScores();
-}
-
-function updateScores(){
-  const p1 = document.getElementById('p1').value;
-  const p2 = document.getElementById('p2').value;
-  const p3 = document.getElementById('p3').value;
-  const b1 = document.getElementById('b1').value;
-  const b2 = document.getElementById('b2').value;
-  const b3 = document.getElementById('b3').value;
-
-  const pCards = [p1, p2, p3].filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
-  const bCards = [b1, b2, b3].filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
-
-  document.getElementById('p-score').textContent = pCards.length >= 2 ? handValue(pCards) : '–';
-  document.getElementById('b-score').textContent = bCards.length >= 2 ? handValue(bCards) : '–';
-}
-
-function clearInput(){
-  ['p1','p2','p3','b1','b2','b3'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('p3').classList.add('suit-hidden');
-  document.getElementById('b3').classList.add('suit-hidden');
-  updateScores();
-}
-
-function readHand(prefix){
-  const cards = [];
-  for(let i = 1; i <= 3; i++){
-    const v = document.getElementById(prefix + i).value;
-    if(v) cards.push({rank: v, suit: DEFAULT_SUIT});
+function buildBigRoad(results){
+  const cols = [];
+  let cur = null;
+  for(const r of results){
+    if(!cur || cur.result !== r){
+      cur = { result: r, cells: [] };
+      cols.push(cur);
+    }
+    cur.cells.push(r);
   }
-  return cards;
+  return cols;
 }
 
 /* ========== 渲染 ========== */
+function renderMachineBar(){
+  const bar = document.getElementById('machine-bar');
+  bar.innerHTML = '';
+  state.machines.forEach(m => {
+    const tab = document.createElement('button');
+    tab.className = 'machine-tab' + (m.id === state.activeId ? ' active' : '');
+    tab.innerHTML = m.name + '<span class="count">' + m.hands.length + '</span>';
+    tab.addEventListener('click', () => {
+      if(m.id === state.activeId) return;
+      state.activeId = m.id;
+      currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
+      saveLocal();
+      document.getElementById('decks').value = m.decks;
+      renderInput();
+      updateLastHint();
+      render();
+    });
+    bar.appendChild(tab);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'machine-tab add';
+  addBtn.textContent = '+ 新增機台';
+  addBtn.addEventListener('click', () => {
+    const name = prompt('機台名稱：', '機台 ' + (state.machines.length + 1));
+    if(name === null) return;
+    const m = newMachine(name.trim() || ('機台 ' + (state.machines.length + 1)));
+    state.machines.push(m);
+    state.activeId = m.id;
+    currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
+    saveLocal();
+    document.getElementById('decks').value = m.decks;
+    renderInput();
+    updateLastHint();
+    render();
+    schedulePush();
+  });
+  bar.appendChild(addBtn);
+}
+
 function renderStats(){
+  const m = getActive();
   let b = 0, p = 0, t = 0;
-  for(const h of state.hands){
+  for(const h of m.hands){
     const w = getWinner(h.player, h.banker);
     if(w === 'B') b++; else if(w === 'P') p++; else t++;
   }
-  document.getElementById('s-total').textContent = state.hands.length;
+  document.getElementById('s-total').textContent = m.hands.length;
   document.getElementById('s-b').textContent = b;
   document.getElementById('s-p').textContent = p;
   document.getElementById('s-t').textContent = t;
 }
+
 function renderBead(){
   const el = document.getElementById('bead');
   el.innerHTML = '';
-  const results = state.hands.map(h => getWinner(h.player, h.banker));
+  const m = getActive();
+  const results = m.hands.map(h => getWinner(h.player, h.banker));
   const cols = Math.max(1, Math.ceil(results.length / 6));
   for(let i = 0; i < cols * 6; i++){
     const cell = document.createElement('div');
@@ -538,44 +631,91 @@ function renderBead(){
     el.appendChild(cell);
   }
 }
+
 function renderBigRoad(){
   const el = document.getElementById('bigroad');
   el.innerHTML = '';
-  const results = state.hands.map(h => getWinner(h.player, h.banker));
-  const cols = [];
-  let cur = null;
-  for(const r of results){
-    if(r === 'T'){
-      if(cur && cur.cells.length) cur.cells[cur.cells.length - 1].ties++;
-      continue;
-    }
-    if(!cur || cur.result !== r){
-      cur = { result: r, cells: [{ ties: 0 }] };
-      cols.push(cur);
-    } else {
-      cur.cells.push({ ties: 0 });
-    }
-  }
+  const m = getActive();
+  const results = getResults(m);
+  const cols = buildBigRoad(results);
   if(!cols.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
   for(const col of cols){
     const colEl = document.createElement('div');
     colEl.className = 'br-col';
-    for(const c of col.cells){
+    for(let i = 0; i < col.cells.length; i++){
       const cell = document.createElement('div');
       cell.className = 'cell';
       const dot = document.createElement('div');
       dot.className = 'dot ' + (col.result === 'B' ? 'banker' : 'player');
       cell.appendChild(dot);
-      if(c.ties > 0) cell.classList.add('has-tie');
       colEl.appendChild(cell);
     }
     el.appendChild(colEl);
   }
 }
+
+function renderDerivedRoad(elId, cols, offset){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  if(cols.length < offset + 1){
+    el.innerHTML = '<span class="empty" style="font-size:11px;">資料不足</span>';
+    return;
+  }
+  const markers = [];
+  for(let c = offset; c < cols.length; c++){
+    const curLen = cols[c].cells.length;
+    const refLen = (cols[c - offset] || cols[0]).cells.length;
+    const leftLen = c > 0 ? cols[c-1].cells.length : 0;
+    for(let r = 0; r < curLen; r++){
+      let color;
+      if(r === 0){
+        const p1 = c >= 1 ? cols[c-1].cells.length : 0;
+        const p2 = c >= 2 ? cols[c-2].cells.length : 0;
+        if(p1 === p2) color = 'blue';
+        else if(refLen > 0) color = 'red';
+        else color = 'blue';
+      } else {
+        if(leftLen > r) color = 'red';
+        else if(refLen > r) color = 'blue';
+        else color = 'red';
+      }
+      markers.push(color);
+    }
+  }
+  if(!markers.length){
+    el.innerHTML = '<span class="empty" style="font-size:11px;">資料不足</span>';
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'road-grid';
+  const totalCells = Math.max(180, markers.length);
+  for(let i = 0; i < totalCells; i++){
+    const cell = document.createElement('div');
+    cell.className = 'road-cell';
+    if(i < markers.length){
+      const hoop = document.createElement('div');
+      hoop.className = 'hoop ' + markers[i];
+      cell.appendChild(hoop);
+    }
+    grid.appendChild(cell);
+  }
+  el.appendChild(grid);
+}
+
+function renderDerivedRoads(){
+  const m = getActive();
+  const results = getResults(m);
+  const cols = buildBigRoad(results);
+  renderDerivedRoad('bigeye-road', cols, 1);
+  renderDerivedRoad('small-road', cols, 2);
+  renderDerivedRoad('cockroach-road', cols, 3);
+}
+
 function renderShoe(){
   const el = document.getElementById('shoe-status');
-  const remaining = getRemainingCards();
-  const total = state.decks * 52;
+  const m = getActive();
+  const remaining = getRemainingCards(m);
+  const total = m.decks * 52;
   const used = total - remaining.length;
   const rankCounts = {};
   for(const r of RANKS) rankCounts[r] = 0;
@@ -590,9 +730,11 @@ function renderShoe(){
   html += '</div>';
   el.innerHTML = html;
 }
+
 function renderAnalysis(){
   const el = document.getElementById('analysis');
-  const remaining = getRemainingCards();
+  const m = getActive();
+  const remaining = getRemainingCards(m);
   if(remaining.length < 8){
     el.innerHTML = '<div class="empty">剩餘牌組不足，無法模擬</div>';
     return;
@@ -619,13 +761,15 @@ function renderAnalysis(){
           '%　·　模擬 ' + r.n + ' 次</div>';
   el.innerHTML = html;
 }
+
 function renderHistory(){
   const el = document.getElementById('history');
-  if(!state.hands.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
+  const m = getActive();
+  if(!m.hands.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
   let html = '';
-  const start = Math.max(0, state.hands.length - 30);
-  for(let i = start; i < state.hands.length; i++){
-    const h = state.hands[i];
+  const start = Math.max(0, m.hands.length - 30);
+  for(let i = start; i < m.hands.length; i++){
+    const h = m.hands[i];
     const w = getWinner(h.player, h.banker);
     const pStr = h.player.map(c => c.rank).join(' ');
     const bStr = h.banker.map(c => c.rank).join(' ');
@@ -636,10 +780,13 @@ function renderHistory(){
   }
   el.innerHTML = html;
 }
+
 function render(){
+  renderMachineBar();
   renderStats();
   renderBead();
   renderBigRoad();
+  renderDerivedRoads();
   renderShoe();
   renderAnalysis();
   renderHistory();
@@ -647,8 +794,9 @@ function render(){
 
 function updateLastHint(){
   const el = document.getElementById('last-hint');
-  if(!state.hands.length){ el.textContent = ''; return; }
-  const last = state.hands[state.hands.length - 1];
+  const m = getActive();
+  if(!m.hands.length){ el.textContent = ''; return; }
+  const last = m.hands[m.hands.length - 1];
   const w = getWinner(last.player, last.banker);
   const pStr = last.player.map(c => c.rank).join(' ');
   const bStr = last.banker.map(c => c.rank).join(' ');
@@ -656,62 +804,172 @@ function updateLastHint(){
   el.innerHTML = '上一局：閒 <b>' + pStr + '</b>　莊 <b>' + bStr + '</b>　→ <b>' + wTxt + '</b>';
 }
 
+/* ========== 輸入 UI ========== */
+function buildSlots(){
+  ['p', 'b'].forEach(side => {
+    const container = document.getElementById(side + '-slots');
+    container.innerHTML = '';
+    for(let i = 0; i < 3; i++){
+      const slot = document.createElement('div');
+      slot.className = 'slot empty';
+      slot.dataset.side = side;
+      slot.dataset.idx = i;
+      slot.addEventListener('click', () => {
+        if(!currentInput[side][i] && i > 0 && !currentInput[side][i-1]) return;
+        currentInput.activeSide = side;
+        currentInput.activeIdx = i;
+        renderInput();
+      });
+      container.appendChild(slot);
+    }
+  });
+}
+
+function buildRankButtons(){
+  const container = document.getElementById('rank-buttons');
+  container.innerHTML = '';
+  RANKS.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'rank-btn';
+    btn.textContent = r;
+    btn.dataset.rank = r;
+    btn.addEventListener('click', () => {
+      const side = currentInput.activeSide;
+      const idx = currentInput.activeIdx;
+      currentInput[side][idx] = r;
+
+      if(idx === 0){ currentInput.activeIdx = 1; }
+      else if(idx === 1){
+        if(side === 'p'){
+          currentInput.activeSide = 'b';
+          currentInput.activeIdx = 0;
+        } else if(side === 'b'){
+          currentInput.activeSide = 'p';
+          currentInput.activeIdx = 2;
+        }
+      } else if(idx === 2){
+        if(side === 'p'){ currentInput.activeSide = 'b'; currentInput.activeIdx = 2; }
+      }
+      renderInput();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderInput(){
+  ['p','b'].forEach(side => {
+    const container = document.getElementById(side + '-slots');
+    const slots = container.querySelectorAll('.slot');
+    slots.forEach((slot, i) => {
+      const val = currentInput[side][i];
+      if(val){
+        slot.textContent = val;
+        slot.classList.remove('empty');
+        slot.classList.add('filled');
+      } else {
+        slot.textContent = '';
+        slot.classList.add('empty');
+        slot.classList.remove('filled');
+      }
+      if(side === currentInput.activeSide && i === currentInput.activeIdx){
+        slot.classList.add('active');
+      } else {
+        slot.classList.remove('active');
+      }
+    });
+  });
+
+  const pCards = currentInput.p.filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
+  const bCards = currentInput.b.filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
+  document.getElementById('p-score').textContent = pCards.length >= 2 ? handValue(pCards) : '–';
+  document.getElementById('b-score').textContent = bCards.length >= 2 ? handValue(bCards) : '–';
+
+  const tip = document.getElementById('tip');
+  if(currentInput.activeSide === 'p'){
+    tip.innerHTML = '請點數字輸入 <b>閒家第 ' + (currentInput.activeIdx + 1) + ' 張</b>';
+  } else {
+    tip.innerHTML = '請點數字輸入 <b>莊家第 ' + (currentInput.activeIdx + 1) + ' 張</b>';
+  }
+
+  document.querySelectorAll('.rank-btn').forEach(b => {
+    b.classList.remove('p-active', 'b-active');
+    if(currentInput.activeSide === 'p') b.classList.add('p-active');
+    else b.classList.add('b-active');
+  });
+}
+
+function clearInput(){
+  currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
+  renderInput();
+}
+function readHand(side){
+  return currentInput[side].filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
+}
+
 /* ========== 記錄 ========== */
 function recordHand(){
+  const m = getActive();
   const pCards = readHand('p');
   const bCards = readHand('b');
-
-  if(pCards.length < 2 || bCards.length < 2){
-    alert('閒家和莊家至少各需兩張牌');
-    return;
-  }
-  const err = validateNewCards([...pCards, ...bCards]);
+  if(pCards.length < 2 || bCards.length < 2){ alert('閒家和莊家至少各需兩張牌'); return; }
+  const err = validateNewCards(m, [...pCards, ...bCards]);
   if(err){ alert(err); return; }
-
-  state.hands.push({ player: pCards, banker: bCards });
+  m.hands.push({ player: pCards, banker: bCards });
   state.lastModified = Date.now();
   saveLocal();
   clearInput();
   updateLastHint();
   render();
   schedulePush();
-
-  // 記錄後自動把焦點放回第一張，方便連續輸入
-  setTimeout(() => document.getElementById('p1').focus(), 50);
 }
 
 document.getElementById('record').addEventListener('click', recordHand);
 document.getElementById('undo').addEventListener('click', function(){
-  if(!state.hands.length) return;
-  state.hands.pop();
+  const m = getActive();
+  if(!m.hands.length) return;
+  m.hands.pop();
   state.lastModified = Date.now();
   saveLocal();
-  updateLastHint();
-  render();
-  schedulePush();
-});
-
-document.getElementById('reset-all').addEventListener('click', function(){
-  if(state.hands.length && !confirm('確定要清空全部紀錄？')) return;
-  state.hands = [];
-  state.lastModified = Date.now();
-  saveLocal();
-  clearInput();
   updateLastHint();
   render();
   schedulePush();
 });
 
 document.getElementById('decks').addEventListener('change', function(){
+  const m = getActive();
   const newDecks = parseInt(this.value, 10);
-  if(newDecks < state.decks && state.hands.length){
-    if(!confirm('減少副數可能導致已記錄的牌超出牌靴，確定要繼續？')){
-      this.value = state.decks; return;
-    }
+  if(newDecks < m.decks && m.hands.length){
+    if(!confirm('減少副數可能導致已記錄的牌超出牌靴，確定要繼續？')){ this.value = m.decks; return; }
   }
-  state.decks = newDecks;
+  m.decks = newDecks;
   state.lastModified = Date.now();
   saveLocal();
+  render();
+  schedulePush();
+});
+
+document.getElementById('rename-machine').addEventListener('click', function(){
+  const m = getActive();
+  const name = prompt('新名稱：', m.name);
+  if(name === null) return;
+  m.name = name.trim() || m.name;
+  state.lastModified = Date.now();
+  saveLocal();
+  renderMachineBar();
+  schedulePush();
+});
+
+document.getElementById('delete-machine').addEventListener('click', function(){
+  if(state.machines.length <= 1){ alert('至少需要保留一個機台'); return; }
+  const m = getActive();
+  if(!confirm('刪除「' + m.name + '」？此動作無法復原。')) return;
+  state.machines = state.machines.filter(x => x.id !== m.id);
+  state.activeId = state.machines[0].id;
+  state.lastModified = Date.now();
+  saveLocal();
+  document.getElementById('decks').value = getActive().decks;
+  clearInput();
+  updateLastHint();
   render();
   schedulePush();
 });
@@ -724,20 +982,40 @@ document.getElementById('force-pull').addEventListener('click', function(){
   if(!confirm('將以雲端資料覆蓋本機紀錄，確定嗎？')) return;
   if(!isConfigured){ alert('尚未設定 Firebase'); return; }
   cloudRead().then(remote => {
-    if(!remote || !Array.isArray(remote.hands)){
-      alert('雲端尚無資料');
-      return;
+    if(!remote || !Array.isArray(remote.machines)){ alert('雲端尚無資料'); return; }
+    const localActive = state.activeId;
+    state = remote;
+    state.machines.forEach(m => {
+      if(!Array.isArray(m.hands)) m.hands = [];
+      if(typeof m.decks !== 'number') m.decks = 8;
+      if(!m.name) m.name = '機台';
+    });
+    if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
+      state.activeId = state.machines[0].id;
+    } else if(localActive && state.machines.find(m => m.id === localActive)){
+      state.activeId = localActive;
     }
-    state = {
-      decks: typeof remote.decks === 'number' ? remote.decks : 8,
-      hands: remote.hands,
-      lastModified: remote.lastModified || Date.now()
-    };
     saveLocal();
-    document.getElementById('decks').value = state.decks;
+    document.getElementById('decks').value = getActive().decks;
+    updateLastHint();
     render();
     setStatus('已強制覆蓋本機', 'on');
   }).catch(e => setStatus('讀取失敗：' + e.message, 'err'));
+});
+
+/* 清空雲端 */
+document.getElementById('clear-cloud').addEventListener('click', function(){
+  if(!isConfigured){ alert('尚未設定 Firebase'); return; }
+  if(!confirm('⚠️ 將清空雲端上的所有資料！\n\n本機資料不會被刪除，但雲端會變成空白。\n\n確定要繼續嗎？')) return;
+  if(!confirm('再次確認：雲端資料將永久刪除，無法復原。')) return;
+
+  setStatus('清空中…', 'syncing');
+  cloudDelete().then(() => {
+    lastPushAt = 0;
+    setStatus('✓ 雲端已清空 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
+  }).catch(e => {
+    setStatus('清空失敗：' + e.message, 'err');
+  });
 });
 
 document.getElementById('export-btn').addEventListener('click', function(){
@@ -748,10 +1026,8 @@ document.getElementById('export-btn').addEventListener('click', function(){
   const t = new Date();
   const stamp = t.getFullYear() + String(t.getMonth()+1).padStart(2,'0') +
                 String(t.getDate()).padStart(2,'0') + '_' +
-                String(t.getHours()).padStart(2,'0') +
-                String(t.getMinutes()).padStart(2,'0');
-  a.href = url;
-  a.download = 'baccarat_' + stamp + '.json';
+                String(t.getHours()).padStart(2,'0') + String(t.getMinutes()).padStart(2,'0');
+  a.href = url; a.download = 'baccarat_' + stamp + '.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
@@ -767,13 +1043,21 @@ document.getElementById('import-file').addEventListener('change', function(e){
   reader.onload = function(ev){
     try{
       const d = JSON.parse(ev.target.result);
-      if(!d || !Array.isArray(d.hands)) throw new Error('格式不正確');
-      if(!confirm('匯入將覆蓋目前紀錄，確定嗎？')) return;
-      state.decks = (typeof d.decks === 'number') ? d.decks : 8;
-      state.hands = d.hands;
+      if(!d || !Array.isArray(d.machines)) throw new Error('格式不正確');
+      if(!confirm('匯入將覆蓋目前所有機台，確定嗎？')) return;
+      state = d;
+      state.machines.forEach(m => {
+        if(!Array.isArray(m.hands)) m.hands = [];
+        if(typeof m.decks !== 'number') m.decks = 8;
+        if(!m.name) m.name = '機台';
+      });
+      if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
+        state.activeId = state.machines[0].id;
+      }
       state.lastModified = Date.now();
-      document.getElementById('decks').value = state.decks;
       saveLocal();
+      document.getElementById('decks').value = getActive().decks;
+      clearInput();
       updateLastHint();
       render();
       schedulePush();
@@ -783,36 +1067,17 @@ document.getElementById('import-file').addEventListener('change', function(e){
   reader.readAsText(file);
 });
 
-/* 鍵盤：Enter 記錄 */
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Enter' && !e.ctrlKey && !e.metaKey){
-    const tag = (e.target.tagName || '').toLowerCase();
-    if(tag === 'select' || tag === 'input'){
-      // 在選單上按 Enter：關閉選單並移到下一個
-      e.preventDefault();
-      const all = ['p1','p2','p3','b1','b2','b3'];
-      const idx = all.indexOf(e.target.id);
-      if(idx >= 0 && idx < all.length - 1){
-        const next = document.getElementById(all[idx + 1]);
-        if(!next.classList.contains('suit-hidden')) next.focus();
-      }
-    }
-  }
-  if(e.key === 'z' && !e.ctrlKey && !e.metaKey){
-    const tag = (e.target.tagName || '').toLowerCase();
-    if(tag !== 'select' && tag !== 'input') document.getElementById('undo').click();
-  }
-});
-
 document.addEventListener('visibilitychange', function(){
   if(!document.hidden && isConfigured) pullAndMerge(true);
 });
 
 /* 初始化 */
 loadLocal();
-document.getElementById('decks').value = state.decks;
-buildRankSelects();
-updateScores();
+ensureDefaultMachine();
+document.getElementById('decks').value = getActive().decks;
+buildSlots();
+buildRankButtons();
+renderInput();
 updateLastHint();
 render();
 
