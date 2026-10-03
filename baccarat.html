@@ -196,6 +196,10 @@ body.viewing-shoe .dock-body{opacity:.35;pointer-events:none;}
 .ov-h{font-size:13px;font-weight:800;color:#e6edf3;margin:14px 0 4px;}
 .ov-note{font-size:11px;color:#6e7681;margin-top:6px;line-height:1.5;}
 
+.bonus-row label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text);}
+.num-input{width:110px;height:44px;background:#21262d;color:#e6edf3;border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:16px;font-family:inherit;}
+.bonus-hint{flex-basis:100%;font-size:12px;color:var(--muted);}
+
 /* ---- 設定（摺疊） ---- */
 details.panel > summary{list-style:none;cursor:pointer;font-size:13px;color:var(--muted);letter-spacing:1px;min-height:28px;display:flex;align-items:center;}
 details.panel > summary::-webkit-details-marker{display:none;}
@@ -527,6 +531,14 @@ body.modal-open{overflow:hidden;}
     </div>
   </div>
   <div class="set-group">
+    <h3>三寶齊開加送（和＋莊對＋閒對同一手都中）</h3>
+    <div class="settings-row bonus-row">
+      <label>每注 <input type="number" inputmode="numeric" min="1" step="1" id="unit-bet" class="num-input"></label>
+      <label>加送 <input type="number" inputmode="numeric" min="0" step="1" id="bonus-amt" class="num-input"></label>
+      <span class="bonus-hint" id="bonus-hint"></span>
+    </div>
+  </div>
+  <div class="set-group">
     <h3>雲端資料</h3>
     <div class="data-row">
       <button id="force-pull" class="btn-mini">重新載入</button>
@@ -767,7 +779,11 @@ const PAYOUT = { B: 0.95, P: 1, T: 8, BP: 11, PP: 11 };
 /* 組合注：TRI＝和＋莊對＋閒對各 1 注；DP＝莊對＋閒對各 1 注 */
 const COMBO = { TRI: ['T', 'BP', 'PP'], DP: ['BP', 'PP'] };
 function betPnl(side, w, bp, pp){
-  if(COMBO[side]) return COMBO[side].reduce((a, k) => a + betPnl(k, w, bp, pp), 0);
+  if(COMBO[side]){
+    let g = COMBO[side].reduce((a, k) => a + betPnl(k, w, bp, pp), 0);
+    if(side === 'TRI' && w === 'T' && bp && pp) g += bonusUnits();   // 三寶齊開加送
+    return g;
+  }
   if(side === 'B' || side === 'P'){ if(w === 'T') return 0; return side === w ? PAYOUT[side] : -1; }
   const hit = side === 'T' ? w === 'T' : side === 'BP' ? bp : pp;
   return hit ? PAYOUT[side] : -1;
@@ -838,6 +854,21 @@ function pairJoint(rc){
 }
 /* 新靴時的基準（依副數） */
 const pairJointBase = decks => { const rc = {}; RANKS.forEach(r => rc[r] = decks * 4); return pairJoint(rc); };
+
+/* ========== 三寶齊開加送 ==========
+   和＋莊對＋閒對同一手都押中時加送獎金；以「注」計＝加送金額 ÷ 每注金額 */
+function unitBet(){ const v = +getPrefs().unitBet; return v > 0 ? v : 300; }
+function bonusAmt(){ const v = +getPrefs().bonusAmt; return v >= 0 && getPrefs().bonusAmt != null ? v : 50000; }
+function bonusUnits(){ return bonusAmt() / unitBet(); }
+function fmtMoney(units){
+  const v = Math.round(units * unitBet());
+  return (v > 0 ? '+' : v < 0 ? '−' : '') + '$' + Math.abs(v).toLocaleString('en-US');
+}
+/* 三注（和＋莊對＋閒對）合計期望值，含加送 */
+function tripleEV(o, pairP, joint){
+  const ev = betEVs(o, pairP);
+  return ev.T + ev.BP + ev.PP + (joint ? joint.tieBoth * bonusUnits() : 0);
+}
 
 /* ========== 精確機率 ==========
    依剩餘牌各點數（0~9）張數，窮舉閒1、莊1、閒2、莊2 及補牌，算出莊／閒／和的精確機率 */
@@ -995,7 +1026,14 @@ async function pushNow(){
   }
 }
 function fmtBytes(n){ return n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KB'; }
+function syncBonusInputs(){
+  const u = document.getElementById('unit-bet'), b = document.getElementById('bonus-amt');
+  if(document.activeElement !== u) u.value = unitBet();
+  if(document.activeElement !== b) b.value = bonusAmt();
+  document.getElementById('bonus-hint').textContent = '＝每注的 ' + (+bonusUnits().toFixed(2)) + ' 倍；盈虧金額以每注 $' + unitBet().toLocaleString('en-US') + ' 換算';
+}
 function refreshAll(){
+  syncBonusInputs();
   applySectionLayout();
   document.getElementById('decks').value = getActive().decks;
   updateLastHint();
@@ -1187,7 +1225,7 @@ function renderRoadViewModal(){
   document.getElementById('rv-stats').innerHTML =
     '<span>押中 <b>' + d.hits + '</b></span><span>未中 <b>' + (d.bets - d.hits) + '</b></span>' +
     '<span>成功率 <b>' + (d.bets ? (d.hits / d.bets * 100).toFixed(1) + '%' : '—') + '</b></span>' +
-    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注</span>' +
+    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注（' + fmtMoney(d.pnl) + '）</span>' +
     '<span>下一手 <b>' + (d.next && d.next.side ? sideTxt(d.next.side) : '觀望') + '</b></span>';
   drawBigRoad(document.getElementById('rv-board'), m, d.pts, idxs => {
     document.getElementById('rv-info').innerHTML = idxs.map(j => rvDesc(d.pts[j], j)).join('<br>');
@@ -1505,6 +1543,12 @@ function renderAnalysis(){
   const ev = betEVs(r, pairP);
   html += '<div class="ev-row">每注期望值　' + [['B', '莊'], ['P', '閒'], ['T', '和'], ['BP', '對子']].map(([k, lb]) =>
     lb + ' <b class="' + (ev[k] > 0 ? 'pos' : 'neg') + '">' + (ev[k] > 0 ? '+' : '') + (ev[k] * 100).toFixed(2) + '%</b>').join('　') + '</div>';
+  const jt = pairJoint(rankCounts(m, m.hands.length));
+  if(jt){
+    const tri = tripleEV(r, pairP, jt);
+    html += '<div class="ev-row">三注齊押（和＋莊對＋閒對，含加送 ' + fmtMoney(bonusUnits()).replace('+', '') + '）合計期望 <b class="' + (tri > 0 ? 'pos' : 'neg') + '">' +
+      (tri > 0 ? '+' : '') + tri.toFixed(3) + ' 注（' + fmtMoney(tri) + '）</b>　三寶齊開機率 ' + (jt.tieBoth * 100).toFixed(3) + '%</div>';
+  }
   el.innerHTML = html;
 }
 
@@ -1727,6 +1771,15 @@ const STRATEGIES = [
       return { side, conf: Math.max(o.banker, o.player) / (o.banker + o.player) * 100 };
     }
   },
+  {
+    id: 'Talways', name: '只押和', short: '只和', ref: 100 / 9, ymax: 30,
+    rule: '每一手都押和 1 注（賠 8 倍），當作押和的比較基準。信心率＝依剩餘牌精確算出的和局機率；基準＝損益兩平 11.11%',
+    predict: ctx => {
+      const o = exactOdds(ctx.counts);
+      if(!o) return null;
+      return { side: 'T', conf: o.tie * 100, ev: o.tie * (PAYOUT.T + 1) - 1 };
+    }
+  },
   ...sideBetStrategies(),
   {
     id: 'ev', name: '正期望值', short: '期望', chart: 'pnl',
@@ -1742,24 +1795,23 @@ const STRATEGIES = [
   },
   {
     id: 'triple', name: '三注齊押', short: '三注', chart: 'pnl',
-    rule: '同一手同時押和、莊對、閒對各 1 注。依剩餘牌精確計算三注合計期望值，大於 0 才押。信心率＝平均每注期望值',
+    rule: '同一手同時押和、莊對、閒對各 1 注。依剩餘牌精確計算三注合計期望值（含三寶齊開加送），大於 0 才押。信心率＝平均每注期望值',
     predict: ctx => {
-      const o = exactOdds(ctx.counts), pp = pairProbFromCounts(ctx.rcounts);
+      const o = exactOdds(ctx.counts), pp = pairProbFromCounts(ctx.rcounts), j = pairJoint(ctx.rcounts);
       if(!o || pp == null) return null;
-      const ev = betEVs(o, pp), sum = ev.T + ev.BP + ev.PP;
+      const sum = tripleEV(o, pp, j);
       // ev：三注合計的期望值（注），用於預期盈虧
       return { side: sum > 0 ? 'TRI' : null, conf: sum / 3 * 100, ev: sum, best: 'TRI' };
     }
   },
   {
     id: 'tieBoth', name: '三寶齊開', short: '三寶', chart: 'pnl',
-    rule: '預測同一手「和＋莊對＋閒對」三個同時開出。機率達到新靴時的 2 倍以上，就同時押和、莊對、閒對各 1 注。信心率＝三個同時開出的精確機率',
+    rule: '預測同一手「和＋莊對＋閒對」三個同時開出。機率達到新靴時的 2 倍以上，就同時押和、莊對、閒對各 1 注；三個都中時另有加送（設定與資料可改）。信心率＝三個同時開出的精確機率',
     predict: ctx => {
       const j = pairJoint(ctx.rcounts), base = pairJointBase(ctx.machine.decks);
       const o = exactOdds(ctx.counts), pp = pairProbFromCounts(ctx.rcounts);
       if(!j || !base || !o || pp == null) return null;
-      const ev = betEVs(o, pp);
-      return { side: j.tieBoth >= base.tieBoth * 2 ? 'TRI' : null, conf: j.tieBoth * 100, ev: ev.T + ev.BP + ev.PP, best: 'TRI' };
+      return { side: j.tieBoth >= base.tieBoth * 2 ? 'TRI' : null, conf: j.tieBoth * 100, ev: tripleEV(o, pp, j), best: 'TRI' };
     }
   },
   {
@@ -2010,14 +2062,14 @@ function stratCard({ st, k, d, pinned }){
     '<div class="strat-kpi"><span>成功率 <b>' + (d.bets ? (d.hits / d.bets * 100).toFixed(1) + '%' : '—') + '</b></span>' +
     '<span>押中 <b>' + d.hits + '</b></span><span>未中 <b>' + (d.bets - d.hits) + '</b></span><span>共 ' + d.bets + ' 手</span>' +
     (st.ref ? '<span>基準 ' + st.ref.toFixed(2) + '%</span>' : '') +
-    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注</span></div>' +
+    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注（' + fmtMoney(d.pnl) + '）</span></div>' +
     '<div class="chart" data-k="' + k + '"></div></div>';
 }
 
 /* ========== 全機台總覽 ==========
    每台機台回測所有策略，挑盈虧最高者（至少押 5 次）；另加全部機台合計排行 */
 const OV_MIN_BETS = 5;
-const btCache = new WeakMap();                        // hands 陣列 → 回測結果（陣列被換掉時自動回收）
+let btCache = new WeakMap();                        // hands 陣列 → 回測結果（陣列被換掉時自動回收）
 function backtestHands(hands, decks){
   const hit = btCache.get(hands);
   if(hit && hit.len === hands.length && hit.decks === decks) return hit.data;
@@ -2938,6 +2990,17 @@ document.getElementById('decks').addEventListener('change', function(){
   schedulePush();
 });
 
+['unit-bet', 'bonus-amt'].forEach(id => document.getElementById(id).addEventListener('change', function(){
+  if(!ready()){ syncBonusInputs(); return; }
+  const v = Math.max(id === 'unit-bet' ? 1 : 0, Math.round(+this.value || 0));
+  getPrefs()[id === 'unit-bet' ? 'unitBet' : 'bonusAmt'] = v;
+  lastBT = null; btCache = new WeakMap();           // 加送改變：重新回測
+  state.lastModified = Date.now();
+  syncBonusInputs();
+  render();
+  schedulePush();
+}));
+
 document.getElementById('rename-machine').addEventListener('click', function(){
   if(!editable()) return;
   const m = getActive();
@@ -3046,6 +3109,7 @@ document.getElementById('decks').value = getActive().decks;
 buildSlots();
 buildKeypad();
 clearInput();
+syncBonusInputs();
 updateLastHint();
 render();
 
