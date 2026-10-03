@@ -173,28 +173,23 @@ select:focus{outline:none;border-color:#58a6ff;}
 
 /* =====================================================
    ★★★ 只要改這裡 ★★★
-   1. owner 填你的 GitHub 帳號
-   2. repo 填你的倉庫名稱
-   3. token 填你剛複製的 github_pat_xxxxx
    ===================================================== */
 const CONFIG = {
-  owner: 'tomy11245',
-  repo: 'tomy11245.github.io',
-  path: 'data.json',
-  token: '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'
+  dbUrl: 'https://baccarat-sync-f6f05-default-rtdb.firebaseio.com',
+  roomCode: 'my-baccarat-7f3k9x2m'
 };
 /* ===================================================== */
 
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['♠','♥','♦','♣'];
-const STORAGE_KEY = 'baccarat.cards.v5';
+const STORAGE_KEY = 'baccarat.cards.fb';
 const BASELINE = { banker: 0.4586, player: 0.4462, tie: 0.0952 };
 const SIM_ITER = 2000;
 const POLL_MS = 5000;
 
-const isConfigured = CONFIG.owner && CONFIG.owner !== '你的GitHub帳號'
-  && CONFIG.repo && CONFIG.repo !== '你的倉庫名稱'
-  && CONFIG.token && CONFIG.token.length > 20;
+const isConfigured = CONFIG.dbUrl && CONFIG.dbUrl.indexOf('http') === 0
+  && CONFIG.dbUrl.indexOf('這裡貼') === -1
+  && CONFIG.roomCode && CONFIG.roomCode.length >= 3;
 
 const storage = (function(){
   try{ const k='__t__'; window.localStorage.setItem(k,'1'); window.localStorage.removeItem(k); return window.localStorage; }
@@ -207,7 +202,6 @@ function setStatus(text, cls){
 }
 
 let state = { decks: 8, hands: [], lastModified: 0 };
-let fileSha = null;
 let pushTimer = null;
 let pollTimer = null;
 let isPulling = false;
@@ -321,63 +315,31 @@ function simulate(remaining, iterations){
   return { banker: b/n, player: p/n, tie: t/n, n: n };
 }
 
-/* ========== GitHub Contents API ========== */
-function apiUrl(){
-  return 'https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo +
-         '/contents/' + CONFIG.path;
-}
-function headers(){
-  return {
-    'Authorization': 'token ' + CONFIG.token,
-    'Accept': 'application/vnd.github+json'
-  };
-}
-function b64DecodeUnicode(str){
-  return decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
-}
-function b64EncodeUnicode(str){
-  return btoa(unescape(encodeURIComponent(str)));
+/* ========== Firebase 同步 ========== */
+function syncUrl(){
+  const base = CONFIG.dbUrl.replace(/\/+$/, '');
+  return base + '/workspaces/' + encodeURIComponent(CONFIG.roomCode) + '.json';
 }
 
 async function cloudRead(){
-  const res = await fetch(apiUrl() + '?t=' + Date.now(), { headers: headers(), cache: 'no-store' });
-  if(res.status === 404) return null;
-  if(!res.ok){
-    const err = await res.json().catch(() => ({}));
-    throw new Error('HTTP ' + res.status + (err.message ? ': ' + err.message : ''));
-  }
-  const json = await res.json();
-  fileSha = json.sha;
-  const content = b64DecodeUnicode(json.content);
-  return JSON.parse(content);
+  const res = await fetch(syncUrl() + '?t=' + Date.now(), { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
 }
-
 async function cloudWrite(data){
-  const body = {
-    message: 'update baccarat data',
-    content: b64EncodeUnicode(JSON.stringify(data, null, 2))
-  };
-  if(fileSha) body.sha = fileSha;
-
-  const res = await fetch(apiUrl(), {
+  const res = await fetch(syncUrl(), {
     method: 'PUT',
-    headers: Object.assign({ 'Content-Type': 'application/json' }, headers()),
-    body: JSON.stringify(body)
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
   });
-  if(!res.ok){
-    const err = await res.json().catch(() => ({}));
-    if(res.status === 409) throw new Error('CONFLICT');
-    throw new Error('HTTP ' + res.status + (err.message ? ': ' + err.message : ''));
-  }
-  const json = await res.json();
-  if(json.content && json.content.sha) fileSha = json.content.sha;
-  return json;
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
 }
 
 function schedulePush(){
   if(!isConfigured) return;
   if(pushTimer) clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushNow, 800);
+  pushTimer = setTimeout(pushNow, 600);
 }
 
 async function pushNow(){
@@ -388,18 +350,7 @@ async function pushNow(){
     lastPushAt = Date.now();
     setStatus('已同步 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
   }catch(e){
-    if(e.message === 'CONFLICT'){
-      await pullAndMerge(true);
-      try{
-        await cloudWrite(state);
-        lastPushAt = Date.now();
-        setStatus('已同步（解決衝突）', 'on');
-      }catch(e2){
-        setStatus('同步失敗：' + e2.message, 'err');
-      }
-    } else {
-      setStatus('同步失敗：' + e.message, 'err');
-    }
+    setStatus('同步失敗：' + e.message, 'err');
   }
 }
 
@@ -408,21 +359,17 @@ async function pullAndMerge(silent){
   isPulling = true;
   try{
     const remote = await cloudRead();
-
     if(!remote || !Array.isArray(remote.hands) || remote.hands.length === 0){
       isPulling = false;
       if(state.hands.length > 0) await pushNow();
       else setStatus('雲端尚無資料', 'on');
       return;
     }
-
     const remoteTime = remote.lastModified || 0;
-
     if(Date.now() - lastPushAt < 1500){
       if(!silent) setStatus('已是最新', 'on');
       return;
     }
-
     if(remoteTime > (state.lastModified || 0)){
       state = {
         decks: typeof remote.decks === 'number' ? remote.decks : state.decks,
@@ -685,7 +632,7 @@ document.getElementById('sync-now').addEventListener('click', function(){
 
 document.getElementById('force-pull').addEventListener('click', function(){
   if(!confirm('將以雲端資料覆蓋本機紀錄，確定嗎？')) return;
-  if(!isConfigured){ alert('尚未設定 GitHub 資訊'); return; }
+  if(!isConfigured){ alert('尚未設定 Firebase'); return; }
   cloudRead().then(remote => {
     if(!remote || !Array.isArray(remote.hands)){
       alert('雲端尚無資料');
@@ -773,7 +720,7 @@ updateInputScores();
 render();
 
 if(!isConfigured){
-  setStatus('⚠ 尚未設定 GitHub 資訊（見程式碼 CONFIG）', 'err');
+  setStatus('⚠ 尚未設定 Firebase（見程式碼 CONFIG）', 'err');
 } else {
   setStatus('連線中…', 'syncing');
   pullAndMerge(false).then(() => startPolling());
