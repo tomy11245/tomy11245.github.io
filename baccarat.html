@@ -17,14 +17,14 @@ body{
   background:var(--bg); color:var(--text);
   padding:0 10px calc(var(--dock-h, 300px) + 12px);
   font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
-  -webkit-text-size-adjust:100%; font-size:14px;
+  -webkit-text-size-adjust:100%; font-size:15px;
 }
 button,select{touch-action:manipulation;-webkit-user-select:none;user-select:none;}
-h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-weight:500;}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;}
+h2{font-size:12px;margin:0 0 6px;color:var(--muted);letter-spacing:2px;font-weight:500;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;}
 
 /* ---- 頂部（固定）：狀態 + 機台 ---- */
-.topbar{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -10px 8px;padding:calc(env(safe-area-inset-top) + 6px) 10px 6px;border-bottom:1px solid var(--line);}
+.topbar{position:relative;background:var(--bg);margin:0 -10px 8px;padding:calc(env(safe-area-inset-top) + 6px) 10px 6px;border-bottom:1px solid var(--line);}
 #top-status{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:6px;color:var(--muted);min-height:14px;}
 #top-status .title{font-size:13px;font-weight:700;color:#e6edf3;letter-spacing:2px;margin-right:4px;}
 #status-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -33,16 +33,30 @@ h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-wei
 #status-dot.syncing{background:#f0b90b;animation:pulse 1s infinite;}
 #status-dot.err{background:#e74c3c;}
 @keyframes pulse{50%{opacity:.4;}}
-.machine-bar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
-.machine-bar::-webkit-scrollbar{display:none;}
+/* 機台：多列格子，一次看到全部 */
+.machine-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;}
 .machine-tab{
-  flex:0 0 auto;min-height:40px;padding:0 14px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:44px;padding:0 8px;border-radius:8px;
   background:#21262d;border:1px solid var(--line);color:var(--muted);
   font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;
 }
+.machine-tab .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;}
 .machine-tab.active{background:var(--gold);color:#0d1117;border-color:var(--gold);}
-.machine-tab .count{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.2);font-size:11px;}
+.machine-tab .count{flex:0 0 auto;display:inline-block;padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.2);font-size:11px;}
 .machine-tab.add{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:500;}
+
+/* 往下捲後的細固定列：目前機台＋局數，點了回頂部切換 */
+.minibar{position:fixed;left:0;right:0;top:0;z-index:25;display:flex;align-items:center;gap:8px;
+  min-height:44px;padding:calc(env(safe-area-inset-top) + 4px) 12px 4px;background:rgba(13,17,23,.96);border:none;border-bottom:1px solid var(--line);
+  color:var(--text);font-family:inherit;font-size:14px;text-align:left;cursor:pointer;transform:translateY(-110%);transition:transform .18s;}
+.minibar.on{transform:none;}
+.minibar .dot2{width:8px;height:8px;border-radius:50%;background:#484f58;flex:0 0 auto;}
+.minibar .dot2.on{background:#2ecc71;}
+.minibar .dot2.syncing{background:#f0b90b;}
+.minibar .dot2.err{background:#e74c3c;}
+.minibar .mb-name{font-weight:800;color:var(--gold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.minibar .mb-sub{color:var(--muted);font-size:13px;white-space:nowrap;}
+.minibar .mb-act{margin-left:auto;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:4px 8px;white-space:nowrap;}
 
 /* ---- 底部輸入區（固定，拇指可及） ---- */
 .dock{
@@ -53,7 +67,7 @@ h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-wei
 }
 .dock-inner{max-width:560px;margin:0 auto;}
 .dock-top{display:flex;align-items:center;gap:6px;min-height:34px;}
-.last-hint{flex:1;min-width:0;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.last-hint{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .last-hint b{color:var(--text);}
 .dock-btn{flex:0 0 auto;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--muted);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;}
 .dock-btn.danger{color:#ff7b72;border-color:rgba(231,76,60,.35);}
@@ -65,21 +79,21 @@ h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-wei
 .hand.p{border-color:rgba(52,152,219,.45);}
 .hand.b{border-color:rgba(231,76,60,.45);}
 .hand-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;padding:0 2px;}
-.hand-name{font-size:14px;font-weight:800;letter-spacing:1px;}
+.hand-name{font-size:16px;font-weight:800;letter-spacing:1px;}
 .hand.p .hand-name{color:var(--player);}
 .hand.b .hand-name{color:var(--banker);}
-.hand-total{font-size:20px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1;}
+.hand-total{font-size:24px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1;}
 .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
 .slot{
   height:44px;border-radius:7px;background:#161b22;border:2px dashed var(--line);
   display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:800;color:var(--text);cursor:pointer;
+  font-size:23px;font-weight:800;color:var(--text);cursor:pointer;
 }
 .slot.filled{border-style:solid;border-color:#57606a;background:#1c2128;}
 .slot.active{border-style:solid;border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,185,11,.35);}
 .slot.skip{opacity:.3;cursor:default;font-size:12px;font-weight:500;color:var(--muted);}
 
-.tip{font-size:12px;color:var(--muted);text-align:center;margin:2px 0 6px;min-height:18px;}
+.tip{font-size:14px;color:var(--muted);text-align:center;margin:2px 0 6px;min-height:20px;}
 .tip b{color:var(--gold);}
 .tip .res-B{color:var(--banker);font-weight:800;}
 .tip .res-P{color:var(--player);font-weight:800;}
@@ -88,7 +102,7 @@ h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-wei
 .keypad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
 .key{
   height:50px;border-radius:9px;border:1px solid var(--line);
-  background:#21262d;color:var(--text);font-size:19px;font-weight:800;
+  background:#21262d;color:var(--text);font-size:22px;font-weight:800;
   cursor:pointer;font-family:inherit;
 }
 .key:active{transform:scale(.94);filter:brightness(1.25);}
@@ -99,6 +113,63 @@ h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-wei
 .key.rec{background:#2d333b;color:#6e7681;font-size:15px;letter-spacing:1px;}
 .key.rec.ready{background:var(--gold);color:#0d1117;border-color:var(--gold);animation:ready 1.2s ease-in-out infinite;}
 @keyframes ready{50%{box-shadow:0 0 0 4px rgba(240,185,11,.35);}}
+
+/* ---- 右側浮動選單 ---- */
+.panel,.stats{scroll-margin-top:calc(var(--top-h, 100px) + 8px);}
+/* ---- 大分類：可收合、可上下移動 ---- */
+.sec-head{display:flex;align-items:center;gap:4px;margin:-2px 0 6px;}
+.sec.collapsed .sec-head{margin-bottom:-2px;}
+.sec-title{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:40px;padding:0 4px;background:none;border:none;
+  color:#e6edf3;font-size:15px;font-weight:800;letter-spacing:1px;font-family:inherit;text-align:left;cursor:pointer;}
+.sec-title .chev{color:var(--muted);font-size:12px;transition:transform .15s;}
+.sec.collapsed .sec-title .chev{transform:rotate(-90deg);}
+.sec-title .sub{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sec-move{flex:0 0 auto;width:38px;height:38px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--muted);font-size:13px;font-family:inherit;cursor:pointer;}
+.sec-move:disabled{opacity:.3;cursor:default;}
+.sec.collapsed .sec-body{display:none;}
+.sec-body > .stats{margin-bottom:0;}
+.sec.flash{animation:secflash .6s ease-out;}
+@keyframes secflash{0%{box-shadow:0 0 0 3px var(--gold);}100%{box-shadow:0 0 0 0 transparent;}}
+.fab-wrap{position:fixed;right:12px;bottom:calc(var(--dock-h, 300px) + 12px);z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.fab{width:52px;height:52px;border-radius:50%;border:none;background:var(--gold);color:#0d1117;font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.55);}
+.fab[aria-expanded="true"]{background:#e6edf3;}
+.fab-menu{display:flex;flex-direction:column;min-width:168px;max-height:calc(100vh - var(--dock-h, 300px) - var(--top-h, 100px) - 90px);overflow-y:auto;
+  background:#1c2128;border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.6);}
+.fab-menu[hidden]{display:none;}
+.fab-menu a,.fab-menu button{display:flex;align-items:center;min-height:42px;padding:0 12px;border-radius:8px;color:var(--text);text-decoration:none;font-size:15px;font-weight:600;
+  background:none;border:none;font-family:inherit;text-align:left;cursor:pointer;}
+.fab-menu a:active,.fab-menu button:active{background:#30363d;}
+.fab-menu a.cur{background:rgba(240,185,11,.15);color:var(--gold);}
+.fab-menu a.cur::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);margin-right:8px;}
+.fab-sep{height:1px;background:var(--line);margin:4px 6px;}
+
+/* ---- 記錄後提示（可撤銷） ---- */
+.toast{position:fixed;left:50%;bottom:calc(var(--dock-h, 300px) + 12px);transform:translate(-50%, 20px);opacity:0;pointer-events:none;
+  z-index:45;display:flex;align-items:center;gap:12px;max-width:calc(100% - 100px);padding:8px 8px 8px 14px;border-radius:10px;
+  background:#e6edf3;color:#0d1117;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:opacity .2s, transform .2s;}
+.toast.on{opacity:1;transform:translate(-50%, 0);pointer-events:auto;}
+.toast button{height:34px;padding:0 12px;border-radius:8px;border:none;background:#0d1117;color:var(--gold);font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;}
+
+/* ---- 牌靴（換靴／以往牌靴） ---- */
+.dock-btn.newshoe{color:var(--gold);border-color:rgba(240,185,11,.45);}
+.dock-btn.newshoe.urge{background:var(--gold);color:#0d1117;animation:ready 1.2s ease-in-out infinite;}
+.view-banner{display:none;position:sticky;top:var(--top-h, 44px);z-index:22;margin:0 0 8px;padding:8px 10px;border-radius:10px;
+  background:#2b2210;border:1px solid var(--gold);color:var(--text);font-size:14px;align-items:center;gap:8px;flex-wrap:wrap;}
+.view-banner.on{display:flex;}
+.view-banner b{color:var(--gold);}
+.view-banner button{margin-left:auto;height:38px;padding:0 14px;border-radius:8px;border:none;background:var(--gold);color:#0d1117;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;}
+body.viewing-shoe .dock-body{opacity:.35;pointer-events:none;}
+.shoe-list{display:grid;gap:6px;margin-bottom:10px;}
+.shoe-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:#0d1117;border:1px solid var(--line);font-size:13px;}
+.shoe-item.cur{border-color:var(--gold);}
+.shoe-item .no{font-weight:800;color:#e6edf3;flex:0 0 auto;}
+.shoe-item .sum{color:var(--muted);flex:1;min-width:0;}
+.shoe-item .sum b{font-variant-numeric:tabular-nums;}
+.shoe-item .sum .B{color:var(--banker);}
+.shoe-item .sum .P{color:var(--player);}
+.shoe-item .sum .T{color:var(--tie);}
+.shoe-item button{flex:0 0 auto;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;}
+.shoe-item button.on{background:var(--gold);color:#0d1117;border-color:var(--gold);}
 
 /* ---- 設定（摺疊） ---- */
 details.panel > summary{list-style:none;cursor:pointer;font-size:13px;color:var(--muted);letter-spacing:1px;min-height:28px;display:flex;align-items:center;}
@@ -112,10 +183,10 @@ details.panel[open] > summary::after{content:'▾';}
 select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:8px;height:44px;padding:0 12px;font-size:15px;font-family:inherit;-webkit-appearance:none;appearance:none;}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;min-height:44px;padding:0 14px;font-size:14px;cursor:pointer;font-family:inherit;}
 .btn-ghost:hover{border-color:#484f58;color:var(--text);}
-.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 2px;text-align:center;}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:8px;}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 2px;text-align:center;}
 .stat .k{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:2px;}
-.stat .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
+.stat .v{font-size:21px;line-height:1.15;font-weight:800;font-variant-numeric:tabular-nums;}
 .stat .v.b{color:var(--banker);}
 .stat .v.p{color:var(--player);}
 .stat .v.t{color:var(--tie);}
@@ -123,15 +194,19 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .scroll::-webkit-scrollbar{height:6px;}
 .scroll::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
 
-.cell{position:relative;width:22px;height:22px;flex:0 0 auto;}
-.dot{position:absolute;inset:3px;border-radius:50%;}
+.cell{position:relative;width:var(--cell,22px);height:var(--cell,22px);}
+.dot{position:absolute;inset:11%;border-radius:50%;}
 .dot.banker{background:var(--banker);}
 .dot.player{background:var(--player);}
 .dot.tie{background:var(--tie);}
-.pair-mark{position:absolute;width:7px;height:7px;border-radius:50%;border:1px solid #0d1117;z-index:1;}
+/* 珠盤路：珠子中間顯示贏家點數 */
+.dot.num{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;line-height:1;
+  font-size:calc(var(--cell,22px) * .5);font-variant-numeric:tabular-nums;}
+.dot.num.tie{color:#3d2f00;}
+.pair-mark{position:absolute;width:34%;height:34%;border-radius:50%;border:1px solid #0d1117;z-index:1;}
 .pair-mark.b{background:var(--banker);bottom:0;right:0;}
 .pair-mark.p{background:var(--player);bottom:0;left:0;}
-.cell.has-tie::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:var(--tie);border-radius:1px;transform:rotate(-45deg);pointer-events:none;}
+.cell.has-tie::after{content:'';position:absolute;left:8%;right:8%;top:50%;height:3px;margin-top:-1px;background:var(--tie);border-radius:1px;transform:rotate(-45deg);pointer-events:none;}
 
 /* 路單共用：白底 + 格線（格線落在 1px 間隙上，外框由 padding 補齊） */
 .board{
@@ -143,46 +218,61 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   padding:1px;gap:1px;border-radius:2px;width:max-content;
 }
 .board .pair-mark{border-color:#fff;}
-.bead{display:grid;grid-template-rows:repeat(6,22px);grid-template-columns:repeat(15,22px);grid-auto-flow:column;}
-.bigroad{display:grid;grid-template-rows:repeat(6,22px);grid-template-columns:repeat(15,22px);}
-.tie-n{position:absolute;right:1px;top:-1px;font-size:9px;font-weight:800;color:#8a6d00;z-index:2;}
+.bead{display:grid;grid-auto-flow:column;}
+.bigroad{display:grid;}
+/* 大路查看策略：押中綠框✓、未中紅虛框✗、沒押變淡 */
+.rv-bar{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px;padding:6px 8px;border-radius:8px;background:rgba(240,185,11,.12);border:1px solid rgba(240,185,11,.45);font-size:13px;color:var(--text);}
+.rv-bar.on{display:flex;}
+.rv-bar b{color:var(--gold);}
+.rv-bar .rv-stat{color:var(--muted);}
+.rv-bar .rv-stat b{color:#e6edf3;}
+.rv-bar button{margin-left:auto;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;}
+.rv-info{display:none;font-size:13px;color:var(--text);margin-top:6px;min-height:18px;}
+.rv-info.on{display:block;}
+.bigroad.viewing .cell.rv-none{opacity:.28;}
+.cell.rv-hit::before,.cell.rv-miss::before{content:'';position:absolute;inset:0;border-radius:4px;pointer-events:none;z-index:2;}
+.cell.rv-hit::before{border:2px solid #1a7f37;}
+.cell.rv-miss::before{border:2px dashed #cf222e;}
+.rv-badge{position:absolute;top:-1px;font-size:calc(var(--cell,22px) * .4);font-weight:900;line-height:1;z-index:3;padding:0 1px;border-radius:2px;background:#fff;}
+.rv-badge.own{left:-1px;}
+.rv-badge.tie{right:-1px;}
+.rv-badge.ok{color:#1a7f37;}
+.rv-badge.ng{color:#cf222e;}
+.view-btn{height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.view-btn.on{background:rgba(57,135,229,.18);border-color:#3987e5;color:#9cc4f5;}
+.tie-n{position:absolute;right:1px;top:-1px;font-size:10px;font-weight:800;color:#8a6d00;z-index:2;}
 .ask-blink{animation:askblink .5s steps(1) infinite;}
 @keyframes askblink{50%{opacity:0;}}
-.ask-row{display:flex;gap:6px;margin-bottom:8px;}
-.ask-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 6px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.ask-row{display:flex;gap:6px;margin-bottom:6px;}
+.ask-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 6px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
 .ask-btn.b{border-color:rgba(231,76,60,.5);}
 .ask-btn.p{border-color:rgba(52,152,219,.5);}
 .ask-btn.on{background:#30363d;}
 .ask-btn .lbl.b{color:var(--banker);}
 .ask-btn .lbl.p{color:var(--player);}
-.ask-icons{--red-mark:#d63031;--blue-mark:#1f6fb2;display:flex;align-items:center;gap:5px;background:#fff;border-radius:4px;padding:3px 5px;}
-.ask-icons .road-cell{width:10px;height:10px;}
-.ask-icons .none{width:10px;text-align:center;font-size:10px;color:#999;line-height:10px;}
+.ask-icons{--red-mark:#d63031;--blue-mark:#1f6fb2;--cell:16px;display:flex;align-items:center;gap:6px;background:#fff;border-radius:4px;padding:3px 5px;}
+.ask-icons .none{width:16px;text-align:center;font-size:12px;color:#999;line-height:16px;}
 
-.derived-grid{display:grid;gap:6px;margin-top:4px;}
-.derived-row{display:flex;align-items:flex-start;gap:8px;}
-.derived-label{flex:0 0 62px;font-size:11px;color:var(--muted);font-weight:600;padding-top:4px;letter-spacing:.5px;}
-.derived-canvas{overflow-x:auto;padding-bottom:2px;}
+/* 下三路各佔一整列 */
+.derived-grid{display:grid;grid-template-columns:100%;gap:6px;}
+.derived-grid > div{min-width:0;}
+.derived-label{font-size:12px;color:var(--muted);font-weight:600;margin:0 0 3px;letter-spacing:.5px;}
+.derived-canvas{overflow-x:auto;}
 .derived-canvas::-webkit-scrollbar{height:5px;}
 .derived-canvas::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
-.road-grid{
-  display:grid;
-  grid-template-columns:repeat(30,10px);
-  grid-template-rows:repeat(6,10px);
-  --pitch:11px;
-}
-.road-cell{position:relative;width:10px;height:10px;}
-.road-cell .hoop{position:absolute;inset:0.5px;border-radius:50%;border:1.5px solid var(--muted);}
+.road-grid{display:grid;}
+.road-cell{position:relative;width:var(--cell,10px);height:var(--cell,10px);}
+.road-cell .hoop{position:absolute;inset:8%;border-radius:50%;border:calc(var(--cell,10px) * .16) solid var(--muted);}
 .road-cell .hoop.red{border-color:var(--red-mark);}
 .road-cell .hoop.blue{border-color:var(--blue-mark);}
-.road-cell .solid{position:absolute;inset:1px;border-radius:50%;}
+.road-cell .solid{position:absolute;inset:10%;border-radius:50%;}
 .road-cell .solid.red{background:var(--red-mark);}
 .road-cell .solid.blue{background:var(--blue-mark);}
-.road-cell .slash{position:absolute;left:0.5px;right:0.5px;top:4px;height:2px;border-radius:1px;transform:rotate(-45deg);}
+.road-cell .slash{position:absolute;left:4%;right:4%;top:50%;height:calc(var(--cell,10px) * .18);transform:translateY(-50%) rotate(-45deg);border-radius:1px;}
 .road-cell .slash.red{background:var(--red-mark);}
 .road-cell .slash.blue{background:var(--blue-mark);}
 
-.road-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:#0d1117;border-radius:6px;}
+.road-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:6px;padding:5px 8px;background:#0d1117;border-radius:6px;}
 .road-legend span{display:flex;align-items:center;gap:4px;}
 .road-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;}
 .road-legend i.red{background:var(--red-mark);}
@@ -194,41 +284,103 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 
 .rank-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .rank-item{background:#21262d;border-radius:6px;padding:4px 2px;text-align:center;}
-.rank-item .r{font-size:10px;color:var(--muted);display:block;}
-.rank-item .c{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+.rank-item .r{font-size:12px;color:var(--muted);display:block;}
+.rank-item .c{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;}
 .rank-item.zero .c{color:#484f58;}
-.shoe-summary{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.shoe-summary{font-size:13px;color:var(--muted);margin-bottom:6px;}
 .shoe-summary b{color:var(--text);}
-.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
-.bar-label{flex:0 0 34px;font-size:12px;font-weight:700;text-align:right;}
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.bar-label{flex:0 0 38px;font-size:15px;font-weight:700;text-align:right;}
 .bar-label.b{color:var(--banker);}
 .bar-label.p{color:var(--player);}
 .bar-label.t{color:var(--tie);}
 .bar-label.bp{color:var(--banker);}
 .bar-label.pp{color:var(--player);}
-.bar-track{flex:1;height:16px;background:#21262d;border-radius:4px;overflow:hidden;position:relative;}
+.bar-track{flex:1;height:22px;background:#21262d;border-radius:4px;overflow:hidden;position:relative;}
 .bar-fill{height:100%;border-radius:4px;transition:width .3s ease;}
 .bar-fill.b{background:var(--banker);}
 .bar-fill.p{background:var(--player);}
 .bar-fill.t{background:var(--tie);}
 .bar-fill.bp{background:repeating-linear-gradient(-45deg,var(--banker) 0 4px,#b03a2e 4px 8px);}
 .bar-fill.pp{background:repeating-linear-gradient(-45deg,var(--player) 0 4px,#2471a3 4px 8px);}
-.bar-sep{height:1px;background:var(--line);margin:8px 0;}
-.bar-val{flex:0 0 70px;font-size:11px;font-variant-numeric:tabular-nums;text-align:right;}
-.delta{font-size:10px;margin-left:3px;}
+.bar-sep{height:1px;background:var(--line);margin:6px 0;}
+.bar-val{flex:0 0 92px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+.delta{font-size:11px;margin-left:4px;font-weight:500;}
 .delta.up{color:#2ecc71;}
 .delta.down{color:#e74c3c;}
-.baseline{font-size:10px;color:#484f58;margin-top:4px;letter-spacing:.5px;}
-.history-list{max-height:220px;overflow-y:auto;font-size:12px;color:var(--muted);}
-.history-item{padding:6px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
+.baseline{font-size:11px;color:#6e7681;margin-top:4px;letter-spacing:.5px;}
+
+/* ---- 策略走勢 ---- */
+.viz{--series-1:#3987e5;--series-2:#d95926;--grid:#30363d;--axis:#6e7681;--text-2:#8b949e;--surface:#161b22;}
+.strat-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text);margin-bottom:6px;}
+.strat-legend span{display:flex;align-items:center;gap:6px;}
+.strat-legend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--series-1);}
+.strat-legend i.conf{border-top:2px dashed var(--series-2);}
+.strat-note{font-size:11px;color:#6e7681;line-height:1.5;margin:0 0 8px;}
+.strat{border-top:1px solid var(--line);padding:8px 0 4px;}
+.ind{border-top:1px solid var(--line);padding:8px 0 4px;}
+.ind:first-of-type{border-top:none;}
+.ind-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+.ind-name{font-size:15px;font-weight:800;color:#e6edf3;}
+.ind-now{margin-left:auto;font-size:13px;color:var(--text);}
+.ind-now b{font-size:16px;color:#e6edf3;font-variant-numeric:tabular-nums;}
+.ind-desc{font-size:11px;color:var(--muted);flex-basis:100%;margin-top:2px;}
+.strat.pinned{border-left:3px solid var(--gold);padding-left:8px;margin-left:-8px;}
+.cat-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 8px;padding-bottom:2px;}
+.cat-chips::-webkit-scrollbar{display:none;}
+.cat-chip{flex:0 0 auto;height:36px;padding:0 12px;border-radius:18px;border:1px solid var(--line);background:#21262d;color:var(--muted);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.cat-chip .n{margin-left:4px;font-weight:500;opacity:.75;}
+.cat-chip.on{background:var(--gold);border-color:var(--gold);color:#0d1117;}
+.strat-group{margin-top:6px;}
+.grp-head{width:100%;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:#1c2128;color:#e6edf3;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;text-align:left;}
+.grp-head .cnt{font-size:12px;font-weight:500;color:var(--muted);}
+.grp-head .best{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.grp-head .best b{color:#e6edf3;}
+.grp-head .arrow{flex:0 0 auto;color:var(--muted);font-size:13px;}
+.strat-group.pinned-grp .grp-head{border-color:rgba(240,185,11,.5);color:var(--gold);}
+.grp-body{padding:0 2px;}
+.strat-ctrl{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px;}
+.strat-ctrl label{font-size:13px;color:var(--muted);}
+.strat-ctrl select{flex:1;min-width:120px;height:40px;background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:14px;font-family:inherit;}
+.strat-ctrl button{height:40px;padding:0 12px;background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.strat-ctrl .hint{flex-basis:100%;font-size:11px;color:#6e7681;}
+.pin-btn{height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.pin-btn.on{background:rgba(240,185,11,.15);border-color:var(--gold);color:var(--gold);}
+.strat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.strat-name{font-size:15px;font-weight:800;color:#e6edf3;}
+.strat-rule{font-size:11px;color:var(--muted);flex-basis:100%;}
+.strat-next{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);}
+.strat-next .side{display:inline-flex;align-items:center;gap:4px;font-weight:800;}
+.strat-next .side::before{content:'';width:10px;height:10px;border-radius:50%;background:#6e7681;}
+.strat-next .side.B::before{background:var(--banker);}
+.strat-next .side.P::before{background:var(--player);}
+.strat-next .side.T::before{background:var(--tie);}
+.strat-next .side.BP::before{background:var(--banker);border-radius:2px;}
+.strat-next .side.PP::before{background:var(--player);border-radius:2px;}
+.strat-kpi{display:flex;gap:14px;font-size:13px;color:var(--muted);margin:4px 0 2px;}
+.strat-kpi b{color:#e6edf3;font-size:16px;font-variant-numeric:tabular-nums;}
+.chart{position:relative;touch-action:pan-y;}
+.chart svg{display:block;width:100%;overflow:visible;}
+.chart-tip{position:absolute;top:0;pointer-events:none;background:#0d1117;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);white-space:nowrap;display:none;z-index:3;box-shadow:0 4px 12px rgba(0,0,0,.5);}
+.chart-tip .k{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;}
+.strat-table{margin-top:8px;}
+.strat-table summary{font-size:12px;color:var(--muted);cursor:pointer;min-height:32px;display:flex;align-items:center;}
+.strat-table .tbl{overflow-x:auto;}
+.strat-table table{min-width:100%;white-space:nowrap;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}
+.strat-table th,.strat-table td{padding:4px 2px;text-align:center;border-bottom:1px solid #21262d;}
+.strat-table th{color:var(--muted);font-weight:500;}
+.strat-table .ok{color:#3fb950;}
+.strat-table .ng{color:#f85149;}
+.history-list{max-height:260px;overflow-y:auto;font-size:14px;color:var(--muted);}
+.history-item{padding:7px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
 .history-item:last-child{border-bottom:none;}
-.history-item .idx{flex:0 0 22px;color:#484f58;}
+.history-item .idx{flex:0 0 32px;color:#484f58;}
 .history-item .cards{flex:1;letter-spacing:.5px;}
 .history-item .res{font-weight:700;flex:0 0 18px;text-align:center;}
 .res.B{color:var(--banker);}
 .res.P{color:var(--player);}
 .res.T{color:var(--tie);}
-.pair-tag{font-size:10px;font-weight:700;padding:0 4px;border-radius:3px;flex:0 0 auto;}
+.pair-tag{font-size:12px;font-weight:700;padding:0 4px;border-radius:3px;flex:0 0 auto;}
 .pair-tag.b{color:var(--banker);background:rgba(231,76,60,.15);}
 .pair-tag.p{color:var(--player);background:rgba(52,152,219,.15);}
 .data-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
@@ -242,12 +394,16 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 </head>
 <body>
 
+<button class="minibar" id="minibar" aria-label="回到頂部切換機台"><span class="dot2" id="mb-dot"></span><span class="mb-name" id="mb-name"></span><span class="mb-sub" id="mb-sub"></span><span class="mb-act">切換機台 ▴</span></button>
+
 <div class="topbar">
   <div id="top-status"><span class="title">百家樂</span><span id="status-dot"></span><span id="status-text">初始化…</span></div>
   <div class="machine-bar" id="machine-bar"></div>
 </div>
 
-<div class="stats">
+<div class="view-banner" id="view-banner"></div>
+
+<div class="stats" id="sec-stats">
   <div class="stat"><span class="k">局數</span><span class="v" id="s-total">0</span></div>
   <div class="stat"><span class="k">莊</span><span class="v b" id="s-b">0</span></div>
   <div class="stat"><span class="k">閒</span><span class="v p" id="s-p">0</span></div>
@@ -256,10 +412,14 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   <div class="stat"><span class="k">閒對</span><span class="v p" id="s-pp">0</span></div>
 </div>
 
-<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead board" id="bead"></div></div></div>
-<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad board" id="bigroad"></div></div></div>
+<div class="panel" id="sec-bead"><h2>珠盤路</h2><div class="scroll"><div class="bead board" id="bead"></div></div></div>
+<div class="panel" id="bigroad-panel"><h2>大路</h2>
+  <div class="rv-bar" id="rv-bar"></div>
+  <div class="scroll"><div class="bigroad board" id="bigroad"></div></div>
+  <div class="rv-info" id="rv-info"></div>
+</div>
 
-<div class="panel">
+<div class="panel" id="sec-derived">
   <h2>下三路</h2>
   <div class="ask-row">
     <button class="ask-btn b" id="ask-b"><span class="lbl b">莊問路</span><span class="ask-icons" id="ask-b-icons"></span></button>
@@ -272,26 +432,28 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
     <span>紅＝有規律　藍＝無規律</span>
   </div>
   <div class="derived-grid">
-    <div class="derived-row">
+    <div>
       <div class="derived-label">大眼仔</div>
       <div class="derived-canvas"><div class="road-grid board" id="bigeye-road"></div></div>
     </div>
-    <div class="derived-row">
+    <div>
       <div class="derived-label">小路</div>
       <div class="derived-canvas"><div class="road-grid board" id="small-road"></div></div>
     </div>
-    <div class="derived-row">
+    <div>
       <div class="derived-label">蟑螂路</div>
       <div class="derived-canvas"><div class="road-grid board" id="cockroach-road"></div></div>
     </div>
   </div>
 </div>
 
-<div class="panel"><h2>下一手預測</h2><div id="analysis"></div></div>
-<div class="panel"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
-<div class="panel"><h2>歷史紀錄</h2><div class="history-list" id="history"></div></div>
+<div class="panel" id="sec-analysis"><h2>下一手預測</h2><div id="analysis"></div></div>
+<div class="panel viz" id="sec-ind"><h2>牌靴指標</h2><div id="shoe-ind"></div></div>
+<div class="panel viz" id="sec-strat"><h2>策略走勢</h2><div id="strategies"></div></div>
+<div class="panel" id="sec-shoe"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
+<div class="panel" id="sec-history"><h2>牌靴與歷史紀錄</h2><div class="shoe-list" id="shoe-list"></div><div class="history-list" id="history"></div></div>
 
-<details class="panel">
+<details class="panel" id="sec-settings">
   <summary>設定與資料</summary>
   <div class="set-group">
     <h3>本機台</h3>
@@ -319,11 +481,35 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   <input type="file" id="import-file" accept=".json,application/json" style="display:none;">
 </details>
 
+<!-- 右側浮動選單 -->
+<div class="fab-wrap" id="fab-wrap">
+  <nav class="fab-menu" id="fab-menu" aria-label="快速跳到區塊" hidden>
+    <a href="#sec-stats">統計</a>
+    <a href="#sec-bead">珠盤路</a>
+    <a href="#bigroad-panel">大路</a>
+    <a href="#sec-derived">下三路・問路</a>
+    <a href="#sec-analysis">下一手預測</a>
+    <a href="#sec-ind">牌靴指標</a>
+    <a href="#sec-strat">策略走勢</a>
+    <a href="#sec-shoe">剩餘牌組</a>
+    <a href="#sec-history">歷史紀錄</a>
+    <a href="#sec-settings">設定與資料</a>
+    <div class="fab-sep"></div>
+    <button type="button" data-act="newshoe">＋ 開新靴</button>
+    <button type="button" data-act="top">↑ 回到頂部</button>
+    <button type="button" data-act="dock">收合輸入區</button>
+  </nav>
+  <button class="fab" id="fab" aria-label="開啟區塊選單" aria-expanded="false">☰</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <!-- 底部輸入區 -->
 <div class="dock" id="dock">
   <div class="dock-inner">
     <div class="dock-top">
       <div class="last-hint" id="last-hint">尚無紀錄</div>
+      <button class="dock-btn newshoe" id="newshoe">新靴</button>
       <button class="dock-btn danger" id="undo">撤銷上局</button>
       <button class="dock-btn toggle" id="dock-toggle" aria-label="收合輸入區">▾</button>
     </div>
@@ -357,7 +543,6 @@ const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const DEFAULT_SUIT = '♠';
 const STORAGE_KEY = 'baccarat.cards.roads';
 const BASELINE = { banker: 0.4586, player: 0.4462, tie: 0.0952 };
-const SIM_ITER = 2000;
 const POLL_MS = 5000;
 
 const isConfigured = CONFIG.dbUrl && CONFIG.dbUrl.indexOf('http') === 0
@@ -369,6 +554,8 @@ try{ window.localStorage.removeItem(STORAGE_KEY); }catch(e){}
 function setStatus(text, cls){
   document.getElementById('status-text').textContent = text;
   document.getElementById('status-dot').className = cls || '';
+  const d2 = document.getElementById('mb-dot');
+  if(d2) d2.className = 'dot2 ' + (cls || '');
 }
 
 let state = { machines: [], activeId: null, lastModified: 0 };
@@ -378,12 +565,27 @@ function newMachine(name){
     id: 'm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
     name: name || '機台',
     decks: 8,
-    hands: []
+    hands: [],
+    shoes: []
   };
 }
 
-function getActive(){
+function getRealActive(){
   return state.machines.find(m => m.id === state.activeId) || state.machines[0];
+}
+/* 查看以往牌靴時，畫面上的「目前機台」換成那一靴（唯讀）；所有修改都要先檢查 editable() */
+let viewShoe = null, viewObj = null;               // viewShoe：{ idx }
+function getActive(){
+  const real = getRealActive();
+  if(!viewShoe || !real || !Array.isArray(real.shoes) || !real.shoes[viewShoe.idx]) return real;
+  const sh = real.shoes[viewShoe.idx];
+  if(!viewObj || viewObj.src !== sh)
+    viewObj = { id: real.id + '#' + viewShoe.idx, name: real.name, decks: sh.decks, hands: sh.hands, src: sh, readonly: true };
+  return viewObj;
+}
+function editable(){
+  if(viewShoe){ showToast('正在查看以往牌靴（唯讀），請先回到目前牌局'); return false; }
+  return ready();
 }
 
 let pushTimer = null, pollTimer = null, isPulling = false, lastPushAt = 0;
@@ -398,8 +600,13 @@ function adoptState(d){
     if(!Array.isArray(m.hands)) m.hands = [];
     if(typeof m.decks !== 'number') m.decks = 8;
     if(!m.name) m.name = '機台';
+    // 以往牌靴（Firebase 不存空陣列，讀回來可能不見）
+    if(!Array.isArray(m.shoes)) m.shoes = [];
+    m.shoes = m.shoes.filter(Boolean);
+    m.shoes.forEach(sh => { if(!Array.isArray(sh.hands)) sh.hands = []; if(typeof sh.decks !== 'number') sh.decks = m.decks; });
   });
   ensureDefaultMachine();
+  if(viewShoe && !getRealActive().shoes[viewShoe.idx]) viewShoe = null;
   if(localActive && state.machines.find(m => m.id === localActive)){
     state.activeId = localActive;
   } else if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
@@ -479,45 +686,66 @@ function validateNewCards(machine, newCards){
   return null;
 }
 
-function shuffle(arr){
-  for(let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-  }
-  return arr;
+/* ========== 精確機率 ==========
+   依剩餘牌各點數（0~9）張數，窮舉閒1、莊1、閒2、莊2 及補牌，算出莊／閒／和的精確機率 */
+const oddsCache = new Map();
+function bankerDrawsVal(bv, v){                     // v：閒家第三張的點數；null＝閒家沒補
+  if(v === null) return bv <= 5;
+  if(bv <= 2) return true;
+  if(bv === 3) return v !== 8;
+  if(bv === 4) return v >= 2 && v <= 7;
+  if(bv === 5) return v >= 4 && v <= 7;
+  if(bv === 6) return v === 6 || v === 7;
+  return false;
 }
-function playHand(pool){
-  const draw = () => pool.pop();
-  const pCards = [draw(), draw()];
-  const bCards = [draw(), draw()];
-  const pv0 = handValue(pCards), bv0 = handValue(bCards);
-  if(pv0 >= 8 || bv0 >= 8) return pv0 > bv0 ? 'P' : pv0 < bv0 ? 'B' : 'T';
-  let pThird = null;
-  if(pv0 <= 5){ pThird = draw(); pCards.push(pThird); }
-  const pFinal = handValue(pCards);
-  const p3v = pThird ? rankValue(pThird.rank) : -1;
-  let bDraw = false;
-  if(pThird === null){ bDraw = bv0 <= 5; }
-  else {
-    if(bv0 <= 2) bDraw = true;
-    else if(bv0 === 3) bDraw = p3v !== 8;
-    else if(bv0 === 4) bDraw = p3v >= 2 && p3v <= 7;
-    else if(bv0 === 5) bDraw = p3v >= 4 && p3v <= 7;
-    else if(bv0 === 6) bDraw = p3v >= 6 && p3v <= 7;
+function valueCounts(machine, upTo){
+  const c = new Array(10).fill(0);
+  for(let v = 1; v <= 9; v++) c[v] = machine.decks * 4;
+  c[0] = machine.decks * 16;                         // 10、J、Q、K
+  const hands = machine.hands.slice(0, upTo == null ? machine.hands.length : upTo);
+  for(const h of hands) for(const card of [...h.player, ...h.banker]){
+    const v = rankValue(card.rank);
+    if(c[v] > 0) c[v]--;
   }
-  if(bDraw) bCards.push(draw());
-  const bFinal = handValue(bCards);
-  return pFinal > bFinal ? 'P' : pFinal < bFinal ? 'B' : 'T';
+  return c;
 }
-function simulate(remaining, iterations){
-  let b = 0, p = 0, t = 0;
-  const n = Math.min(iterations, 3000);
-  for(let i = 0; i < n; i++){
-    const pool = shuffle(remaining.slice());
-    const w = playHand(pool);
-    if(w === 'B') b++; else if(w === 'P') p++; else t++;
-  }
-  return { banker: b/n, player: p/n, tie: t/n, n: n };
+function exactOdds(cnt){
+  const key = cnt.join(',');
+  if(oddsCache.has(key)) return oddsCache.get(key);
+  const c = cnt.slice();
+  const N = c.reduce((a, b) => a + b, 0);
+  if(N < 6){ oddsCache.set(key, null); return null; }
+  let B = 0, P = 0, T = 0, D = 0, F = 0;            // D：有人補牌；F：補牌後贏家和前兩張領先者不同
+  const sgn = (p, b) => p > b ? 1 : p < b ? -1 : 0;
+  let pv0 = 0, bv0 = 0;
+  const add = (pv, bv, pr) => { if(pv > bv) P += pr; else if(bv > pv) B += pr; else T += pr; };
+  const addDraw = (pv, bv, pr) => { add(pv, bv, pr); D += pr; if(sgn(pv, bv) !== sgn(pv0, bv0)) F += pr; };
+  for(let a = 0; a < 10; a++){ if(!c[a]) continue; const pa = c[a] / N; c[a]--;
+  for(let b = 0; b < 10; b++){ if(!c[b]) continue; const pb = pa * c[b] / (N - 1); c[b]--;
+  // 前兩張對調結果相同：只列 x ≥ a、y ≥ b，不同點數的組合乘 2
+  for(let x = a; x < 10; x++){ if(!c[x]) continue; const pc = pb * c[x] / (N - 2) * (x === a ? 1 : 2); c[x]--;
+  for(let y = b; y < 10; y++){ if(!c[y]) continue; const pd = pc * c[y] / (N - 3) * (y === b ? 1 : 2); c[y]--;
+    const pv = (a + x) % 10, bv = (b + y) % 10;
+    pv0 = pv; bv0 = bv;
+    if(pv >= 8 || bv >= 8){
+      add(pv, bv, pd);
+    } else if(pv <= 5){
+      for(let e = 0; e < 10; e++){ if(!c[e]) continue; const pe = pd * c[e] / (N - 4); c[e]--;
+        const pv3 = (pv + e) % 10;
+        if(bankerDrawsVal(bv, e)){
+          for(let f = 0; f < 10; f++){ if(c[f]) addDraw(pv3, (bv + f) % 10, pe * c[f] / (N - 5)); }
+        } else addDraw(pv3, bv, pe);
+        c[e]++;
+      }
+    } else if(bv <= 5){
+      for(let f = 0; f < 10; f++){ if(c[f]) addDraw(pv, (bv + f) % 10, pd * c[f] / (N - 4)); }
+    } else {
+      add(pv, bv, pd);
+    }
+  c[y]++; } c[x]++; } c[b]++; } c[a]++; }
+  const r = { banker: B, player: P, tie: T, draw: D, flip: F };
+  oddsCache.set(key, r);
+  return r;
 }
 
 /* ========== Firebase 同步 ========== */
@@ -568,6 +796,7 @@ async function pushNow(){
   }
 }
 function refreshAll(){
+  applySectionLayout();
   document.getElementById('decks').value = getActive().decks;
   updateLastHint();
   render();
@@ -642,9 +871,17 @@ function renderMachineBar(){
   state.machines.forEach(m => {
     const tab = document.createElement('button');
     tab.className = 'machine-tab' + (m.id === state.activeId ? ' active' : '');
-    tab.innerHTML = m.name + '<span class="count">' + m.hands.length + '</span>';
+    const nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = m.name;
+    const cnt = document.createElement('span');
+    cnt.className = 'count';
+    cnt.textContent = m.hands.length;
+    tab.append(nm, cnt);
+    tab.title = m.name;
     tab.addEventListener('click', () => {
-      if(m.id === state.activeId) return;
+      if(m.id === state.activeId && !viewShoe) return;
+      viewShoe = null;
       state.activeId = m.id;
       document.getElementById('decks').value = m.decks;
       clearInput();
@@ -653,9 +890,12 @@ function renderMachineBar(){
     });
     bar.appendChild(tab);
   });
+  const act = getActive();
+  document.getElementById('mb-name').textContent = act ? act.name : '';
+  document.getElementById('mb-sub').textContent = act ? act.hands.length + ' 局' : '';
   const addBtn = document.createElement('button');
   addBtn.className = 'machine-tab add';
-  addBtn.textContent = '+ 新增機台';
+  addBtn.textContent = '+ 新增';
   addBtn.addEventListener('click', () => {
     if(!ready()) return;
     const name = prompt('機台名稱：', '機台 ' + (state.machines.length + 1));
@@ -693,25 +933,88 @@ function addPairMarks(cell, hand){
   if(isPair(hand.banker)){ const d = document.createElement('i'); d.className = 'pair-mark b'; cell.appendChild(d); }
   if(isPair(hand.player)){ const d = document.createElement('i'); d.className = 'pair-mark p'; cell.appendChild(d); }
 }
+/* 路單格子依容器寬度自動放大，填滿整列；資料多到放不下時才橫向捲動（並捲到最新） */
+function fitBoard(el, minCols, target){
+  const box = el.parentElement;
+  const avail = (box && box.clientWidth) || 320;
+  const fit = Math.max(1, Math.floor((avail - 1) / target));
+  const cols = Math.max(minCols, fit);
+  // 放得下時用小數格寬，剛好填滿 100% 寬度；放不下才用固定格寬並捲動
+  const pitch = cols <= fit ? (avail - 1) / cols : target;
+  const cell = pitch - 1;
+  el.style.setProperty('--pitch', pitch + 'px');
+  el.style.setProperty('--cell', cell + 'px');
+  el.style.gridTemplateColumns = 'repeat(' + cols + ',' + cell + 'px)';
+  el.style.gridTemplateRows = 'repeat(6,' + cell + 'px)';
+  if(cols > fit && box) box.scrollLeft = box.scrollWidth;
+}
+const BOARD_SIZE = { bead: 27, bigroad: 29, derived: 17 };
+
+function renderRoadViewBar(m, k){
+  const bar = document.getElementById('rv-bar'), info = document.getElementById('rv-info');
+  if(k < 0){ bar.classList.remove('on'); bar.innerHTML = ''; info.classList.remove('on'); return; }
+  const d = getBacktest(m)[k];
+  bar.innerHTML = '查看 <b>' + STRATEGIES[k].name + '</b>' +
+    '<span class="rv-stat">押中 <b>' + d.hits + '</b>　未中 <b>' + (d.bets - d.hits) + '</b>' +
+    (d.bets ? '　成功率 <b>' + (d.hits / d.bets * 100).toFixed(1) + '%</b>' : '') + '</span>' +
+    '<button id="rv-close">關閉</button>';
+  bar.classList.add('on');
+  if(!info.classList.contains('on')){ info.textContent = '點格子看那一手押了什麼'; info.classList.add('on'); }
+  bar.querySelector('#rv-close').addEventListener('click', () => setRoadView(null));
+}
+function setRoadView(id){
+  roadView = roadView === id ? null : id;
+  const info = document.getElementById('rv-info');
+  info.classList.remove('on'); info.textContent = '';
+  renderBigRoad();
+  // 更新各策略卡上的按鈕狀態
+  document.querySelectorAll('[data-view]').forEach(b => {
+    const on = b.dataset.view === roadView;
+    b.classList.toggle('on', on);
+    b.textContent = on ? '◉ 查看中' : '大路查看';
+  });
+  if(roadView){ expandSection('bigroad'); document.getElementById('bigroad-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+
 function renderBead(){
   const el = document.getElementById('bead');
   el.innerHTML = '';
   const m = getActive();
   const results = m.hands.map(h => getWinner(h.player, h.banker));
-  el.style.gridTemplateColumns = 'repeat(' + Math.max(15, Math.ceil(results.length / 6) + 1) + ',22px)';
   results.forEach((w, i) => {
     const cell = document.createElement('div');
     cell.className = 'cell';
     const dot = document.createElement('div');
-    dot.className = 'dot ' + (w === 'B' ? 'banker' : w === 'P' ? 'player' : 'tie');
+    dot.className = 'dot num ' + (w === 'B' ? 'banker' : w === 'P' ? 'player' : 'tie');
+    // 贏家點數；和局時雙方點數相同
+    dot.textContent = handValue(w === 'P' ? m.hands[i].player : m.hands[i].banker);
     cell.appendChild(dot);
     addPairMarks(cell, m.hands[i]);
     el.appendChild(cell);
   });
+  fitBoard(el, Math.ceil(results.length / 6) + 1, BOARD_SIZE.bead);
 }
 
 /* 問路預覽：'B' / 'P' 時，大路與下三路多畫一格閃爍的假設結果 */
 let askPreview = null, askTimer = null;
+
+/* 從策略「大路查看」：目前查看的策略 id（只存在這個頁面，不需同步） */
+let roadView = null;
+let lastBT = null;                                   // 最近一次回測結果，避免重算
+function getBacktest(m){
+  if(!lastBT || lastBT.m !== m || lastBT.len !== m.hands.length || lastBT.decks !== m.decks)
+    lastBT = { m, len: m.hands.length, decks: m.decks, data: backtest(m) };
+  return lastBT.data;
+}
+function rvMark(pt){                                 // 一手的押注結果：null＝沒押／不計
+  if(!pt || !pt.side || pt.hit === null) return null;
+  return pt.hit ? 'ok' : 'ng';
+}
+function rvDesc(pt, i){
+  const pairs = (pt.bp ? '・莊對' : '') + (pt.pp ? '・閒對' : '');
+  const bet = !pt.side ? '沒押' : '押' + sideTxt(pt.side) + (pt.hit === null ? '（和局不計）' : pt.hit ? ' ✓ 押中' : ' ✗ 未中');
+  return '#' + (i + 1) + '　開' + sideTxt(pt.w) + pairs + '　' + bet;
+}
 
 function renderBigRoad(){
   const el = document.getElementById('bigroad');
@@ -719,19 +1022,25 @@ function renderBigRoad(){
   const m = getActive();
   // 和局不佔格，記在前一格上（第一格之前的和局記在第一格）
   const items = [];
-  let leadTies = 0;
-  for(const h of m.hands){
+  let leadTies = [];
+  m.hands.forEach((h, i) => {
     const w = getWinner(h.player, h.banker);
     if(w === 'T'){
-      if(items.length) items[items.length - 1].ties++; else leadTies++;
+      if(items.length){ items[items.length - 1].ties++; items[items.length - 1].tieIdx.push(i); }
+      else leadTies.push(i);
     } else {
-      items.push({ color: w, hand: h, ties: items.length ? 0 : leadTies });
+      const first = !items.length;
+      items.push({ color: w, hand: h, idx: i, ties: first ? leadTies.length : 0, tieIdx: first ? leadTies : [] });
     }
-  }
+  });
+  // 查看策略時的資料
+  const k = roadView ? STRATEGIES.findIndex(st => st.id === roadView) : -1;
+  const pts = k >= 0 ? getBacktest(m)[k].pts : null;
+  el.classList.toggle('viewing', !!pts);
+  renderRoadViewBar(m, k);
   if(askPreview) items.push({ color: askPreview, hand: null, ties: 0, preview: true });
   const placed = layoutRoad(items.map(i => i.color));
   const maxCol = placed.reduce((a, p) => Math.max(a, p.col), 0);
-  el.style.gridTemplateColumns = 'repeat(' + Math.max(15, maxCol + 2) + ',22px)';
   placed.forEach((p, i) => {
     const it = items[i];
     const cell = document.createElement('div');
@@ -742,7 +1051,25 @@ function renderBigRoad(){
     dot.className = 'dot ' + (p.color === 'B' ? 'banker' : 'player');
     cell.appendChild(dot);
     if(it.hand) addPairMarks(cell, it.hand);
-    if(it.ties > 1){
+    if(pts && it.hand){
+      const own = rvMark(pts[it.idx]);
+      const tieMarks = it.tieIdx.map(j => rvMark(pts[j])).filter(Boolean);
+      cell.classList.add(own === 'ok' ? 'rv-hit' : own === 'ng' ? 'rv-miss' : (tieMarks.length ? 'rv-tieonly' : 'rv-none'));
+      if(own) cell.insertAdjacentHTML('beforeend', '<span class="rv-badge own ' + own + '">' + (own === 'ok' ? '✓' : '✗') + '</span>');
+      if(tieMarks.length){
+        const okN = tieMarks.filter(x => x === 'ok').length;
+        const cls = okN ? 'ok' : 'ng';
+        cell.insertAdjacentHTML('beforeend', '<span class="rv-badge tie ' + cls + '">和' + (okN ? '✓' : '✗') + (tieMarks.length > 1 ? tieMarks.length : '') + '</span>');
+      }
+      cell.style.cursor = 'pointer';
+      cell.addEventListener('click', () => {
+        const lines = [rvDesc(pts[it.idx], it.idx)].concat(it.tieIdx.map(j => rvDesc(pts[j], j)));
+        const info = document.getElementById('rv-info');
+        info.innerHTML = lines.join('<br>');
+        info.classList.add('on');
+      });
+    }
+    if(it.ties > 1 && !pts){
       const n = document.createElement('span');
       n.className = 'tie-n';
       n.textContent = it.ties;
@@ -750,6 +1077,7 @@ function renderBigRoad(){
     }
     el.appendChild(cell);
   });
+  fitBoard(el, maxCol + 2, BOARD_SIZE.bigroad);
 }
 
 /* 下三路標準規則（offset：大眼仔 1、小路 2、蟑螂路 3）
@@ -802,12 +1130,10 @@ const ROAD_SHAPE = { 'bigeye-road': 'hoop', 'small-road': 'solid', 'cockroach-ro
 function renderDerivedRoad(elId, cols, offset, blinkFrom){
   const el = document.getElementById(elId);
   el.innerHTML = '';
-  el.style.gridTemplateColumns = '';
   const markers = derivedMarkers(cols, offset);
-  if(!markers.length) return;
   const placed = layoutRoad(markers);
   const maxCol = placed.reduce((a, p) => Math.max(a, p.col), 0);
-  el.style.gridTemplateColumns = 'repeat(' + Math.max(30, maxCol + 2) + ',10px)';
+  fitBoard(el, placed.length ? maxCol + 2 : 1, BOARD_SIZE.derived);
   const shape = ROAD_SHAPE[elId];
   placed.forEach((p, i) => {
     const cell = document.createElement('div');
@@ -886,6 +1212,19 @@ function renderRoads(){
   renderDerivedRoads();
   renderAsk();
 }
+/* 容器寬度改變（轉向、捲軸出現/消失）時重排路單 */
+let resizeTimer = null, lastBoardWidth = 0;
+function onBoardResize(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const w = document.getElementById('bead').parentElement.clientWidth;
+    if(w === lastBoardWidth) return;
+    lastBoardWidth = w;
+    renderBead(); renderRoads(); renderShoeIndicators(); renderStrategies();
+  }, 100);
+}
+if(window.ResizeObserver) new ResizeObserver(onBoardResize).observe(document.getElementById('bead').parentElement);
+window.addEventListener('resize', onBoardResize);
 document.getElementById('ask-b').addEventListener('click', () => setAskPreview('B'));
 document.getElementById('ask-p').addEventListener('click', () => setAskPreview('P'));
 
@@ -913,11 +1252,11 @@ function renderAnalysis(){
   const el = document.getElementById('analysis');
   const m = getActive();
   const remaining = getRemainingCards(m);
-  if(remaining.length < 8){
-    el.innerHTML = '<div class="empty">剩餘牌組不足，無法模擬</div>';
+  const r = remaining.length >= 6 ? exactOdds(valueCounts(m)) : null;
+  if(!r){
+    el.innerHTML = '<div class="empty">剩餘牌組不足，無法計算</div>';
     return;
   }
-  const r = simulate(remaining, SIM_ITER);
   function bar(cls, label, prob, base){
     const pct = (prob * 100).toFixed(2);
     const diff = (prob - base) * 100;
@@ -941,9 +1280,810 @@ function renderAnalysis(){
   html += '<div class="baseline">基準：莊 ' + (BASELINE.banker*100).toFixed(2) +
           '% / 閒 ' + (BASELINE.player*100).toFixed(2) +
           '% / 和 ' + (BASELINE.tie*100).toFixed(2) +
-          '%　·　模擬 ' + r.n + ' 次<br>對子基準 ' + (pairBase*100).toFixed(2) +
-          '%（' + m.decks + ' 副）· 對子為依剩餘牌精確計算</div>';
+          '%<br>依剩餘牌精確計算　·　對子基準 ' + (pairBase*100).toFixed(2) +
+          '%（' + m.decks + ' 副）</div>';
   el.innerHTML = html;
+}
+
+/* ========== 策略走勢 ==========
+   每一手只用「那一手之前」的資料做預測，再和實際結果比對（和局不計）。
+   信心率：各策略自己的訊號強度（定義見 rule），不是保證勝率。 */
+const BANKER_SHARE = BASELINE.banker / (BASELINE.banker + BASELINE.player) * 100;
+/* 問路票數：假設下一手開莊／開閒時，下三路各出現幾個紅、幾個藍
+   （同一條路開莊與開閒的顏色必定相反，所以莊的紅＝閒的藍） */
+/* 單一條下三路：押「問路會出該顏色」的一方
+   信心率＝本靴這條路目前出該顏色的比例（加一平滑，資料少時接近 50%） */
+function singleRoadStrategies(){
+  const roads = [['眼', '大眼仔', 1, 0], ['小', '小路', 2, 1], ['蟑', '蟑螂路', 3, 2]];
+  const out = [];
+  for(const [s1, name, offset, k] of roads){
+    for(const [color, cname] of [['red', '紅'], ['blue', '藍']]){
+      out.push({
+        id: 'road' + offset + color, name: name + '（' + cname + '）', short: s1 + cname,
+        rule: '只看' + name + '，押問路會出' + cname + '的一方。信心率＝本靴' + name + '出' + cname + '的比例',
+        predict: ctx => {
+          const ask = askRoad(ctx.results, 'B')[k];        // 開莊時這條路的顏色；開閒必為相反色
+          if(!ask) return null;
+          const marks = derivedMarkers(buildBigRoad(ctx.results), offset);
+          const same = marks.filter(c => c === color).length;
+          return { side: ask === color ? 'B' : 'P', conf: (same + 1) / (marks.length + 2) * 100 };
+        }
+      });
+    }
+  }
+  return out;
+}
+/* ========== 和局／對子 ==========
+   只押「機率高於賠率損益兩平點」的時候；沒押的手仍畫出信心率（＝預估機率）。
+   和局 8 倍：損益兩平 1/9 ≈ 11.11%；對子 11 倍：損益兩平 1/12 ≈ 8.33% */
+const SIDE_BETS = [
+  { kind: 'T',  label: '和局', short: '和',   pays: 8,  base: BASELINE.tie,       ev: h => getWinner(h.player, h.banker) === 'T' },
+  { kind: 'BP', label: '莊對', short: '莊對', pays: 11, base: 31 / 415,           ev: h => isPair(h.banker) },
+  { kind: 'PP', label: '閒對', short: '閒對', pays: 11, base: 31 / 415,           ev: h => isPair(h.player) }
+];
+function rankCounts(machine, upTo){
+  const c = {};
+  for(const r of RANKS) c[r] = machine.decks * 4;
+  for(const h of machine.hands.slice(0, upTo)) for(const card of [...h.player, ...h.banker]){
+    if(c[card.rank] > 0) c[card.rank]--;
+  }
+  return c;
+}
+function pairProbFromCounts(c){
+  let N = 0, sum = 0;
+  for(const r in c){ N += c[r]; sum += c[r] * (c[r] - 1); }
+  return N < 2 ? null : sum / (N * (N - 1));
+}
+/* 「距離上次出現隔了幾手」分組：0-4、5-9、10-14、15-19、20+ */
+const gapBucket = g => Math.min(4, Math.floor(g / 5));
+function gapTally(seqs, ev){
+  const n = [0,0,0,0,0], e = [0,0,0,0,0];
+  for(const hands of seqs){
+    let gap = 0;
+    for(const h of hands){
+      const b = gapBucket(gap);
+      n[b]++;
+      if(ev(h)){ e[b]++; gap = 0; } else gap++;
+    }
+  }
+  return { n, e };
+}
+function sideBetStrategies(){
+  const out = [];
+  for(const sb of SIDE_BETS){
+    const be = 1 / (sb.pays + 1) * 100;
+    out.push({
+      id: sb.kind + 'count', name: sb.label + '・算牌', short: sb.short + '算', ref: be, ymax: 30,
+      rule: '依剩餘牌精確計算' + sb.label + '機率，高於損益兩平 ' + be.toFixed(2) + '%（賠 ' + sb.pays + ' 倍）才押。信心率＝' + sb.label + '機率',
+      predict: ctx => {
+        let pr;
+        if(sb.kind === 'T'){ const o = exactOdds(ctx.counts); pr = o ? o.tie : null; }
+        else pr = pairProbFromCounts(ctx.rcounts);
+        if(pr == null) return null;
+        return { side: pr * 100 > be ? sb.kind : null, conf: pr * 100 };
+      }
+    });
+    out.push({
+      id: sb.kind + 'gap', name: sb.label + '・歷史間隔', short: sb.short + '史', ref: be, ymax: 30,
+      rule: '用以往牌靴（其他機台全部＋本機台這手之前）統計「隔了幾手沒開」之後開' + sb.label + '的比例，高於損益兩平才押。信心率＝該比例',
+      predict: ctx => {
+        // 其他機台的統計每次回測只算一次
+        const key = 'gap' + sb.kind;
+        if(!ctx.shared[key]) ctx.shared[key] = gapTally(ctx.others, sb.ev);
+        const past = ctx.shared[key];
+        const mine = gapTally([ctx.machine.hands.slice(0, ctx.i)], sb.ev);
+        let gap = 0;
+        for(let j = ctx.i - 1; j >= 0 && !sb.ev(ctx.machine.hands[j]); j--) gap++;
+        const b = gapBucket(gap);
+        const n = past.n[b] + mine.n[b], e = past.e[b] + mine.e[b];
+        const alpha = 30;                                  // 資料少時往理論機率靠攏
+        const pr = (e + alpha * sb.base) / (n + alpha) * 100;
+        return { side: pr > be ? sb.kind : null, conf: pr };
+      }
+    });
+  }
+  return out;
+}
+
+function askVotes(results){
+  const ask = askRoad(results, 'B');
+  const avail = ask.filter(Boolean).length;
+  if(!avail) return null;
+  const redB = ask.filter(c => c === 'red').length;
+  const blueB = avail - redB;
+  return { avail, redB, blueB, redP: blueB, blueP: redB };
+}
+/* ========== 策略分類 ========== */
+const STRAT_CATS = [
+  { id: 'meta',  label: '綜合' },
+  { id: 'basic', label: '莊閒基本' },
+  { id: 'roads', label: '下三路' },
+  { id: 'tie',   label: '和局' },
+  { id: 'pair',  label: '對子' }
+];
+function catOf(id){
+  if(id.indexOf('meta') === 0) return 'meta';
+  if(id === 'banker' || id === 'follow' || id === 'count') return 'basic';
+  if(id.indexOf('road') === 0) return 'roads';
+  if(id.indexOf('T') === 0) return 'tie';
+  return 'pair';                                     // BPcount、BPgap、PPcount、PPgap
+}
+
+/* ========== 綜合策略 ==========
+   參考其他「押莊閒」策略到這一手之前的成績（不偷看當手結果）。
+   平滑成功率＝(押中＋1) ÷ (下注＋2)，資料少時接近 50% */
+const smoothRate = sr => (sr.hits + 1) / (sr.bets + 2);
+const isBPSide = pr => pr && (pr.side === 'B' || pr.side === 'P');
+const META_STRATEGIES = [
+  {
+    id: 'metaVote', name: '綜合加權', short: '綜',
+    rule: '所有莊閒策略依過去成功率加權投票：高於 50% 投正票、低於 50% 投反票，押分數高的一方。信心率＝分數差換算的把握度',
+    meta: (preds, series) => {
+      let sB = 0, sP = 0, total = 0;
+      preds.forEach((pr, k) => {
+        if(STRATEGIES[k].meta || !isBPSide(pr)) return;
+        const w = smoothRate(series[k]) - 0.5;          // 正：照它押；負：反著押
+        if(pr.side === 'B') sB += w; else sP += w;
+        total += Math.abs(w);
+      });
+      if(!total || sB === sP) return null;
+      return { side: sB > sP ? 'B' : 'P', conf: 50 + 50 * Math.abs(sB - sP) / total };
+    }
+  },
+  {
+    id: 'metaBest', name: '跟隨最佳', short: '最佳',
+    rule: '跟著目前成功率最高的莊閒策略押（至少押過 5 手才列入）。信心率＝該策略的平滑成功率',
+    meta: (preds, series) => {
+      let best = -1, bestRate = -1;
+      preds.forEach((pr, k) => {
+        if(STRATEGIES[k].meta || !isBPSide(pr) || series[k].bets < 5) return;
+        const r = smoothRate(series[k]);
+        if(r > bestRate){ bestRate = r; best = k; }
+      });
+      if(best < 0) return null;
+      return { side: preds[best].side, conf: bestRate * 100, from: STRATEGIES[best].name };
+    }
+  }
+];
+
+const STRATEGIES = [
+  ...META_STRATEGIES,
+  {
+    id: 'banker', name: '跟莊', short: '莊',
+    rule: '每手押莊，當作比較基準。信心率＝莊的理論勝率（不計和局）',
+    predict: () => ({ side: 'B', conf: BANKER_SHARE })
+  },
+  {
+    id: 'follow', name: '順勢跟路', short: '順',
+    rule: '押上一手開出的一方。信心率＝本靴中「同樣連續長度後繼續延續」的實際比例',
+    predict: ctx => {
+      const R = ctx.results;
+      if(!R.length) return null;
+      // 連續長度分桶 1、2、3、4+；統計每個長度之後延續的次數（加一平滑）
+      const n = [0,0,0,0,0], cont = [0,0,0,0,0];
+      let run = 1;
+      for(let j = 1; j < R.length; j++){
+        const b = Math.min(run, 4);
+        n[b]++;
+        if(R[j] === R[j-1]){ cont[b]++; run++; } else run = 1;
+      }
+      const b = Math.min(run, 4);
+      return { side: R[R.length - 1], conf: (cont[b] + 1) / (n[b] + 2) * 100 };
+    }
+  },
+  {
+    id: 'roads', name: '下三路多數決（紅）', short: '多紅',
+    rule: '三條路一起問路，押「紅色較多」的一方，平手不押。信心率＝紅色路數 ÷ 可用路數',
+    predict: ctx => {
+      const v = askVotes(ctx.results);
+      if(!v || v.redB === v.redP) return null;
+      return { side: v.redB > v.redP ? 'B' : 'P', conf: Math.max(v.redB, v.redP) / v.avail * 100 };
+    }
+  },
+  {
+    id: 'roadsRev', name: '下三路多數決（藍）', short: '多藍',
+    rule: '三條路一起問路，押「藍色較多」的一方，平手不押。信心率＝藍色路數 ÷ 可用路數',
+    predict: ctx => {
+      const v = askVotes(ctx.results);
+      if(!v || v.blueB === v.blueP) return null;
+      return { side: v.blueB > v.blueP ? 'B' : 'P', conf: Math.max(v.blueB, v.blueP) / v.avail * 100 };
+    }
+  },
+  ...singleRoadStrategies(),
+  {
+    id: 'count', name: '算牌機率', short: '算',
+    rule: '依剩餘牌精確計算，押機率較高的一方。信心率＝該方機率 ÷（莊＋閒）',
+    predict: ctx => {
+      const o = exactOdds(ctx.counts);
+      if(!o) return null;
+      const side = o.banker >= o.player ? 'B' : 'P';
+      return { side, conf: Math.max(o.banker, o.player) / (o.banker + o.player) * 100 };
+    }
+  },
+  ...sideBetStrategies()
+];
+
+STRATEGIES.forEach(st => { st.cat = catOf(st.id); });
+
+function backtest(m){
+  const series = STRATEGIES.map(() => ({ pts: [], hits: 0, bets: 0, next: null }));
+  const results = [];
+  const shared = {};
+  // 以往牌靴＝所有機台的舊靴＋其他機台目前這靴（不含正在回測的這一靴）
+  const others = state.machines.flatMap(x => [...(x.shoes || []).map(sh => sh.hands), x.hands])
+    .filter(h => h !== m.hands && h.length);
+  for(let i = 0; i <= m.hands.length; i++){
+    const ctx = { results, counts: valueCounts(m, i), rcounts: rankCounts(m, i), machine: m, i, others, shared };
+    const preds = STRATEGIES.map(st => st.meta ? null : st.predict(ctx));
+    // 綜合策略最後算：此時 series 只含這一手之前的成績
+    STRATEGIES.forEach((st, k) => { if(st.meta) preds[k] = st.meta(preds, series); });
+    if(i === m.hands.length){
+      preds.forEach((pr, k) => { series[k].next = pr; });
+      break;
+    }
+    const h = m.hands[i];
+    const w = getWinner(h.player, h.banker);
+    const bp = isPair(h.banker), pp = isPair(h.player);
+    preds.forEach((pr, k) => {
+      const sr = series[k];
+      const side = pr ? pr.side : null;
+      let hit = null;
+      if(side === 'B' || side === 'P'){
+        if(w !== 'T'){ sr.bets++; hit = side === w; }          // 押莊閒遇和局：不計
+      } else if(side){
+        sr.bets++;
+        hit = side === 'T' ? w === 'T' : side === 'BP' ? bp : pp;
+      }
+      if(hit) sr.hits++;
+      sr.pts.push({ n: i + 1, side, conf: pr ? pr.conf : null, w, bp, pp, hit,
+                    rate: sr.bets ? sr.hits / sr.bets * 100 : null });
+    });
+    if(w !== 'T') results.push(w);
+  }
+  return series;
+}
+
+/* 策略顯示偏好：置頂清單與排序，存在雲端 state.prefs（各裝置同步） */
+const SORTS = {
+  default: { label: '預設順序' },
+  conf:    { label: '信心率（下一手）', val: d => d.next ? d.next.conf : null },
+  rate:    { label: '成功率',           val: d => d.bets ? d.hits / d.bets : null },
+  hits:    { label: '押中次數',         val: d => d.hits },
+  misses:  { label: '未押中次數',       val: d => d.bets - d.hits },
+  edge:    { label: '優於基準（成功率−基準）', val: (d, st) => d.bets ? d.hits / d.bets * 100 - (st.ref || 50) : null }
+};
+function getPrefs(){
+  if(!state.prefs || typeof state.prefs !== 'object') state.prefs = {};
+  const pr = state.prefs;
+  if(!Array.isArray(pr.pinned)) pr.pinned = [];       // Firebase 不存空陣列，讀回來可能不見
+  if(!SORTS[pr.sort]) pr.sort = 'default';
+  if(pr.dir !== 'asc') pr.dir = 'desc';
+  if(pr.cat !== 'all' && !STRAT_CATS.some(c => c.id === pr.cat)) pr.cat = 'all';
+  if(!Array.isArray(pr.collapsed)) pr.collapsed = [];
+  return pr;
+}
+/* ========== 大分類（可收合、可上下移動） ==========
+   順序與收合狀態存雲端 state.prefs.secOrder / secCollapsed */
+const SECTIONS = [
+  { key: 'stats',    id: 'sec-stats',     title: '統計' },
+  { key: 'bead',     id: 'sec-bead' },
+  { key: 'bigroad',  id: 'bigroad-panel' },
+  { key: 'derived',  id: 'sec-derived',   title: '下三路・問路' },
+  { key: 'analysis', id: 'sec-analysis' },
+  { key: 'ind',      id: 'sec-ind' },
+  { key: 'strat',    id: 'sec-strat' },
+  { key: 'shoe',     id: 'sec-shoe' },
+  { key: 'history',  id: 'sec-history' },
+  { key: 'settings', id: 'sec-settings',  title: '設定與資料' }
+];
+function secPrefs(){
+  const pr = getPrefs();
+  const keys = SECTIONS.map(x => x.key);
+  if(!Array.isArray(pr.secOrder)) pr.secOrder = [];
+  pr.secOrder = pr.secOrder.filter(k => keys.includes(k));
+  keys.forEach(k => { if(!pr.secOrder.includes(k)) pr.secOrder.push(k); });
+  if(!Array.isArray(pr.secCollapsed)) pr.secCollapsed = pr.secInit ? [] : ['settings'];   // 預設只收合設定
+  pr.secInit = true;
+  return pr;
+}
+function isSecCollapsed(key){ return secPrefs().secCollapsed.includes(key); }
+
+function buildSections(){
+  SECTIONS.forEach(sec => {
+    let el = document.getElementById(sec.id), body;
+    if(sec.key === 'stats'){
+      // 統計原本不是 panel：包一層
+      el.id = 'stats-grid';
+      const wrap = document.createElement('section');
+      wrap.className = 'panel';
+      wrap.id = sec.id;
+      el.replaceWith(wrap);
+      body = document.createElement('div');
+      body.appendChild(el);
+      el = wrap;
+    } else if(el.tagName === 'DETAILS'){
+      // 設定原本是 <details>：換成一般大分類
+      const wrap = document.createElement('section');
+      wrap.className = 'panel';
+      wrap.id = sec.id;
+      body = document.createElement('div');
+      [...el.childNodes].forEach(n => { if(n.nodeName !== 'SUMMARY') body.appendChild(n); });
+      el.replaceWith(wrap);
+      el = wrap;
+    } else {
+      const h2 = el.querySelector(':scope > h2');
+      if(!sec.title && h2) sec.title = h2.textContent;
+      if(h2) h2.remove();
+      body = document.createElement('div');
+      while(el.firstChild) body.appendChild(el.firstChild);
+    }
+    body.className = 'sec-body';
+    el.classList.add('sec');
+    el.dataset.sec = sec.key;
+    const head = document.createElement('div');
+    head.className = 'sec-head';
+    head.innerHTML = '<button class="sec-title" data-sec-toggle="' + sec.key + '"><span class="chev">▾</span>' + sec.title + '<span class="sub"></span></button>' +
+      '<button class="sec-move" data-sec-move="up" data-key="' + sec.key + '" aria-label="往上移">▲</button>' +
+      '<button class="sec-move" data-sec-move="down" data-key="' + sec.key + '" aria-label="往下移">▼</button>';
+    el.append(head, body);
+    sec.el = el;
+  });
+}
+function applySectionLayout(){
+  const pr = secPrefs();
+  const anchor = document.getElementById('fab-wrap');
+  const sep = document.querySelector('#fab-menu .fab-sep');
+  pr.secOrder.forEach((key, i) => {
+    const sec = SECTIONS.find(x => x.key === key);
+    anchor.parentNode.insertBefore(sec.el, anchor);
+    const collapsed = pr.secCollapsed.includes(key);
+    sec.el.classList.toggle('collapsed', collapsed);
+    sec.el.querySelector('[data-sec-toggle]').setAttribute('aria-expanded', String(!collapsed));
+    sec.el.querySelector('[data-sec-move="up"]').disabled = i === 0;
+    sec.el.querySelector('[data-sec-move="down"]').disabled = i === pr.secOrder.length - 1;
+    // 浮動選單跟著同樣順序
+    const link = document.querySelector('#fab-menu a[href="#' + sec.id + '"]');
+    if(link) sep.parentNode.insertBefore(link, sep);
+  });
+}
+function expandSection(key){
+  const pr = secPrefs();
+  if(!pr.secCollapsed.includes(key)) return false;
+  pr.secCollapsed = pr.secCollapsed.filter(k => k !== key);
+  applySectionLayout();
+  render();
+  state.lastModified = Date.now();
+  schedulePush();
+  return true;
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-sec-toggle]');
+  if(t){
+    const pr = secPrefs(), key = t.dataset.secToggle;
+    const opening = pr.secCollapsed.includes(key);
+    pr.secCollapsed = opening ? pr.secCollapsed.filter(k => k !== key) : [...pr.secCollapsed, key];
+    applySectionLayout();
+    if(opening) render();                          // 展開後依實際寬度重畫
+    state.lastModified = Date.now();
+    schedulePush();
+    return;
+  }
+  const mv = e.target.closest('[data-sec-move]');
+  if(mv){
+    const pr = secPrefs(), key = mv.dataset.key;
+    const i = pr.secOrder.indexOf(key), j = mv.dataset.secMove === 'up' ? i - 1 : i + 1;
+    if(j < 0 || j >= pr.secOrder.length) return;
+    [pr.secOrder[i], pr.secOrder[j]] = [pr.secOrder[j], pr.secOrder[i]];
+    applySectionLayout();
+    const el = SECTIONS.find(x => x.key === key).el;
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+    state.lastModified = Date.now();
+    schedulePush();
+  }
+});
+buildSections();
+applySectionLayout();
+
+function savePrefs(){
+  state.lastModified = Date.now();
+  renderStrategies();
+  schedulePush();
+}
+/* 置頂的排前面；同一群內依選定欄位排序，沒有數值的排最後，平手照預設順序 */
+function orderStrategies(data){
+  const pr = getPrefs();
+  const sort = SORTS[pr.sort];
+  const sign = pr.dir === 'asc' ? 1 : -1;
+  return STRATEGIES.map((st, k) => ({ st, k, d: data[k], pinned: pr.pinned.includes(st.id) }))
+    .sort((a, b) => {
+      if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      if(sort.val){
+        const va = sort.val(a.d, a.st), vb = sort.val(b.d, b.st);
+        if(va == null && vb != null) return 1;
+        if(vb == null && va != null) return -1;
+        if(va != null && vb != null && va !== vb) return (va - vb) * sign;
+      }
+      return a.k - b.k;
+    });
+}
+
+const sideTxt = s => ({ B: '莊', P: '閒', T: '和', BP: '莊對', PP: '閒對' })[s] || '—';
+
+function stratCard({ st, k, d, pinned }){
+  const nx = d.next;
+  return '<div class="strat' + (pinned ? ' pinned' : '') + '">' +
+    '<div class="strat-head"><span class="strat-name">' + st.name + '</span>' +
+    '<button class="pin-btn' + (pinned ? ' on' : '') + '" data-pin="' + st.id + '" aria-pressed="' + pinned + '">' + (pinned ? '★ 已置頂' : '☆ 置頂') + '</button>' +
+    '<button class="view-btn' + (roadView === st.id ? ' on' : '') + '" data-view="' + st.id + '">' + (roadView === st.id ? '◉ 查看中' : '大路查看') + '</button>' +
+    '<span class="strat-next">下一手 <span class="side ' + (nx && nx.side ? nx.side : '') + '">' + (nx && nx.side ? sideTxt(nx.side) : '觀望') + '</span>' +
+    (nx ? '<span>信心 <b>' + nx.conf.toFixed(1) + '%</b></span>' : '') + '</span>' +
+    (nx && nx.from ? '<span class="strat-rule">目前跟：' + nx.from + '</span>' : '') +
+    '<span class="strat-rule">' + st.rule + '</span></div>' +
+    '<div class="strat-kpi"><span>成功率 <b>' + (d.bets ? (d.hits / d.bets * 100).toFixed(1) + '%' : '—') + '</b></span>' +
+    '<span>押中 <b>' + d.hits + '</b></span><span>未中 <b>' + (d.bets - d.hits) + '</b></span><span>共 ' + d.bets + ' 手</span>' +
+    (st.ref ? '<span>基準 ' + st.ref.toFixed(2) + '%</span>' : '') + '</div>' +
+    '<div class="chart" data-k="' + k + '"></div></div>';
+}
+
+function renderStrategies(){
+  if(isSecCollapsed('strat')) return;
+  const el = document.getElementById('strategies');
+  const m = getActive();
+  const data = getBacktest(m);
+  let html = '<div class="strat-legend"><span><i></i>成功率（累計）</span><span><i class="conf"></i>信心率（該手）</span></div>' +
+    '<div class="strat-note">成功率＝押中次數 ÷ 下注次數。押莊閒時和局不計，基準 50%；押和局／對子每手都計，' +
+    '基準是賠率的損益兩平點（和 8 倍 11.11%、對子 11 倍 8.33%）。百家樂每手結果互相獨立，路單類策略長期會回到基準附近；' +
+    '信心率是策略本身的訊號強弱或預估機率，不代表保證。</div>';
+  const pr = getPrefs();
+  html += '<div class="strat-ctrl"><label for="strat-sort">排序</label><select id="strat-sort">' +
+    Object.keys(SORTS).map(key => '<option value="' + key + '"' + (pr.sort === key ? ' selected' : '') + '>' + SORTS[key].label + '</option>').join('') +
+    '</select>' +
+    (pr.sort === 'default' ? '' : '<button id="strat-dir" aria-label="切換排序方向">' + (pr.dir === 'asc' ? '↑ 由低到高' : '↓ 由高到低') + '</button>') +
+    '<span class="hint">置頂 ' + pr.pinned.length + ' 個 · 置頂的策略固定在最上面</span></div>';
+  const ordered = orderStrategies(data);
+  const count = id => STRATEGIES.filter(st => st.cat === id).length;
+  html += '<div class="cat-chips" role="tablist">' +
+    '<button class="cat-chip' + (pr.cat === 'all' ? ' on' : '') + '" data-cat="all" role="tab" aria-selected="' + (pr.cat === 'all') + '">全部<span class="n">' + STRATEGIES.length + '</span></button>' +
+    STRAT_CATS.map(c => '<button class="cat-chip' + (pr.cat === c.id ? ' on' : '') + '" data-cat="' + c.id + '" role="tab" aria-selected="' + (pr.cat === c.id) + '">' +
+      c.label + '<span class="n">' + count(c.id) + '</span></button>').join('') + '</div>';
+
+  // 分組：「全部」時置頂集中在最上面，其餘依類別；單一類別時只顯示該類（置頂排前）
+  let groups;
+  if(pr.cat === 'all'){
+    groups = [{ id: 'pinned', label: '★ 置頂', items: ordered.filter(o => o.pinned) }]
+      .concat(STRAT_CATS.map(c => ({ id: c.id, label: c.label, items: ordered.filter(o => !o.pinned && o.st.cat === c.id) })));
+  } else {
+    const c = STRAT_CATS.find(c => c.id === pr.cat);
+    groups = [{ id: c.id, label: c.label, items: ordered.filter(o => o.st.cat === c.id) }];
+  }
+  groups = groups.filter(g => g.items.length);
+  const visible = [];
+  groups.forEach(g => {
+    const collapsed = pr.collapsed.includes(g.id);
+    // 組內表現最好：優於基準最多、且至少押過 5 手
+    let best = null;
+    g.items.forEach(o => {
+      if(o.d.bets < 5) return;
+      const edge = o.d.hits / o.d.bets * 100 - (o.st.ref || 50);
+      if(!best || edge > best.edge) best = { o, edge };
+    });
+    html += '<div class="strat-group' + (g.id === 'pinned' ? ' pinned-grp' : '') + '">' +
+      '<button class="grp-head" data-group="' + g.id + '" aria-expanded="' + !collapsed + '">' + g.label +
+      '<span class="cnt">' + g.items.length + ' 個</span>' +
+      (best ? '<span class="best">最佳 ' + best.o.st.name + ' <b>' + (best.o.d.hits / best.o.d.bets * 100).toFixed(1) + '%</b></span>' : '<span class="best"></span>') +
+      '<span class="arrow">' + (collapsed ? '▸' : '▾') + '</span></button>';
+    if(!collapsed){
+      html += '<div class="grp-body">';
+      g.items.forEach(o => { visible.push(o); html += stratCard(o); });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  // 數據表（無障礙／精確數字）
+  const last = Math.max(0, m.hands.length - 30);
+  if(visible.length) html += '<details class="strat-table"><summary>數據表（最近 30 手・目前展開的策略）</summary><div class="tbl"><table><thead><tr><th>#</th><th>結果</th>' +
+    visible.map(o => '<th>' + o.st.short + '</th>').join('') + '</tr></thead><tbody>';
+  for(let i = m.hands.length - 1; visible.length && i >= last; i--){
+    const w = data[0].pts[i].w;
+    html += '<tr><td>' + (i + 1) + '</td><td>' + sideTxt(w) + '</td>' + visible.map(({ d }) => {
+      const pt = d.pts[i];
+      if(!pt.side) return '<td>—</td>';   // 觀望
+      const mark = pt.hit === null ? '' : pt.hit ? ' <span class="ok">✓</span>' : ' <span class="ng">✗</span>';
+      return '<td>' + sideTxt(pt.side) + mark + '</td>';
+    }).join('') + '</tr>';
+  }
+  if(visible.length) html += '</tbody></table></div></details>';
+  el.innerHTML = html;
+  el.querySelectorAll('.chart').forEach(c => drawStrategyChart(c, data[+c.dataset.k], STRATEGIES[+c.dataset.k]));
+}
+
+/* 單一策略走勢圖：一條 y 軸（0~100%），成功率實線、信心率虛線 */
+function drawStrategyChart(box, d, st){
+  const W = Math.max(200, box.clientWidth || 320), H = 120;
+  const ml = 34, mr = 44, mt = 8, mb = 20;
+  const pw = W - ml - mr, ph = H - mt - mb;
+  const pts = d.pts, N = pts.length;
+  const NS = 'http://www.w3.org/2000/svg';
+  if(!N){ box.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
+  const x = n => ml + (N === 1 ? pw / 2 : (n - 1) / (N - 1) * pw);
+  // 押和局／對子的策略數值小，y 軸上限取 30%（有更高的值時往上放大）
+  const ref = st && st.ref ? st.ref : 50;
+  let ymax = 100;
+  if(st && st.ymax){
+    const mx = pts.reduce((a, p) => Math.max(a, p.rate || 0, p.conf || 0), 0);
+    ymax = Math.min(100, Math.max(st.ymax, Math.ceil(mx / 10) * 10));
+  }
+  const y = v => mt + (1 - Math.min(v, ymax) / ymax) * ph;
+  const path = key => {
+    let dstr = '', pen = false;
+    for(const p of pts){
+      const v = p[key];
+      if(v == null){ pen = false; continue; }
+      dstr += (pen ? 'L' : 'M') + x(p.n).toFixed(1) + ',' + y(v).toFixed(1);
+      pen = true;
+    }
+    return dstr;
+  };
+  const lastOf = key => { for(let i = N - 1; i >= 0; i--) if(pts[i][key] != null) return pts[i]; return null; };
+  let svg = '<svg xmlns="' + NS + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="成功率與信心率走勢">';
+  [0, ymax / 4, ymax / 2, ymax * 3 / 4, ymax].forEach((v, idx) => {
+    svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--grid)" stroke-width="1"/>';
+    if(idx % 2 === 0 && Math.abs(v - ref) > ymax * .08)
+      svg += '<text x="' + (ml - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="11" fill="var(--axis)">' + (+v.toFixed(1)) + '%</text>';
+  });
+  // 基準線（莊閒 50%；和局／對子＝損益兩平）
+  svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(ref) + '" y2="' + y(ref) + '" stroke="#8b949e" stroke-width="1" stroke-dasharray="3 3"/>';
+  svg += '<text x="' + (ml - 6) + '" y="' + (y(ref) + 4) + '" text-anchor="end" font-size="11" fill="#c9d1d9">' + (+ref.toFixed(1)) + '%</text>';
+  svg += '<text x="' + ml + '" y="' + (H - 4) + '" font-size="11" fill="var(--axis)">#1</text>';
+  svg += '<text x="' + (ml + pw) + '" y="' + (H - 4) + '" text-anchor="end" font-size="11" fill="var(--axis)">#' + N + '</text>';
+  svg += '<path d="' + path('conf') + '" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-dasharray="5 3" stroke-linejoin="round"/>';
+  svg += '<path d="' + path('rate') + '" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  // 端點標籤（文字用中性色，顏色由圓點表示）
+  const ends = [['rate', 'var(--series-1)'], ['conf', 'var(--series-2)']].map(([key, col]) => {
+    const p = lastOf(key);
+    return p ? { key, col, p, yy: y(p[key]) } : null;
+  }).filter(Boolean);
+  if(ends.length === 2 && Math.abs(ends[0].yy - ends[1].yy) < 13){       // 避免兩個標籤重疊
+    const mid = (ends[0].yy + ends[1].yy) / 2, up = ends[0].yy <= ends[1].yy ? 0 : 1;
+    ends[up].ly = mid - 7; ends[1 - up].ly = mid + 7;
+  }
+  ends.forEach(e => {
+    svg += '<circle cx="' + x(e.p.n) + '" cy="' + e.yy + '" r="4" fill="' + e.col + '" stroke="var(--surface)" stroke-width="2"/>';
+    svg += '<text x="' + (ml + pw + 6) + '" y="' + ((e.ly != null ? e.ly : e.yy) + 4) + '" font-size="11" fill="var(--text-2)">' +
+           Math.round(e.p[e.key]) + '%</text>';
+  });
+  svg += '<line class="xh" y1="' + mt + '" y2="' + (mt + ph) + '" stroke="#8b949e" stroke-width="1" visibility="hidden"/>';
+  svg += '<circle class="h1" r="4" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>';
+  svg += '<circle class="h2" r="4" fill="var(--series-2)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>';
+  svg += '<rect x="' + ml + '" y="0" width="' + pw + '" height="' + H + '" fill="transparent"/>';
+  svg += '</svg><div class="chart-tip"></div>';
+  box.innerHTML = svg;
+
+  // 十字線 + 提示（滑鼠與觸控）
+  const el = box.querySelector('svg'), tip = box.querySelector('.chart-tip');
+  const xh = el.querySelector('.xh'), h1 = el.querySelector('.h1'), h2 = el.querySelector('.h2');
+  const show = ev => {
+    const r = el.getBoundingClientRect();
+    const px = (ev.clientX - r.left) * (W / r.width);
+    const i = Math.max(0, Math.min(N - 1, Math.round(N === 1 ? 0 : (px - ml) / pw * (N - 1))));
+    const p = pts[i], cx = x(p.n);
+    xh.setAttribute('x1', cx); xh.setAttribute('x2', cx); xh.setAttribute('visibility', 'visible');
+    const dot = (c, v) => {
+      if(v == null){ c.setAttribute('visibility', 'hidden'); return; }
+      c.setAttribute('cx', cx); c.setAttribute('cy', y(v)); c.setAttribute('visibility', 'visible');
+    };
+    dot(h1, p.rate); dot(h2, p.conf);
+    const res = p.side == null ? '不押' : p.hit === null ? '押' + sideTxt(p.side) + '（和局不計）'
+              : '押' + sideTxt(p.side) + (p.hit ? ' ✓' : ' ✗');
+    const pairs = (p.bp ? '・莊對' : '') + (p.pp ? '・閒對' : '');
+    tip.innerHTML = '<b>#' + p.n + '</b>　開' + sideTxt(p.w) + pairs + '　' + res + '<br>' +
+      '<span class="k" style="background:var(--series-1)"></span>成功率 ' + (p.rate == null ? '—' : p.rate.toFixed(1) + '%') + '<br>' +
+      '<span class="k" style="background:var(--series-2)"></span>信心率 ' + (p.conf == null ? '—' : p.conf.toFixed(1) + '%');
+    tip.style.display = 'block';
+    const left = cx / W * r.width;
+    const tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(r.width - tw, left - tw / 2)) + 'px';
+    tip.style.top = (-tip.offsetHeight - 4) + 'px';
+  };
+  const hide = () => {
+    tip.style.display = 'none';
+    [xh, h1, h2].forEach(e => e.setAttribute('visibility', 'hidden'));
+  };
+  el.addEventListener('pointermove', show);
+  el.addEventListener('pointerdown', show);
+  el.addEventListener('pointerleave', hide);
+  el.addEventListener('pointercancel', hide);
+}
+
+(function(){
+  const box = document.getElementById('strategies');
+  box.addEventListener('click', e => {
+    const pin = e.target.closest('[data-pin]');
+    if(pin){
+      if(!ready()) return;
+      const pr = getPrefs(), id = pin.dataset.pin;
+      pr.pinned = pr.pinned.includes(id) ? pr.pinned.filter(x => x !== id) : [...pr.pinned, id];
+      savePrefs();
+      return;
+    }
+    const view = e.target.closest('[data-view]');
+    if(view){ setRoadView(view.dataset.view); return; }
+    const chip = e.target.closest('[data-cat]');
+    if(chip){
+      if(!ready()) return;
+      getPrefs().cat = chip.dataset.cat;
+      savePrefs();
+      return;
+    }
+    const grp = e.target.closest('[data-group]');
+    if(grp){
+      if(!ready()) return;
+      const pr = getPrefs(), id = grp.dataset.group;
+      pr.collapsed = pr.collapsed.includes(id) ? pr.collapsed.filter(x => x !== id) : [...pr.collapsed, id];
+      savePrefs();
+      return;
+    }
+    if(e.target.closest('#strat-dir')){
+      if(!ready()) return;
+      const pr = getPrefs();
+      pr.dir = pr.dir === 'asc' ? 'desc' : 'asc';
+      savePrefs();
+    }
+  });
+  box.addEventListener('change', e => {
+    if(e.target.id !== 'strat-sort') return;
+    if(!ready()){ renderStrategies(); return; }
+    const pr = getPrefs();
+    pr.sort = e.target.value;
+    // 未押中次數通常想看最少的，預設由低到高；其餘由高到低
+    pr.dir = pr.sort === 'misses' ? 'asc' : 'desc';
+    savePrefs();
+  });
+})();
+
+/* ========== 牌靴指標 ==========
+   每一點＝「發這一手之前」的狀態；最後一點是下一手。
+   預期：依當時剩餘牌精確計算；實際：到前一手為止的累計比例 */
+const IND_MIN_HANDS = 10;                            // 實際值滿 10 手才畫，避免前幾手 0% / 100% 撐開圖
+function shoeIndicators(m){
+  const pts = [];
+  let bw = 0, pw = 0, n = 0, draws = 0, flips = 0;
+  for(let i = 0; i <= m.hands.length; i++){
+    const o = exactOdds(valueCounts(m, i));
+    const act = n >= IND_MIN_HANDS;
+    pts.push({
+      n: i + 1,
+      edgeExp: o ? (o.banker - o.player) * 100 : null,
+      edgeAct: act ? (bw - pw) / n * 100 : null,
+      drawExp: o ? o.draw * 100 : null,
+      drawAct: act ? draws / n * 100 : null,
+      flipExp: o ? o.flip * 100 : null,
+      flipAct: act ? flips / n * 100 : null
+    });
+    if(i === m.hands.length) break;
+    const h = m.hands[i];
+    const w = getWinner(h.player, h.banker);
+    const w2 = getWinner(h.player.slice(0, 2), h.banker.slice(0, 2));
+    const drew = h.player.length > 2 || h.banker.length > 2;
+    n++;
+    if(w === 'B') bw++; else if(w === 'P') pw++;
+    if(drew){ draws++; if(w !== w2) flips++; }
+  }
+  return pts;
+}
+
+const INDICATORS = [
+  { id: 'edge', name: '牌靴強弱（莊 − 閒）', exp: 'edgeExp', act: 'edgeAct', ref: 1.24, refLabel: '新靴 +1.24',
+    signed: true,
+    desc: '預期＝剩餘牌算出的莊勝率減閒勝率（往上偏莊、往下偏閒）；實際＝已開出的（莊 − 閒）÷ 局數' },
+  { id: 'draw', name: '補牌率', exp: 'drawExp', act: 'drawAct', ref: null,
+    desc: '有人補第三張（沒有天牌）的比例。剩餘 8、9 點多時天牌變多、補牌變少' },
+  { id: 'flip', name: '補牌翻盤率', exp: 'flipExp', act: 'flipAct', ref: null,
+    desc: '補牌後贏家和「前兩張領先的一方」不同的比例（含前兩張平手被補開、或補成和局）' }
+];
+
+function fmtPct(v, signed){ return v == null ? '—' : (signed && v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+
+function renderShoeIndicators(){
+  if(isSecCollapsed('ind')) return;
+  const el = document.getElementById('shoe-ind');
+  const pts = shoeIndicators(getActive());
+  const last = pts[pts.length - 1];
+  let html = '<div class="strat-legend"><span><i></i>實際（累計，滿 ' + IND_MIN_HANDS + ' 手後才畫）</span><span><i class="conf"></i>預期（剩餘牌精確計算）</span></div>';
+  INDICATORS.forEach(ind => {
+    html += '<div class="ind"><div class="ind-head"><span class="ind-name">' + ind.name + '</span>' +
+      '<span class="ind-now">下一手預期 <b>' + fmtPct(last[ind.exp], ind.signed) + '</b>　實際 ' + fmtPct(last[ind.act], ind.signed) + '</span>' +
+      '<span class="ind-desc">' + ind.desc + '</span></div>' +
+      '<div class="chart" data-ind="' + ind.id + '"></div></div>';
+  });
+  el.innerHTML = html;
+  el.querySelectorAll('[data-ind]').forEach(box => {
+    const ind = INDICATORS.find(x => x.id === box.dataset.ind);
+    drawLineChart(box, pts, [
+      { key: ind.act, color: 'var(--series-1)', label: '實際' },
+      { key: ind.exp, color: 'var(--series-2)', label: '預期', dash: true }
+    ], { ref: ind.ref, refLabel: ind.refLabel, signed: ind.signed });
+  });
+}
+
+/* 通用折線圖：單一 y 軸，範圍依資料自動取；最後一點標示為「下一手」 */
+function drawLineChart(box, pts, series, opt){
+  const W = Math.max(200, box.clientWidth || 320), H = 120;
+  const ml = 44, mr = 52, mt = 8, mb = 20;
+  const pw = W - ml - mr, ph = H - mt - mb;
+  const N = pts.length;
+  let lo = Infinity, hi = -Infinity;
+  pts.forEach(p => series.forEach(s => { const v = p[s.key]; if(v != null){ lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
+  if(opt.ref != null){ lo = Math.min(lo, opt.ref); hi = Math.max(hi, opt.ref); }
+  if(!isFinite(lo)){ box.innerHTML = '<div class="empty">尚無資料</div>'; return; }
+  if(opt.signed){ lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+  const pad = Math.max(1, (hi - lo) * .1);
+  lo = Math.floor(lo - pad); hi = Math.ceil(hi + pad);
+  if(!opt.signed) lo = Math.max(0, lo);
+  const x = n => ml + (N === 1 ? pw / 2 : (n - 1) / (N - 1) * pw);
+  const y = v => mt + (1 - (v - lo) / (hi - lo)) * ph;
+  const fmt = v => (opt.signed && v > 0 ? '+' : '') + (+v.toFixed(1)) + '%';
+  let svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + series.map(s => s.label).join('與') + '走勢">';
+  [lo, (lo + hi) / 2, hi].forEach(v => {
+    svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--grid)" stroke-width="1"/>';
+    svg += '<text x="' + (ml - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="11" fill="var(--axis)">' + fmt(v) + '</text>';
+  });
+  if(opt.signed && lo < 0 && hi > 0)
+    svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="#57606a" stroke-width="1"/>';
+  if(opt.ref != null){
+    svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(opt.ref) + '" y2="' + y(opt.ref) + '" stroke="#8b949e" stroke-width="1" stroke-dasharray="3 3"/>';
+    svg += '<text x="' + (ml + 4) + '" y="' + (y(opt.ref) - 4) + '" font-size="10" fill="var(--axis)">' + opt.refLabel + '</text>';
+  }
+  svg += '<text x="' + ml + '" y="' + (H - 4) + '" font-size="11" fill="var(--axis)">#1</text>';
+  svg += '<text x="' + (ml + pw) + '" y="' + (H - 4) + '" text-anchor="end" font-size="11" fill="var(--axis)">下一手</text>';
+  series.slice().reverse().forEach(s => {
+    let d = '', pen = false;
+    pts.forEach(p => { const v = p[s.key]; if(v == null){ pen = false; return; } d += (pen ? 'L' : 'M') + x(p.n).toFixed(1) + ',' + y(v).toFixed(1); pen = true; });
+    svg += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round"' + (s.dash ? ' stroke-dasharray="5 3"' : ' stroke-linecap="round"') + '/>';
+  });
+  // 端點標籤（避免重疊）
+  const ends = series.map(s => {
+    for(let i = N - 1; i >= 0; i--) if(pts[i][s.key] != null) return { s, p: pts[i], yy: y(pts[i][s.key]) };
+    return null;
+  }).filter(Boolean);
+  if(ends.length === 2 && Math.abs(ends[0].yy - ends[1].yy) < 13){
+    const mid = (ends[0].yy + ends[1].yy) / 2, up = ends[0].yy <= ends[1].yy ? 0 : 1;
+    ends[up].ly = mid - 7; ends[1 - up].ly = mid + 7;
+  }
+  ends.forEach(e => {
+    svg += '<circle cx="' + x(e.p.n) + '" cy="' + e.yy + '" r="4" fill="' + e.s.color + '" stroke="var(--surface)" stroke-width="2"/>';
+    svg += '<text x="' + (ml + pw + 6) + '" y="' + ((e.ly != null ? e.ly : e.yy) + 4) + '" font-size="11" fill="var(--text-2)">' + fmt(e.p[e.s.key]) + '</text>';
+  });
+  svg += '<line class="xh" y1="' + mt + '" y2="' + (mt + ph) + '" stroke="#8b949e" stroke-width="1" visibility="hidden"/>';
+  series.forEach((s, i) => { svg += '<circle class="hd' + i + '" r="4" fill="' + s.color + '" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>'; });
+  svg += '<rect x="' + ml + '" y="0" width="' + pw + '" height="' + H + '" fill="transparent"/></svg><div class="chart-tip"></div>';
+  box.innerHTML = svg;
+
+  const el = box.querySelector('svg'), tip = box.querySelector('.chart-tip'), xh = el.querySelector('.xh');
+  const show = ev => {
+    const r = el.getBoundingClientRect();
+    const px = (ev.clientX - r.left) * (W / r.width);
+    const i = Math.max(0, Math.min(N - 1, Math.round(N === 1 ? 0 : (px - ml) / pw * (N - 1))));
+    const p = pts[i], cx = x(p.n);
+    xh.setAttribute('x1', cx); xh.setAttribute('x2', cx); xh.setAttribute('visibility', 'visible');
+    series.forEach((s, k) => {
+      const c = el.querySelector('.hd' + k), v = p[s.key];
+      if(v == null){ c.setAttribute('visibility', 'hidden'); return; }
+      c.setAttribute('cx', cx); c.setAttribute('cy', y(v)); c.setAttribute('visibility', 'visible');
+    });
+    tip.innerHTML = '<b>' + (i === N - 1 ? '下一手' : '第 ' + p.n + ' 手前') + '</b>' + series.map(s =>
+      '<br><span class="k" style="background:' + s.color + '"></span>' + s.label + ' ' + fmtPct(p[s.key], opt.signed)).join('');
+    tip.style.display = 'block';
+    const tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(r.width - tw, cx / W * r.width - tw / 2)) + 'px';
+    tip.style.top = (-tip.offsetHeight - 4) + 'px';
+  };
+  const hide = () => { tip.style.display = 'none'; xh.setAttribute('visibility', 'hidden'); series.forEach((s, k) => el.querySelector('.hd' + k).setAttribute('visibility', 'hidden')); };
+  el.addEventListener('pointermove', show);
+  el.addEventListener('pointerdown', show);
+  el.addEventListener('pointerleave', hide);
+  el.addEventListener('pointercancel', hide);
 }
 
 function renderHistory(){
@@ -978,7 +2118,82 @@ function render(){
   renderShoe();
   renderAnalysis();
   renderHistory();
+  renderShoeList();
+  clearTimeout(stratTimer);
+  stratTimer = setTimeout(() => { renderShoeIndicators(); renderStrategies(); }, 0);
 }
+let stratTimer = null;
+
+/* ========== 牌靴 ========== */
+const SHOE_LOW = 20;                                   // 剩餘少於此張數時提醒開新靴
+function shoeSummary(hands){
+  let b = 0, p = 0, t = 0;
+  hands.forEach(h => { const w = getWinner(h.player, h.banker); if(w === 'B') b++; else if(w === 'P') p++; else t++; });
+  return '<b>' + hands.length + '</b> 局　<span class="B">莊 ' + b + '</span>　<span class="P">閒 ' + p + '</span>　<span class="T">和 ' + t + '</span>';
+}
+function fmtTime(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function startNewShoe(){
+  if(!editable()) return;
+  const m = getRealActive();
+  if(!m.hands.length){ showToast('這一靴還沒有紀錄'); return; }
+  const no = m.shoes.length + 1;
+  if(!confirm('結束第 ' + no + ' 靴（' + m.hands.length + ' 局）並開新靴？\n\n舊靴會保存在「牌靴與歷史紀錄」，可以隨時查看。')) return;
+  m.shoes.push({ no, decks: m.decks, endedAt: Date.now(), hands: m.hands });
+  m.hands = [];
+  state.lastModified = Date.now();
+  clearInput();
+  refreshAll();
+  schedulePush();
+  showToast('已開新靴：第 ' + (no + 1) + ' 靴');
+}
+function setViewShoe(idx){
+  viewShoe = idx == null ? null : { idx };
+  viewObj = null;
+  if(roadView) roadView = null;
+  clearInput();
+  refreshAll();
+  if(viewShoe) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function renderShoeList(){
+  const el = document.getElementById('shoe-list');
+  const m = getRealActive();
+  const cur = !viewShoe;
+  let html = '<div class="shoe-item' + (cur ? ' cur' : '') + '"><span class="no">第 ' + (m.shoes.length + 1) + ' 靴（目前）</span>' +
+    '<span class="sum">' + shoeSummary(m.hands) + '</span>' +
+    (cur ? '' : '<button data-shoe="cur">回到目前</button>') + '</div>';
+  for(let i = m.shoes.length - 1; i >= 0; i--){
+    const sh = m.shoes[i], on = viewShoe && viewShoe.idx === i;
+    html += '<div class="shoe-item' + (on ? ' cur' : '') + '"><span class="no">第 ' + (i + 1) + ' 靴</span>' +
+      '<span class="sum">' + shoeSummary(sh.hands) + '<br>' + fmtTime(sh.endedAt) + ' 結束・' + sh.decks + ' 副</span>' +
+      '<button data-shoe="' + i + '" class="' + (on ? 'on' : '') + '">' + (on ? '查看中' : '查看') + '</button></div>';
+  }
+  el.innerHTML = html;
+  // 查看橫幅、輸入區鎖定
+  const banner = document.getElementById('view-banner');
+  document.body.classList.toggle('viewing-shoe', !!viewShoe);
+  if(viewShoe){
+    const sh = m.shoes[viewShoe.idx];
+    banner.innerHTML = '<span>正在查看 <b>' + escapeHtml(m.name) + ' 第 ' + (viewShoe.idx + 1) + ' 靴</b>（唯讀・' + sh.hands.length + ' 局）</span><button data-shoe="cur">回到目前牌局</button>';
+    banner.classList.add('on');
+  } else {
+    banner.classList.remove('on');
+    banner.innerHTML = '';
+  }
+  // 剩餘牌不多時提醒開新靴
+  const rem = getRemainingCards(m).length;
+  document.getElementById('newshoe').classList.toggle('urge', !viewShoe && m.hands.length > 0 && rem < SHOE_LOW);
+}
+function escapeHtml(t){ const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-shoe]');
+  if(!b) return;
+  setViewShoe(b.dataset.shoe === 'cur' ? null : +b.dataset.shoe);
+});
+document.getElementById('newshoe').addEventListener('click', startNewShoe);
 
 function updateLastHint(){
   const el = document.getElementById('last-hint');
@@ -1003,14 +2218,7 @@ let activeSlot = { side: 'p', idx: 0 };
 
 function cardsOf(ranks){ return ranks.filter(Boolean).map(r => ({ rank: r, suit: DEFAULT_SUIT })); }
 function bankerDraws(bv, p3){
-  if(p3 === null) return bv <= 5;
-  const v = rankValue(p3);
-  if(bv <= 2) return true;
-  if(bv === 3) return v !== 8;
-  if(bv === 4) return v >= 2 && v <= 7;
-  if(bv === 5) return v >= 4 && v <= 7;
-  if(bv === 6) return v === 6 || v === 7;
-  return false;
+  return bankerDrawsVal(bv, p3 === null ? null : rankValue(p3));
 }
 /* 目前輸入內容下「需要」的格子，依輸入順序；第三張要等前面的牌確定才知道要不要 */
 function requiredSlots(inp){
@@ -1098,6 +2306,7 @@ function buildKeypad(){
 }
 
 function enterRank(r){
+  if(viewShoe){ editable(); return; }
   if(!activeSlot){ buzz(); return; }                 // 這手已輸入完成
   input[activeSlot.side][activeSlot.idx] = r;
   pruneInput();
@@ -1107,6 +2316,7 @@ function enterRank(r){
 }
 /* ⌫：刪掉輸入順序上最後一張已填的牌 */
 function backspace(){
+  if(viewShoe) return;
   const filled = requiredSlots(input).filter(s => input[s.side][s.idx]);
   if(!filled.length){ buzz(); return; }
   const last = filled[filled.length - 1];
@@ -1160,7 +2370,7 @@ function clearInput(){
 
 /* ========== 記錄 ========== */
 function recordHand(){
-  if(!ready()) return;
+  if(!editable()) return;
   if(!inputComplete()){
     const n = nextEmptySlot();
     alert('這手還沒輸入完：' + (n.side === 'p' ? '閒家' : '莊家') + '第 ' + (n.idx + 1) + ' 張');
@@ -1178,10 +2388,40 @@ function recordHand(){
   updateLastHint();
   render();
   schedulePush();
+  const w = getWinner(pCards, bCards);
+  showToast('已記錄 #' + m.hands.length + '　' + (w === 'B' ? '莊贏' : w === 'P' ? '閒贏' : '和局'), '撤銷', () => {
+    // 只撤銷剛記的這一手（期間若又記了別手就不動）
+    const mm = getActive();
+    if(mm !== m || mm.hands.length === 0 || mm.hands[mm.hands.length - 1].player !== pCards) return;
+    mm.hands.pop();
+    state.lastModified = Date.now();
+    updateLastHint();
+    render();
+    schedulePush();
+    showToast('已撤銷 #' + (mm.hands.length + 1));
+  });
+}
+
+let toastTimer = null;
+function showToast(text, actLabel, onAct){
+  const t = document.getElementById('toast');
+  t.innerHTML = '';
+  const span = document.createElement('span');
+  span.textContent = text;
+  t.appendChild(span);
+  if(actLabel){
+    const b = document.createElement('button');
+    b.textContent = actLabel;
+    b.addEventListener('click', () => { t.classList.remove('on'); onAct(); });
+    t.appendChild(b);
+  }
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), actLabel ? 5000 : 2000);
 }
 
 document.getElementById('undo').addEventListener('click', function(){
-  if(!ready()) return;
+  if(!editable()) return;
   const m = getActive();
   if(!m.hands.length) return;
   const last = m.hands[m.hands.length - 1];
@@ -1192,6 +2432,80 @@ document.getElementById('undo').addEventListener('click', function(){
   updateLastHint();
   render();
   schedulePush();
+});
+
+/* ========== 右側浮動選單 ========== */
+(function(){
+  const fab = document.getElementById('fab'), menu = document.getElementById('fab-menu');
+  const close = () => { menu.hidden = true; fab.setAttribute('aria-expanded', 'false'); fab.textContent = '☰'; };
+  const open = () => {
+    menu.hidden = false; fab.setAttribute('aria-expanded', 'true'); fab.textContent = '✕';
+    const dockBtn = menu.querySelector('[data-act="dock"]');
+    dockBtn.textContent = document.getElementById('dock').classList.contains('collapsed') ? '展開輸入區' : '收合輸入區';
+  };
+  fab.addEventListener('click', e => { e.stopPropagation(); menu.hidden ? open() : close(); });
+  menu.addEventListener('click', e => {
+    const a = e.target.closest('a');
+    if(a){
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if(target.dataset.sec) expandSection(target.dataset.sec);
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      close();
+      return;
+    }
+    const act = e.target.closest('[data-act]');
+    if(!act) return;
+    if(act.dataset.act === 'top') window.scrollTo({ top: 0, behavior: 'smooth' });
+    if(act.dataset.act === 'dock') document.getElementById('dock-toggle').click();
+    if(act.dataset.act === 'newshoe') startNewShoe();
+    close();
+  });
+  document.addEventListener('click', e => { if(!menu.hidden && !e.target.closest('#fab-wrap')) close(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') close(); });
+
+  // 目前所在區塊（畫面上方最接近的那個）
+  const links = [...menu.querySelectorAll('a')];
+  const secs = links.map(a => document.querySelector(a.getAttribute('href')));
+  let ticking = false;
+  const spy = () => {
+    ticking = false;
+    const top = (parseFloat(getComputedStyle(document.body).getPropertyValue('--top-h')) || 100) + 20;
+    let cur = -1, best = -Infinity, first = 0, firstTop = Infinity;
+    secs.forEach((sec, i) => {
+      const t = sec.getBoundingClientRect().top;
+      if(t <= top && t > best){ best = t; cur = i; }
+      if(t < firstTop){ firstTop = t; first = i; }
+    });
+    if(cur < 0) cur = first;
+    links.forEach((a, i) => a.classList.toggle('cur', i === cur));
+  };
+  window.addEventListener('scroll', () => { if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive: true });
+  spy();
+
+  // 往下捲、機台區離開畫面後顯示細固定列；跳轉時以細列高度留白
+  const topbar = document.querySelector('.topbar'), mini = document.getElementById('minibar');
+  const syncTop = () => document.body.style.setProperty('--top-h', mini.offsetHeight + 'px');
+  if(window.ResizeObserver) new ResizeObserver(syncTop).observe(mini);
+  syncTop();
+  const syncMini = () => mini.classList.toggle('on', topbar.getBoundingClientRect().bottom < 0);
+  window.addEventListener('scroll', syncMini, { passive: true });
+  syncMini();
+  mini.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+})();
+
+/* ========== 電腦鍵盤快速鍵 ==========
+   A、2~9、0(=10)、J、Q、K 輸入；Backspace 刪上一張；Enter 記錄 */
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if(tag === 'input' || tag === 'select' || tag === 'textarea') return;
+  const k = e.key.toUpperCase();
+  const map = { A: 'A', '1': 'A', '0': '10', T: '10', J: 'J', Q: 'Q', K: 'K' };
+  let rank = map[k] || (/^[2-9]$/.test(k) ? k : null);
+  if(rank){ e.preventDefault(); enterRank(rank); return; }
+  if(e.key === 'Backspace'){ e.preventDefault(); backspace(); return; }
+  if(e.key === 'Enter' && tag !== 'button'){ e.preventDefault(); recordHand(); }
 });
 
 /* 底部輸入區收合；內容區底部留白跟著輸入區高度走 */
@@ -1211,7 +2525,7 @@ document.getElementById('dock-toggle').addEventListener('click', function(){
 
 document.getElementById('decks').addEventListener('change', function(){
   const m = getActive();
-  if(!ready()){ this.value = m.decks; return; }
+  if(!editable()){ this.value = m.decks; return; }
   const newDecks = parseInt(this.value, 10);
   if(newDecks < m.decks && m.hands.length){
     if(!confirm('減少副數可能導致已記錄的牌超出牌靴，確定要繼續？')){ this.value = m.decks; return; }
@@ -1223,7 +2537,7 @@ document.getElementById('decks').addEventListener('change', function(){
 });
 
 document.getElementById('rename-machine').addEventListener('click', function(){
-  if(!ready()) return;
+  if(!editable()) return;
   const m = getActive();
   const name = prompt('新名稱：', m.name);
   if(name === null) return;
@@ -1234,7 +2548,7 @@ document.getElementById('rename-machine').addEventListener('click', function(){
 });
 
 document.getElementById('delete-machine').addEventListener('click', function(){
-  if(!ready()) return;
+  if(!editable()) return;
   if(state.machines.length <= 1){ alert('至少需要保留一個機台'); return; }
   const m = getActive();
   if(!confirm('刪除「' + m.name + '」？此動作無法復原。')) return;
