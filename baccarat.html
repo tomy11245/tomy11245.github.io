@@ -171,6 +171,30 @@ body.viewing-shoe .dock-body{opacity:.35;pointer-events:none;}
 .shoe-item button{flex:0 0 auto;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;}
 .shoe-item button.on{background:var(--gold);color:#0d1117;border-color:var(--gold);}
 
+/* ---- 全機台總覽 ---- */
+.ov-scope{display:flex;gap:6px;margin-bottom:8px;}
+.ov-scope button{flex:1;height:38px;border-radius:19px;border:1px solid var(--line);background:#21262d;color:var(--muted);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
+.ov-scope button.on{background:var(--gold);border-color:var(--gold);color:#0d1117;}
+.ov-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;}
+.ov-table th{font-size:11px;font-weight:500;color:var(--muted);text-align:left;padding:4px 4px;border-bottom:1px solid var(--line);}
+.ov-table td{padding:8px 4px;border-bottom:1px solid #21262d;vertical-align:top;}
+.ov-table tr.row{cursor:pointer;}
+.ov-table tr.row:active{background:#21262d;}
+.ov-table tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--gold);}
+.ov-table .mn{font-weight:800;color:#e6edf3;}
+.ov-table .sub{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+.ov-table .num{text-align:right;white-space:nowrap;}
+.ov-table .pos{color:#3fb950;font-weight:800;}
+.ov-table .neg{color:#f85149;font-weight:800;}
+.ov-table .nx{white-space:nowrap;font-weight:800;}
+.ov-table .nx.B{color:var(--banker);}
+.ov-table .nx.P{color:var(--player);}
+.ov-table .nx.T{color:var(--tie);}
+.ov-table .nx.BP{color:var(--banker);}
+.ov-table .nx.PP{color:var(--player);}
+.ov-h{font-size:13px;font-weight:800;color:#e6edf3;margin:14px 0 4px;}
+.ov-note{font-size:11px;color:#6e7681;margin-top:6px;line-height:1.5;}
+
 /* ---- 設定（摺疊） ---- */
 details.panel > summary{list-style:none;cursor:pointer;font-size:13px;color:var(--muted);letter-spacing:1px;min-height:28px;display:flex;align-items:center;}
 details.panel > summary::-webkit-details-marker{display:none;}
@@ -221,6 +245,32 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .bead{display:grid;grid-auto-flow:column;}
 .bigroad{display:grid;}
 /* 大路查看策略：押中綠框✓、未中紅虛框✗、沒押變淡 */
+.rv-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;}
+.rv-modal[hidden]{display:none;}
+.rv-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);}
+.rv-sheet{position:relative;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:var(--panel);
+  border:1px solid var(--line);border-bottom:none;border-radius:14px 14px 0 0;padding:10px 10px calc(env(safe-area-inset-bottom) + 14px);
+  box-shadow:0 -10px 30px rgba(0,0,0,.6);animation:sheetup .18s ease-out;}
+@keyframes sheetup{from{transform:translateY(30px);opacity:.4;}}
+.rv-head{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+.rv-head select{flex:1;min-width:0;height:44px;background:#21262d;color:#e6edf3;border:1px solid var(--gold);border-radius:8px;padding:0 10px;font-size:16px;font-weight:800;font-family:inherit;}
+.rv-x{flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:18px;cursor:pointer;}
+.rv-stats{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);margin-bottom:4px;}
+.rv-stats b{color:#e6edf3;font-size:16px;font-variant-numeric:tabular-nums;}
+.rv-stats b.pos{color:#3fb950;}
+.rv-stats b.neg{color:#f85149;}
+.rv-legend{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.rv-legend .ok{color:#3fb950;font-weight:900;}
+.rv-legend .ng{color:#f85149;font-weight:900;}
+.rv-info{font-size:13px;color:var(--text);margin:6px 0;min-height:18px;}
+.rv-list-title{font-size:12px;color:var(--muted);margin-top:4px;}
+.rv-list{font-size:13px;font-variant-numeric:tabular-nums;}
+.rv-list div{display:flex;gap:8px;padding:6px 2px;border-bottom:1px solid #21262d;}
+.rv-list .g{margin-left:auto;font-weight:800;}
+.rv-list .g.pos{color:#3fb950;}
+.rv-list .g.neg{color:#f85149;}
+.rv-list .hl{background:rgba(240,185,11,.12);}
+body.modal-open{overflow:hidden;}
 .rv-bar{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px;padding:6px 8px;border-radius:8px;background:rgba(240,185,11,.12);border:1px solid rgba(240,185,11,.45);font-size:13px;color:var(--text);}
 .rv-bar.on{display:flex;}
 .rv-bar b{color:var(--gold);}
@@ -308,6 +358,10 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .delta{font-size:11px;margin-left:4px;font-weight:500;}
 .delta.up{color:#2ecc71;}
 .delta.down{color:#e74c3c;}
+.ev-row{font-size:13px;color:var(--muted);margin-top:6px;}
+.ev-row b{font-variant-numeric:tabular-nums;}
+.ev-row b.pos{color:#3fb950;}
+.ev-row b.neg{color:#f85149;}
 .baseline{font-size:11px;color:#6e7681;margin-top:4px;letter-spacing:.5px;}
 
 /* ---- 策略走勢 ---- */
@@ -357,7 +411,9 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .strat-next .side.T::before{background:var(--tie);}
 .strat-next .side.BP::before{background:var(--banker);border-radius:2px;}
 .strat-next .side.PP::before{background:var(--player);border-radius:2px;}
-.strat-kpi{display:flex;gap:14px;font-size:13px;color:var(--muted);margin:4px 0 2px;}
+.strat-kpi{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);margin:4px 0 2px;}
+.strat-kpi b.pos{color:#3fb950;}
+.strat-kpi b.neg{color:#f85149;}
 .strat-kpi b{color:#e6edf3;font-size:16px;font-variant-numeric:tabular-nums;}
 .chart{position:relative;touch-action:pan-y;}
 .chart svg{display:block;width:100%;overflow:visible;}
@@ -412,11 +468,10 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   <div class="stat"><span class="k">閒對</span><span class="v p" id="s-pp">0</span></div>
 </div>
 
+<div class="panel" id="sec-overview"><h2>全機台總覽</h2><div id="overview"></div></div>
 <div class="panel" id="sec-bead"><h2>珠盤路</h2><div class="scroll"><div class="bead board" id="bead"></div></div></div>
 <div class="panel" id="bigroad-panel"><h2>大路</h2>
-  <div class="rv-bar" id="rv-bar"></div>
   <div class="scroll"><div class="bigroad board" id="bigroad"></div></div>
-  <div class="rv-info" id="rv-info"></div>
 </div>
 
 <div class="panel" id="sec-derived">
@@ -481,10 +536,28 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   <input type="file" id="import-file" accept=".json,application/json" style="display:none;">
 </details>
 
+<!-- 策略押注浮框 -->
+<div class="rv-modal" id="rv-modal" hidden>
+  <div class="rv-backdrop" data-rv-close></div>
+  <div class="rv-sheet" role="dialog" aria-modal="true" aria-label="策略押注">
+    <div class="rv-head">
+      <select id="rv-select" aria-label="選擇策略"></select>
+      <button class="rv-x" data-rv-close aria-label="關閉">✕</button>
+    </div>
+    <div class="rv-stats" id="rv-stats"></div>
+    <div class="rv-legend"><span class="ok">✓</span> 押中　<span class="ng">✗</span> 未中　淡色＝沒押　右上「和」＝掛在該格的和局那手</div>
+    <div class="scroll"><div class="bigroad board viewing" id="rv-board"></div></div>
+    <div class="rv-info" id="rv-info">點格子看那一手押了什麼</div>
+    <div class="rv-list-title">押注明細（新到舊）</div>
+    <div class="rv-list" id="rv-list"></div>
+  </div>
+</div>
+
 <!-- 右側浮動選單 -->
 <div class="fab-wrap" id="fab-wrap">
   <nav class="fab-menu" id="fab-menu" aria-label="快速跳到區塊" hidden>
     <a href="#sec-stats">統計</a>
+    <a href="#sec-overview">全機台總覽</a>
     <a href="#sec-bead">珠盤路</a>
     <a href="#bigroad-panel">大路</a>
     <a href="#sec-derived">下三路・問路</a>
@@ -686,6 +759,25 @@ function validateNewCards(machine, newCards){
   return null;
 }
 
+/* ========== 賠率（押 1 注贏時淨賺） ==========
+   莊抽 5% 佣金；押莊閒遇和局退回（0）；和 8 倍；對子 11 倍 */
+const PAYOUT = { B: 0.95, P: 1, T: 8, BP: 11, PP: 11 };
+function betPnl(side, w, bp, pp){
+  if(side === 'B' || side === 'P'){ if(w === 'T') return 0; return side === w ? PAYOUT[side] : -1; }
+  const hit = side === 'T' ? w === 'T' : side === 'BP' ? bp : pp;
+  return hit ? PAYOUT[side] : -1;
+}
+/* 各押法每注期望值（依剩餘牌精確計算） */
+function betEVs(o, pairP){
+  const ev = {
+    B: o.banker * PAYOUT.B - o.player,
+    P: o.player * PAYOUT.P - o.banker,
+    T: o.tie * PAYOUT.T - (1 - o.tie)
+  };
+  if(pairP != null){ ev.BP = pairP * PAYOUT.BP - (1 - pairP); ev.PP = ev.BP; }
+  return ev;
+}
+
 /* ========== 精確機率 ==========
    依剩餘牌各點數（0~9）張數，窮舉閒1、莊1、閒2、莊2 及補牌，算出莊／閒／和的精確機率 */
 const oddsCache = new Map();
@@ -749,12 +841,18 @@ function exactOdds(cnt){
 }
 
 /* ========== Firebase 同步 ========== */
-function syncUrl(){
+function syncUrl(sub){
   const base = CONFIG.dbUrl.replace(/\/+$/, '');
-  return base + '/workspaces/' + encodeURIComponent(CONFIG.roomCode) + '.json';
+  return base + '/workspaces/' + encodeURIComponent(CONFIG.roomCode) + (sub ? '/' + sub : '') + '.json';
 }
 async function cloudRead(){
   const res = await fetch(syncUrl() + '?t=' + Date.now(), { cache: 'no-store' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
+}
+/* 只讀最後更新時間（幾個位元組），用來判斷要不要下載完整資料 */
+async function cloudReadStamp(){
+  const res = await fetch(syncUrl('lastModified') + '?t=' + Date.now(), { cache: 'no-store' });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   return await res.json();
 }
@@ -767,11 +865,40 @@ async function cloudWrite(data){
   if(!res.ok) throw new Error('HTTP ' + res.status);
   return await res.json();
 }
+/* 多路徑更新：{ 'machines/7/hands/15': {...}, 'lastModified': 123 }，值為 null 代表刪除 */
+async function cloudPatch(paths){
+  const res = await fetch(syncUrl(), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(paths)
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return true;
+}
 async function cloudDelete(){
   const res = await fetch(syncUrl(), { method: 'DELETE' });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   return true;
 }
+
+/* 上次和雲端一致時的資料副本；上傳時只送和它不同的地方 */
+let lastSynced = null;
+const snapshot = obj => JSON.parse(JSON.stringify(obj));
+/* 比對差異：machines 往下展開到「每一手／每一靴」，其餘欄位整個比對 */
+function diffPaths(prev, cur, path, depth, out){
+  const isObj = v => v !== null && typeof v === 'object';
+  const deep = path === '' || path.indexOf('machines') === 0;
+  if(depth < 4 && deep && isObj(prev) && isObj(cur) && Array.isArray(prev) === Array.isArray(cur)){
+    const keys = new Set([...Object.keys(prev), ...Object.keys(cur)]);
+    keys.forEach(k => diffPaths(prev[k], cur[k], path ? path + '/' + k : k, depth + 1, out));
+    return out;
+  }
+  const a = prev === undefined ? null : prev, b = cur === undefined ? null : cur;
+  if(JSON.stringify(a) !== JSON.stringify(b)) out[path] = b;
+  return out;
+}
+let lastUpload = { bytes: 0, mode: '' };
+
 let editSeq = 0;
 function schedulePush(){
   if(!isConfigured || !loaded) return;
@@ -786,15 +913,27 @@ async function pushNow(){
   setStatus('同步中…', 'syncing');
   try{
     state.lastModified = Date.now();
-    await cloudWrite(state);
+    const snap = snapshot(state);
+    if(!lastSynced){
+      const body = JSON.stringify(snap);
+      await cloudWrite(snap);
+      lastUpload = { bytes: body.length, mode: '完整' };
+    } else {
+      const paths = diffPaths(lastSynced, snap, '', 0, {});
+      const body = JSON.stringify(paths);
+      if(Object.keys(paths).some(k => k !== 'lastModified')) await cloudPatch(paths);
+      lastUpload = { bytes: body.length, mode: '差異' };
+    }
+    lastSynced = snap;
     lastPushAt = Date.now();
     if(seq === editSeq) dirty = false;
-    setStatus('已同步 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
+    setStatus('已同步 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}) + '・上傳 ' + fmtBytes(lastUpload.bytes), 'on');
   }catch(e){
-    // 資料只在記憶體，失敗時保持 dirty，下一輪輪詢會重送
+    // 資料只在記憶體，失敗時保持 dirty，下一輪輪詢會重送（差異會累積在下一次）
     setStatus('同步失敗（未上傳，將重試）：' + e.message, 'err');
   }
 }
+function fmtBytes(n){ return n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KB'; }
 function refreshAll(){
   applySectionLayout();
   document.getElementById('decks').value = getActive().decks;
@@ -807,12 +946,21 @@ async function pullAndMerge(silent){
   if(dirty){ await pushNow(); return; }
   isPulling = true;
   try{
+    // 已載入時先只讀最後更新時間；沒變就不下載完整資料
+    if(loaded){
+      const stamp = await cloudReadStamp();
+      if(stamp != null && stamp <= (state.lastModified || 0)){
+        if(!silent) setStatus('已是最新 · ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
+        return;
+      }
+    }
     const remote = await cloudRead();
     if(!remote || !Array.isArray(remote.machines) || remote.machines.length === 0){
       // 雲端是空的：以空白資料為準
       const wasLoaded = loaded;
       adoptState({ machines: [], activeId: null, lastModified: 0 });
       loaded = true;
+      lastSynced = null;                              // 雲端是空的：下次整份上傳
       refreshAll();
       if(!wasLoaded){ isPulling = false; schedulePush(); return; }
       setStatus('雲端尚無資料', 'on');
@@ -826,6 +974,7 @@ async function pullAndMerge(silent){
     if(!loaded || remoteTime > (state.lastModified || 0)){
       adoptState(remote);
       loaded = true;
+      lastSynced = snapshot(state);
       refreshAll();
       setStatus('已從雲端更新 · ' + new Date(remoteTime).toLocaleTimeString('zh-TW', {hour12:false}), 'on');
     } else if(!silent){
@@ -950,31 +1099,51 @@ function fitBoard(el, minCols, target){
 }
 const BOARD_SIZE = { bead: 27, bigroad: 29, derived: 17 };
 
-function renderRoadViewBar(m, k){
-  const bar = document.getElementById('rv-bar'), info = document.getElementById('rv-info');
-  if(k < 0){ bar.classList.remove('on'); bar.innerHTML = ''; info.classList.remove('on'); return; }
+/* ========== 策略押注浮框 ========== */
+let rvOpen = null;                                   // 正在看的策略 id
+function openRoadView(id){
+  rvOpen = id;
+  const sel = document.getElementById('rv-select');
+  sel.innerHTML = STRAT_CATS.map(c => '<optgroup label="' + c.label + '">' +
+    STRATEGIES.filter(st => st.cat === c.id).map(st => '<option value="' + st.id + '">' + st.name + '</option>').join('') + '</optgroup>').join('');
+  sel.value = id;
+  document.getElementById('rv-modal').hidden = false;
+  document.body.classList.add('modal-open');
+  document.getElementById('rv-info').textContent = '點格子看那一手押了什麼';
+  renderRoadViewModal();
+}
+function closeRoadView(){
+  rvOpen = null;
+  document.getElementById('rv-modal').hidden = true;
+  document.body.classList.remove('modal-open');
+}
+function renderRoadViewModal(){
+  if(!rvOpen) return;
+  const m = getActive();
+  const k = STRATEGIES.findIndex(st => st.id === rvOpen);
+  if(k < 0){ closeRoadView(); return; }
   const d = getBacktest(m)[k];
-  bar.innerHTML = '查看 <b>' + STRATEGIES[k].name + '</b>' +
-    '<span class="rv-stat">押中 <b>' + d.hits + '</b>　未中 <b>' + (d.bets - d.hits) + '</b>' +
-    (d.bets ? '　成功率 <b>' + (d.hits / d.bets * 100).toFixed(1) + '%</b>' : '') + '</span>' +
-    '<button id="rv-close">關閉</button>';
-  bar.classList.add('on');
-  if(!info.classList.contains('on')){ info.textContent = '點格子看那一手押了什麼'; info.classList.add('on'); }
-  bar.querySelector('#rv-close').addEventListener('click', () => setRoadView(null));
-}
-function setRoadView(id){
-  roadView = roadView === id ? null : id;
-  const info = document.getElementById('rv-info');
-  info.classList.remove('on'); info.textContent = '';
-  renderBigRoad();
-  // 更新各策略卡上的按鈕狀態
-  document.querySelectorAll('[data-view]').forEach(b => {
-    const on = b.dataset.view === roadView;
-    b.classList.toggle('on', on);
-    b.textContent = on ? '◉ 查看中' : '大路查看';
+  document.getElementById('rv-stats').innerHTML =
+    '<span>押中 <b>' + d.hits + '</b></span><span>未中 <b>' + (d.bets - d.hits) + '</b></span>' +
+    '<span>成功率 <b>' + (d.bets ? (d.hits / d.bets * 100).toFixed(1) + '%' : '—') + '</b></span>' +
+    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注</span>' +
+    '<span>下一手 <b>' + (d.next && d.next.side ? sideTxt(d.next.side) : '觀望') + '</b></span>';
+  drawBigRoad(document.getElementById('rv-board'), m, d.pts, idxs => {
+    document.getElementById('rv-info').innerHTML = idxs.map(j => rvDesc(d.pts[j], j)).join('<br>');
+    document.querySelectorAll('#rv-list [data-i]').forEach(r => r.classList.toggle('hl', idxs.includes(+r.dataset.i)));
   });
-  if(roadView){ expandSection('bigroad'); document.getElementById('bigroad-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  let list = '';
+  for(let i = d.pts.length - 1; i >= 0; i--){
+    const pt = d.pts[i];
+    if(!pt.side) continue;
+    list += '<div data-i="' + i + '"><span>' + rvDesc(pt, i) + '</span><span class="g ' + (pt.gain > 0 ? 'pos' : pt.gain < 0 ? 'neg' : '') + '">' +
+      fmtUnits(pt.gain) + '</span></div>';
+  }
+  document.getElementById('rv-list').innerHTML = list || '<div>還沒有押過</div>';
 }
+document.getElementById('rv-select').addEventListener('change', e => { rvOpen = e.target.value; document.getElementById('rv-info').textContent = '點格子看那一手押了什麼'; renderRoadViewModal(); });
+document.getElementById('rv-modal').addEventListener('click', e => { if(e.target.closest('[data-rv-close]')) closeRoadView(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && rvOpen) closeRoadView(); });
 
 function renderBead(){
   const el = document.getElementById('bead');
@@ -998,8 +1167,6 @@ function renderBead(){
 /* 問路預覽：'B' / 'P' 時，大路與下三路多畫一格閃爍的假設結果 */
 let askPreview = null, askTimer = null;
 
-/* 從策略「大路查看」：目前查看的策略 id（只存在這個頁面，不需同步） */
-let roadView = null;
 let lastBT = null;                                   // 最近一次回測結果，避免重算
 function getBacktest(m){
   if(!lastBT || lastBT.m !== m || lastBT.len !== m.hands.length || lastBT.decks !== m.decks)
@@ -1012,14 +1179,16 @@ function rvMark(pt){                                 // 一手的押注結果：
 }
 function rvDesc(pt, i){
   const pairs = (pt.bp ? '・莊對' : '') + (pt.pp ? '・閒對' : '');
-  const bet = !pt.side ? '沒押' : '押' + sideTxt(pt.side) + (pt.hit === null ? '（和局不計）' : pt.hit ? ' ✓ 押中' : ' ✗ 未中');
+  const bet = !pt.side ? '沒押' : '押' + sideTxt(pt.side) + (pt.hit === null ? '（和局退回）' : pt.hit ? ' ✓' : ' ✗');
   return '#' + (i + 1) + '　開' + sideTxt(pt.w) + pairs + '　' + bet;
 }
 
 function renderBigRoad(){
-  const el = document.getElementById('bigroad');
+  drawBigRoad(document.getElementById('bigroad'), getActive(), null);
+}
+/* 畫大路；pts 有值時標出策略每手押注（押中✓、未中✗、沒押變淡），onCell(手的索引們) 處理點格子 */
+function drawBigRoad(el, m, pts, onCell){
   el.innerHTML = '';
-  const m = getActive();
   // 和局不佔格，記在前一格上（第一格之前的和局記在第一格）
   const items = [];
   let leadTies = [];
@@ -1033,12 +1202,7 @@ function renderBigRoad(){
       items.push({ color: w, hand: h, idx: i, ties: first ? leadTies.length : 0, tieIdx: first ? leadTies : [] });
     }
   });
-  // 查看策略時的資料
-  const k = roadView ? STRATEGIES.findIndex(st => st.id === roadView) : -1;
-  const pts = k >= 0 ? getBacktest(m)[k].pts : null;
-  el.classList.toggle('viewing', !!pts);
-  renderRoadViewBar(m, k);
-  if(askPreview) items.push({ color: askPreview, hand: null, ties: 0, preview: true });
+  if(askPreview && !pts) items.push({ color: askPreview, hand: null, ties: 0, preview: true });
   const placed = layoutRoad(items.map(i => i.color));
   const maxCol = placed.reduce((a, p) => Math.max(a, p.col), 0);
   placed.forEach((p, i) => {
@@ -1058,16 +1222,10 @@ function renderBigRoad(){
       if(own) cell.insertAdjacentHTML('beforeend', '<span class="rv-badge own ' + own + '">' + (own === 'ok' ? '✓' : '✗') + '</span>');
       if(tieMarks.length){
         const okN = tieMarks.filter(x => x === 'ok').length;
-        const cls = okN ? 'ok' : 'ng';
-        cell.insertAdjacentHTML('beforeend', '<span class="rv-badge tie ' + cls + '">和' + (okN ? '✓' : '✗') + (tieMarks.length > 1 ? tieMarks.length : '') + '</span>');
+        cell.insertAdjacentHTML('beforeend', '<span class="rv-badge tie ' + (okN ? 'ok' : 'ng') + '">和' + (okN ? '✓' : '✗') + (tieMarks.length > 1 ? tieMarks.length : '') + '</span>');
       }
       cell.style.cursor = 'pointer';
-      cell.addEventListener('click', () => {
-        const lines = [rvDesc(pts[it.idx], it.idx)].concat(it.tieIdx.map(j => rvDesc(pts[j], j)));
-        const info = document.getElementById('rv-info');
-        info.innerHTML = lines.join('<br>');
-        info.classList.add('on');
-      });
+      if(onCell) cell.addEventListener('click', () => onCell([it.idx].concat(it.tieIdx)));
     }
     if(it.ties > 1 && !pts){
       const n = document.createElement('span');
@@ -1282,6 +1440,10 @@ function renderAnalysis(){
           '% / 和 ' + (BASELINE.tie*100).toFixed(2) +
           '%<br>依剩餘牌精確計算　·　對子基準 ' + (pairBase*100).toFixed(2) +
           '%（' + m.decks + ' 副）</div>';
+  // 每注期望值：押 1 注長期平均賺賠（莊扣 5%、和 8 倍、對子 11 倍）
+  const ev = betEVs(r, pairP);
+  html += '<div class="ev-row">每注期望值　' + [['B', '莊'], ['P', '閒'], ['T', '和'], ['BP', '對子']].map(([k, lb]) =>
+    lb + ' <b class="' + (ev[k] > 0 ? 'pos' : 'neg') + '">' + (ev[k] > 0 ? '+' : '') + (ev[k] * 100).toFixed(2) + '%</b>').join('　') + '</div>';
   el.innerHTML = html;
 }
 
@@ -1399,13 +1561,15 @@ const STRAT_CATS = [
   { id: 'basic', label: '莊閒基本' },
   { id: 'roads', label: '下三路' },
   { id: 'tie',   label: '和局' },
-  { id: 'pair',  label: '對子' }
+  { id: 'pair',  label: '對子' },
+  { id: 'ev',    label: '期望值' }
 ];
 function catOf(id){
   if(id.indexOf('meta') === 0) return 'meta';
   if(id === 'banker' || id === 'follow' || id === 'count') return 'basic';
   if(id.indexOf('road') === 0) return 'roads';
   if(id.indexOf('T') === 0) return 'tie';
+  if(id === 'ev') return 'ev';
   return 'pair';                                     // BPcount、BPgap、PPcount、PPgap
 }
 
@@ -1500,13 +1664,25 @@ const STRATEGIES = [
       return { side, conf: Math.max(o.banker, o.player) / (o.banker + o.player) * 100 };
     }
   },
-  ...sideBetStrategies()
+  ...sideBetStrategies(),
+  {
+    id: 'ev', name: '正期望值', short: '期望', chart: 'pnl',
+    rule: '依剩餘牌精確算出莊（扣 5% 佣金）、閒、和（8 倍）、莊對／閒對（11 倍）每注的期望值，只在最高的那一種大於 0 時押它，其餘觀望。信心率＝該注期望值',
+    predict: ctx => {
+      const o = exactOdds(ctx.counts);
+      if(!o) return null;
+      const ev = betEVs(o, pairProbFromCounts(ctx.rcounts));
+      let best = null;
+      for(const k in ev) if(!best || ev[k] > ev[best]) best = k;
+      return { side: ev[best] > 0 ? best : null, conf: ev[best] * 100, ev: ev[best], best };
+    }
+  }
 ];
 
 STRATEGIES.forEach(st => { st.cat = catOf(st.id); });
 
 function backtest(m){
-  const series = STRATEGIES.map(() => ({ pts: [], hits: 0, bets: 0, next: null }));
+  const series = STRATEGIES.map(() => ({ pts: [], hits: 0, bets: 0, pnl: 0, evSum: 0, next: null }));
   const results = [];
   const shared = {};
   // 以往牌靴＝所有機台的舊靴＋其他機台目前這靴（不含正在回測的這一靴）
@@ -1535,8 +1711,11 @@ function backtest(m){
         hit = side === 'T' ? w === 'T' : side === 'BP' ? bp : pp;
       }
       if(hit) sr.hits++;
-      sr.pts.push({ n: i + 1, side, conf: pr ? pr.conf : null, w, bp, pp, hit,
-                    rate: sr.bets ? sr.hits / sr.bets * 100 : null });
+      const gain = side ? betPnl(side, w, bp, pp) : null;
+      if(side){ sr.pnl += gain; if(pr.ev != null) sr.evSum += pr.ev; }
+      sr.pts.push({ n: i + 1, side, conf: pr ? pr.conf : null, w, bp, pp, hit, gain,
+                    rate: sr.bets ? sr.hits / sr.bets * 100 : null,
+                    pnlCum: sr.pnl, evCum: sr.evSum });
     });
     if(w !== 'T') results.push(w);
   }
@@ -1550,7 +1729,8 @@ const SORTS = {
   rate:    { label: '成功率',           val: d => d.bets ? d.hits / d.bets : null },
   hits:    { label: '押中次數',         val: d => d.hits },
   misses:  { label: '未押中次數',       val: d => d.bets - d.hits },
-  edge:    { label: '優於基準（成功率−基準）', val: (d, st) => d.bets ? d.hits / d.bets * 100 - (st.ref || 50) : null }
+  edge:    { label: '優於基準（成功率−基準）', val: (d, st) => d.bets ? d.hits / d.bets * 100 - (st.ref || 50) : null },
+  pnl:     { label: '盈虧（每手 1 注）', val: d => d.bets ? d.pnl : null }
 };
 function getPrefs(){
   if(!state.prefs || typeof state.prefs !== 'object') state.prefs = {};
@@ -1566,6 +1746,7 @@ function getPrefs(){
    順序與收合狀態存雲端 state.prefs.secOrder / secCollapsed */
 const SECTIONS = [
   { key: 'stats',    id: 'sec-stats',     title: '統計' },
+  { key: 'overview', id: 'sec-overview' },
   { key: 'bead',     id: 'sec-bead' },
   { key: 'bigroad',  id: 'bigroad-panel' },
   { key: 'derived',  id: 'sec-derived',   title: '下三路・問路' },
@@ -1581,7 +1762,12 @@ function secPrefs(){
   const keys = SECTIONS.map(x => x.key);
   if(!Array.isArray(pr.secOrder)) pr.secOrder = [];
   pr.secOrder = pr.secOrder.filter(k => keys.includes(k));
-  keys.forEach(k => { if(!pr.secOrder.includes(k)) pr.secOrder.push(k); });
+  // 之後新增的分類：插在它在預設清單中的前一個分類後面
+  keys.forEach((k, i) => {
+    if(pr.secOrder.includes(k)) return;
+    const prev = keys.slice(0, i).reverse().find(x => pr.secOrder.includes(x));
+    pr.secOrder.splice(prev ? pr.secOrder.indexOf(prev) + 1 : 0, 0, k);
+  });
   if(!Array.isArray(pr.secCollapsed)) pr.secCollapsed = pr.secInit ? [] : ['settings'];   // 預設只收合設定
   pr.secInit = true;
   return pr;
@@ -1715,16 +1901,122 @@ function stratCard({ st, k, d, pinned }){
   return '<div class="strat' + (pinned ? ' pinned' : '') + '">' +
     '<div class="strat-head"><span class="strat-name">' + st.name + '</span>' +
     '<button class="pin-btn' + (pinned ? ' on' : '') + '" data-pin="' + st.id + '" aria-pressed="' + pinned + '">' + (pinned ? '★ 已置頂' : '☆ 置頂') + '</button>' +
-    '<button class="view-btn' + (roadView === st.id ? ' on' : '') + '" data-view="' + st.id + '">' + (roadView === st.id ? '◉ 查看中' : '大路查看') + '</button>' +
+    '<button class="view-btn" data-view="' + st.id + '">押注明細</button>' +
     '<span class="strat-next">下一手 <span class="side ' + (nx && nx.side ? nx.side : '') + '">' + (nx && nx.side ? sideTxt(nx.side) : '觀望') + '</span>' +
-    (nx ? '<span>信心 <b>' + nx.conf.toFixed(1) + '%</b></span>' : '') + '</span>' +
+    (nx ? (nx.ev != null
+      ? '<span>' + (nx.side ? '' : '最高 ' + sideTxt(nx.best) + ' ') + '期望值 <b>' + (nx.ev > 0 ? '+' : '') + (nx.ev * 100).toFixed(2) + '%</b></span>'
+      : '<span>信心 <b>' + nx.conf.toFixed(1) + '%</b></span>') : '') + '</span>' +
     (nx && nx.from ? '<span class="strat-rule">目前跟：' + nx.from + '</span>' : '') +
     '<span class="strat-rule">' + st.rule + '</span></div>' +
     '<div class="strat-kpi"><span>成功率 <b>' + (d.bets ? (d.hits / d.bets * 100).toFixed(1) + '%' : '—') + '</b></span>' +
     '<span>押中 <b>' + d.hits + '</b></span><span>未中 <b>' + (d.bets - d.hits) + '</b></span><span>共 ' + d.bets + ' 手</span>' +
-    (st.ref ? '<span>基準 ' + st.ref.toFixed(2) + '%</span>' : '') + '</div>' +
+    (st.ref ? '<span>基準 ' + st.ref.toFixed(2) + '%</span>' : '') +
+    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注</span></div>' +
     '<div class="chart" data-k="' + k + '"></div></div>';
 }
+
+/* ========== 全機台總覽 ==========
+   每台機台回測所有策略，挑盈虧最高者（至少押 5 次）；另加全部機台合計排行 */
+const OV_MIN_BETS = 5;
+const btCache = new WeakMap();                        // hands 陣列 → 回測結果（陣列被換掉時自動回收）
+function backtestHands(hands, decks){
+  const hit = btCache.get(hands);
+  if(hit && hit.len === hands.length && hit.decks === decks) return hit.data;
+  const data = backtest({ hands, decks });
+  btCache.set(hands, { len: hands.length, decks, data });
+  return data;
+}
+function renderOverview(){
+  if(isSecCollapsed('overview')) return;
+  const el = document.getElementById('overview');
+  const pr = getPrefs();
+  const scope = pr.ovScope === 'all' ? 'all' : 'cur';
+  const rows = [];
+  const total = STRATEGIES.map(() => ({ pnl: 0, bets: 0, hits: 0, machines: 0 }));
+  state.machines.forEach(m => {
+    const sets = [m.hands].concat(scope === 'all' ? (m.shoes || []).map(sh => sh.hands) : []);
+    const decksOf = h => { const sh = (m.shoes || []).find(x => x.hands === h); return sh ? sh.decks : m.decks; };
+    const agg = STRATEGIES.map(() => ({ pnl: 0, bets: 0, hits: 0 }));
+    let handsN = 0, next = null;
+    sets.forEach(h => {
+      if(!h.length) return;
+      handsN += h.length;
+      const data = backtestHands(h, decksOf(h));
+      data.forEach((d, k) => { agg[k].pnl += d.pnl; agg[k].bets += d.bets; agg[k].hits += d.hits; });
+      if(h === m.hands) next = data.map(d => d.next);
+    });
+    if(!handsN) return;
+    let best = -1;
+    agg.forEach((a, k) => {
+      total[k].pnl += a.pnl; total[k].bets += a.bets; total[k].hits += a.hits; if(a.bets) total[k].machines++;
+      if(a.bets >= OV_MIN_BETS && (best < 0 || a.pnl > agg[best].pnl)) best = k;
+    });
+    rows.push({ m, handsN, shoes: scope === 'all' ? sets.filter(h => h.length).length : 1, best, a: best >= 0 ? agg[best] : null,
+                nx: best >= 0 && next ? next[best] : null });
+  });
+  rows.sort((x, y) => (y.a ? y.a.pnl : -1e9) - (x.a ? x.a.pnl : -1e9));
+
+  let html = '<div class="ov-scope" role="tablist">' +
+    '<button data-ov="cur" class="' + (scope === 'cur' ? 'on' : '') + '">目前牌靴</button>' +
+    '<button data-ov="all" class="' + (scope === 'all' ? 'on' : '') + '">全部牌靴（含舊靴）</button></div>';
+  if(!rows.length){
+    el.innerHTML = html + '<div class="empty">還沒有任何機台有紀錄</div>';
+    return;
+  }
+  html += '<table class="ov-table"><thead><tr><th>機台</th><th>最高獲利策略</th><th class="num">盈虧</th><th class="num">下一手</th></tr></thead><tbody>';
+  rows.forEach(r => {
+    const cur = r.m.id === state.activeId;
+    html += '<tr class="row' + (cur ? ' cur' : '') + '" data-ov-m="' + r.m.id + '">' +
+      '<td><span class="mn">' + escapeHtml(r.m.name) + '</span><span class="sub">' + r.handsN + ' 局' + (scope === 'all' ? '・' + r.shoes + ' 靴' : '') + '</span></td>';
+    if(r.a){
+      html += '<td>' + STRATEGIES[r.best].name + '<span class="sub">成功率 ' + (r.a.hits / r.a.bets * 100).toFixed(1) + '%・押 ' + r.a.bets + ' 次</span></td>' +
+        '<td class="num ' + (r.a.pnl > 0 ? 'pos' : r.a.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(r.a.pnl) + ' 注</td>' +
+        '<td class="num"><span class="nx ' + (r.nx && r.nx.side ? r.nx.side : '') + '">' + (r.nx && r.nx.side ? sideTxt(r.nx.side) : scope === 'cur' || r.nx ? '觀望' : '—') + '</span></td>';
+    } else {
+      html += '<td colspan="3" class="sub">押注次數還不夠（每個策略至少押 ' + OV_MIN_BETS + ' 次才比較）</td>';
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  // 全部機台合計排行
+  const ranked = total.map((t, k) => ({ t, k })).filter(x => x.t.bets >= OV_MIN_BETS).sort((a, b) => b.t.pnl - a.t.pnl).slice(0, 5);
+  if(ranked.length){
+    html += '<div class="ov-h">全部機台合計・盈虧前 5 名</div><table class="ov-table"><thead><tr><th>策略</th><th class="num">成功率</th><th class="num">押注</th><th class="num">盈虧</th></tr></thead><tbody>';
+    ranked.forEach(({ t, k }) => {
+      html += '<tr><td>' + STRATEGIES[k].name + '<span class="sub">' + t.machines + ' 台機台有押</span></td>' +
+        '<td class="num">' + (t.hits / t.bets * 100).toFixed(1) + '%</td><td class="num">' + t.bets + '</td>' +
+        '<td class="num ' + (t.pnl > 0 ? 'pos' : t.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(t.pnl) + ' 注</td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+  html += '<div class="ov-note">盈虧＝每手押 1 注（莊抽 5%、和 8 倍、對子 11 倍）。「最高獲利」是過去的結果，押注次數少時多半是運氣；' +
+    '點機台那一列可切換過去。</div>';
+  el.innerHTML = html;
+}
+document.getElementById('overview').addEventListener('click', e => {
+  const sc = e.target.closest('[data-ov]');
+  if(sc){
+    if(!ready()) return;
+    getPrefs().ovScope = sc.dataset.ov;
+    state.lastModified = Date.now();
+    renderOverview();
+    schedulePush();
+    return;
+  }
+  const row = e.target.closest('[data-ov-m]');
+  if(row){
+    viewShoe = null;
+    state.activeId = row.dataset.ovM;
+    document.getElementById('decks').value = getActive().decks;
+    clearInput();
+    updateLastHint();
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+function fmtUnits(v){ return (v > 0 ? '+' : '') + (Math.round(v * 100) / 100).toFixed(2); }
 
 function renderStrategies(){
   if(isSecCollapsed('strat')) return;
@@ -1800,6 +2092,14 @@ function renderStrategies(){
 
 /* 單一策略走勢圖：一條 y 軸（0~100%），成功率實線、信心率虛線 */
 function drawStrategyChart(box, d, st){
+  if(st && st.chart === 'pnl'){
+    // 實際累計盈虧 vs 預期累計盈虧（每次下注的期望值加總），單位：注
+    return drawLineChart(box, d.pts, [
+      { key: 'pnlCum', color: 'var(--series-1)', label: '實際盈虧' },
+      { key: 'evCum',  color: 'var(--series-2)', label: '預期盈虧', dash: true }
+    ], { signed: true, unit: '注', lastLabel: '#' + d.pts.length, pointLabel: p => '#' + p.n + '　' +
+         (p.side ? '押' + sideTxt(p.side) + (p.gain > 0 ? ' ✓ ' : p.gain < 0 ? ' ✗ ' : ' 退回 ') + fmtUnits(p.gain) + ' 注' : '觀望') });
+  }
   const W = Math.max(200, box.clientWidth || 320), H = 120;
   const ml = 34, mr = 44, mt = 8, mb = 20;
   const pw = W - ml - mr, ph = H - mt - mb;
@@ -1908,7 +2208,7 @@ function drawStrategyChart(box, d, st){
       return;
     }
     const view = e.target.closest('[data-view]');
-    if(view){ setRoadView(view.dataset.view); return; }
+    if(view){ openRoadView(view.dataset.view); return; }
     const chip = e.target.closest('[data-cat]');
     if(chip){
       if(!ready()) return;
@@ -2023,7 +2323,9 @@ function drawLineChart(box, pts, series, opt){
   if(!opt.signed) lo = Math.max(0, lo);
   const x = n => ml + (N === 1 ? pw / 2 : (n - 1) / (N - 1) * pw);
   const y = v => mt + (1 - (v - lo) / (hi - lo)) * ph;
-  const fmt = v => (opt.signed && v > 0 ? '+' : '') + (+v.toFixed(1)) + '%';
+  const unit = opt.unit || '%';
+  const fmt = v => (opt.signed && v > 0 ? '+' : '') + (+v.toFixed(1)) + unit;
+  const fmtV = v => v == null ? '—' : unit === '%' ? fmtPct(v, opt.signed) : (opt.signed && v > 0 ? '+' : '') + v.toFixed(2) + ' ' + unit;
   let svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + series.map(s => s.label).join('與') + '走勢">';
   [lo, (lo + hi) / 2, hi].forEach(v => {
     svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--grid)" stroke-width="1"/>';
@@ -2036,7 +2338,7 @@ function drawLineChart(box, pts, series, opt){
     svg += '<text x="' + (ml + 4) + '" y="' + (y(opt.ref) - 4) + '" font-size="10" fill="var(--axis)">' + opt.refLabel + '</text>';
   }
   svg += '<text x="' + ml + '" y="' + (H - 4) + '" font-size="11" fill="var(--axis)">#1</text>';
-  svg += '<text x="' + (ml + pw) + '" y="' + (H - 4) + '" text-anchor="end" font-size="11" fill="var(--axis)">下一手</text>';
+  svg += '<text x="' + (ml + pw) + '" y="' + (H - 4) + '" text-anchor="end" font-size="11" fill="var(--axis)">' + (opt.lastLabel || '下一手') + '</text>';
   series.slice().reverse().forEach(s => {
     let d = '', pen = false;
     pts.forEach(p => { const v = p[s.key]; if(v == null){ pen = false; return; } d += (pen ? 'L' : 'M') + x(p.n).toFixed(1) + ',' + y(v).toFixed(1); pen = true; });
@@ -2072,8 +2374,8 @@ function drawLineChart(box, pts, series, opt){
       if(v == null){ c.setAttribute('visibility', 'hidden'); return; }
       c.setAttribute('cx', cx); c.setAttribute('cy', y(v)); c.setAttribute('visibility', 'visible');
     });
-    tip.innerHTML = '<b>' + (i === N - 1 ? '下一手' : '第 ' + p.n + ' 手前') + '</b>' + series.map(s =>
-      '<br><span class="k" style="background:' + s.color + '"></span>' + s.label + ' ' + fmtPct(p[s.key], opt.signed)).join('');
+    tip.innerHTML = '<b>' + (opt.pointLabel ? opt.pointLabel(p) : i === N - 1 ? '下一手' : '第 ' + p.n + ' 手前') + '</b>' + series.map(s =>
+      '<br><span class="k" style="background:' + s.color + '"></span>' + s.label + ' ' + fmtV(p[s.key])).join('');
     tip.style.display = 'block';
     const tw = tip.offsetWidth;
     tip.style.left = Math.max(0, Math.min(r.width - tw, cx / W * r.width - tw / 2)) + 'px';
@@ -2119,8 +2421,9 @@ function render(){
   renderAnalysis();
   renderHistory();
   renderShoeList();
+  renderRoadViewModal();
   clearTimeout(stratTimer);
-  stratTimer = setTimeout(() => { renderShoeIndicators(); renderStrategies(); }, 0);
+  stratTimer = setTimeout(() => { renderShoeIndicators(); renderStrategies(); renderOverview(); }, 0);
 }
 let stratTimer = null;
 
@@ -2153,7 +2456,7 @@ function startNewShoe(){
 function setViewShoe(idx){
   viewShoe = idx == null ? null : { idx };
   viewObj = null;
-  if(roadView) roadView = null;
+  if(rvOpen) closeRoadView();
   clearInput();
   refreshAll();
   if(viewShoe) window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2583,6 +2886,7 @@ document.getElementById('clear-cloud').addEventListener('click', function(){
   dirty = false;
   cloudDelete().then(() => {
     lastPushAt = 0;
+    lastSynced = null;
     adoptState({ machines: [], activeId: null, lastModified: 0 });
     clearInput();
     refreshAll();
@@ -2622,6 +2926,7 @@ document.getElementById('import-file').addEventListener('change', function(e){
       if(!confirm('匯入將覆蓋雲端上所有機台，確定嗎？')) return;
       state.activeId = null;
       adoptState(d);
+      lastSynced = null;                              // 匯入：整份覆蓋雲端
       state.lastModified = Date.now();
       clearInput();
       refreshAll();
