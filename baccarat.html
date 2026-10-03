@@ -192,6 +192,7 @@ body.viewing-shoe .dock-body{opacity:.35;pointer-events:none;}
 .ov-table .nx.T{color:var(--tie);}
 .ov-table .nx.BP{color:var(--banker);}
 .ov-table .nx.PP{color:var(--player);}
+.ov-table .nx.TRI,.ov-table .nx.DP{color:var(--tie);}
 .ov-h{font-size:13px;font-weight:800;color:#e6edf3;margin:14px 0 4px;}
 .ov-note{font-size:11px;color:#6e7681;margin-top:6px;line-height:1.5;}
 
@@ -411,6 +412,7 @@ body.modal-open{overflow:hidden;}
 .strat-next .side.T::before{background:var(--tie);}
 .strat-next .side.BP::before{background:var(--banker);border-radius:2px;}
 .strat-next .side.PP::before{background:var(--player);border-radius:2px;}
+.strat-next .side.TRI::before,.strat-next .side.DP::before{background:linear-gradient(135deg,var(--banker) 50%,var(--player) 50%);border-radius:2px;}
 .strat-kpi{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);margin:4px 0 2px;}
 .strat-kpi b.pos{color:#3fb950;}
 .strat-kpi b.neg{color:#f85149;}
@@ -762,7 +764,10 @@ function validateNewCards(machine, newCards){
 /* ========== 賠率（押 1 注贏時淨賺） ==========
    莊抽 5% 佣金；押莊閒遇和局退回（0）；和 8 倍；對子 11 倍 */
 const PAYOUT = { B: 0.95, P: 1, T: 8, BP: 11, PP: 11 };
+/* 組合注：TRI＝和＋莊對＋閒對各 1 注；DP＝莊對＋閒對各 1 注 */
+const COMBO = { TRI: ['T', 'BP', 'PP'], DP: ['BP', 'PP'] };
 function betPnl(side, w, bp, pp){
+  if(COMBO[side]) return COMBO[side].reduce((a, k) => a + betPnl(k, w, bp, pp), 0);
   if(side === 'B' || side === 'P'){ if(w === 'T') return 0; return side === w ? PAYOUT[side] : -1; }
   const hit = side === 'T' ? w === 'T' : side === 'BP' ? bp : pp;
   return hit ? PAYOUT[side] : -1;
@@ -777,6 +782,62 @@ function betEVs(o, pairP){
   if(pairP != null){ ev.BP = pairP * PAYOUT.BP - (1 - pairP); ev.PP = ev.BP; }
   return ev;
 }
+
+/* ========== 雙對／和＋雙對 的精確機率 ==========
+   依剩餘各點數（rank）張數：閒前兩張同為 r、莊前兩張同為 s 的機率，
+   再依補牌規則窮舉第三張，算出同時開和的機率 */
+const pairJointCache = new Map();
+function pairJoint(rc){
+  const key = RANKS.map(r => rc[r]).join(',');
+  if(pairJointCache.has(key)) return pairJointCache.get(key);
+  const N = RANKS.reduce((a, r) => a + rc[r], 0);
+  if(N < 6){ pairJointCache.set(key, null); return null; }
+  // 剩餘牌按點數（0~9）的張數，供第三張使用
+  const vc = new Array(10).fill(0);
+  RANKS.forEach(r => { vc[rankValue(r)] += rc[r]; });
+  let both = 0, tieBoth = 0;
+  const denom4 = N * (N - 1) * (N - 2) * (N - 3);
+  for(const r of RANKS){
+    const cr = rc[r];
+    if(cr < 2) continue;
+    for(const t of RANKS){
+      const ct = rc[t];
+      const ways = r === t ? cr * (cr - 1) * (cr - 2) * (cr - 3) : cr * (cr - 1) * ct * (ct - 1);
+      if(ways <= 0) continue;
+      const pr = ways / denom4;
+      both += pr;
+      // 和局：閒 2r、莊 2t（點數），再依補牌規則
+      const v = vc.slice();
+      v[rankValue(r)] -= 2; v[rankValue(t)] -= 2;
+      const M = N - 4;
+      const pv = (2 * rankValue(r)) % 10, bv = (2 * rankValue(t)) % 10;
+      let pt = 0;                                     // 這組前四張之後開和的機率
+      if(pv >= 8 || bv >= 8){
+        pt = pv === bv ? 1 : 0;
+      } else if(pv <= 5){
+        for(let e = 0; e < 10; e++){
+          if(!v[e]) continue;
+          const pe = v[e] / M, pv3 = (pv + e) % 10;
+          if(bankerDrawsVal(bv, e)){
+            v[e]--;
+            for(let f = 0; f < 10; f++) if(v[f] && (bv + f) % 10 === pv3) pt += pe * v[f] / (M - 1);
+            v[e]++;
+          } else if(bv === pv3) pt += pe;
+        }
+      } else if(bv <= 5){
+        for(let f = 0; f < 10; f++) if(v[f] && (bv + f) % 10 === pv) pt += v[f] / M;
+      } else {
+        pt = pv === bv ? 1 : 0;
+      }
+      tieBoth += pr * pt;
+    }
+  }
+  const out = { both, tieBoth };
+  pairJointCache.set(key, out);
+  return out;
+}
+/* 新靴時的基準（依副數） */
+const pairJointBase = decks => { const rc = {}; RANKS.forEach(r => rc[r] = decks * 4); return pairJoint(rc); };
 
 /* ========== 精確機率 ==========
    依剩餘牌各點數（0~9）張數，窮舉閒1、莊1、閒2、莊2 及補牌，算出莊／閒／和的精確機率 */
@@ -1562,7 +1623,8 @@ const STRAT_CATS = [
   { id: 'roads', label: '下三路' },
   { id: 'tie',   label: '和局' },
   { id: 'pair',  label: '對子' },
-  { id: 'ev',    label: '期望值' }
+  { id: 'ev',    label: '期望值' },
+  { id: 'combo', label: '和＋對子' }
 ];
 function catOf(id){
   if(id.indexOf('meta') === 0) return 'meta';
@@ -1570,6 +1632,7 @@ function catOf(id){
   if(id.indexOf('road') === 0) return 'roads';
   if(id.indexOf('T') === 0) return 'tie';
   if(id === 'ev') return 'ev';
+  if(id === 'triple' || id === 'tieBoth' || id === 'bothPair') return 'combo';
   return 'pair';                                     // BPcount、BPgap、PPcount、PPgap
 }
 
@@ -1676,6 +1739,39 @@ const STRATEGIES = [
       for(const k in ev) if(!best || ev[k] > ev[best]) best = k;
       return { side: ev[best] > 0 ? best : null, conf: ev[best] * 100, ev: ev[best], best };
     }
+  },
+  {
+    id: 'triple', name: '三注齊押', short: '三注', chart: 'pnl',
+    rule: '同一手同時押和、莊對、閒對各 1 注。依剩餘牌精確計算三注合計期望值，大於 0 才押。信心率＝平均每注期望值',
+    predict: ctx => {
+      const o = exactOdds(ctx.counts), pp = pairProbFromCounts(ctx.rcounts);
+      if(!o || pp == null) return null;
+      const ev = betEVs(o, pp), sum = ev.T + ev.BP + ev.PP;
+      // ev：三注合計的期望值（注），用於預期盈虧
+      return { side: sum > 0 ? 'TRI' : null, conf: sum / 3 * 100, ev: sum, best: 'TRI' };
+    }
+  },
+  {
+    id: 'tieBoth', name: '三寶齊開', short: '三寶', chart: 'pnl',
+    rule: '預測同一手「和＋莊對＋閒對」三個同時開出。機率達到新靴時的 2 倍以上，就同時押和、莊對、閒對各 1 注。信心率＝三個同時開出的精確機率',
+    predict: ctx => {
+      const j = pairJoint(ctx.rcounts), base = pairJointBase(ctx.machine.decks);
+      const o = exactOdds(ctx.counts), pp = pairProbFromCounts(ctx.rcounts);
+      if(!j || !base || !o || pp == null) return null;
+      const ev = betEVs(o, pp);
+      return { side: j.tieBoth >= base.tieBoth * 2 ? 'TRI' : null, conf: j.tieBoth * 100, ev: ev.T + ev.BP + ev.PP, best: 'TRI' };
+    }
+  },
+  {
+    id: 'bothPair', name: '雙對', short: '雙對', chart: 'pnl',
+    rule: '預測同一手莊、閒兩邊都有對子。機率達到新靴時的 2 倍以上，就同時押莊對、閒對各 1 注。信心率＝雙對的精確機率',
+    predict: ctx => {
+      const j = pairJoint(ctx.rcounts), base = pairJointBase(ctx.machine.decks);
+      const pp = pairProbFromCounts(ctx.rcounts);
+      if(!j || !base || pp == null) return null;
+      const evPair = pp * PAYOUT.BP - (1 - pp);
+      return { side: j.both >= base.both * 2 ? 'DP' : null, conf: j.both * 100, ev: evPair * 2, best: 'DP' };
+    }
   }
 ];
 
@@ -1706,6 +1802,9 @@ function backtest(m){
       let hit = null;
       if(side === 'B' || side === 'P'){
         if(w !== 'T'){ sr.bets++; hit = side === w; }          // 押莊閒遇和局：不計
+      } else if(COMBO[side]){
+        sr.bets++;
+        hit = betPnl(side, w, bp, pp) > 0;            // 組合注：整體有賺算押中
       } else if(side){
         sr.bets++;
         hit = side === 'T' ? w === 'T' : side === 'BP' ? bp : pp;
@@ -1894,7 +1993,7 @@ function orderStrategies(data){
     });
 }
 
-const sideTxt = s => ({ B: '莊', P: '閒', T: '和', BP: '莊對', PP: '閒對' })[s] || '—';
+const sideTxt = s => ({ B: '莊', P: '閒', T: '和', BP: '莊對', PP: '閒對', TRI: '和＋雙對', DP: '雙對' })[s] || '—';
 
 function stratCard({ st, k, d, pinned }){
   const nx = d.next;
@@ -1904,7 +2003,7 @@ function stratCard({ st, k, d, pinned }){
     '<button class="view-btn" data-view="' + st.id + '">押注明細</button>' +
     '<span class="strat-next">下一手 <span class="side ' + (nx && nx.side ? nx.side : '') + '">' + (nx && nx.side ? sideTxt(nx.side) : '觀望') + '</span>' +
     (nx ? (nx.ev != null
-      ? '<span>' + (nx.side ? '' : '最高 ' + sideTxt(nx.best) + ' ') + '期望值 <b>' + (nx.ev > 0 ? '+' : '') + (nx.ev * 100).toFixed(2) + '%</b></span>'
+      ? '<span>' + (nx.side ? '' : (COMBO[nx.best] ? '' : '最高 ' + sideTxt(nx.best) + ' ')) + (COMBO[nx.best] ? (nx.best === 'TRI' ? '三注' : '兩注') + '合計期望 <b>' + (nx.ev > 0 ? '+' : '') + nx.ev.toFixed(3) + ' 注</b>' : '期望值 <b>' + (nx.ev > 0 ? '+' : '') + (nx.ev * 100).toFixed(2) + '%</b>') + '</span>'
       : '<span>信心 <b>' + nx.conf.toFixed(1) + '%</b></span>') : '') + '</span>' +
     (nx && nx.from ? '<span class="strat-rule">目前跟：' + nx.from + '</span>' : '') +
     '<span class="strat-rule">' + st.rule + '</span></div>' +
