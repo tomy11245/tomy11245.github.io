@@ -7,92 +7,115 @@
 <style>
 :root{
   --bg:#0d1117; --panel:#161b22; --line:#30363d;
-  --banker:#e74c3c; --player:#3498db; --tie:#2ecc71;
+  --banker:#e74c3c; --player:#3498db; --tie:#f4d03f;
   --text:#c9d1d9; --muted:#8b949e; --gold:#f0b90b;
   --red-mark:#ff6b6b; --blue-mark:#5dade2;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;}
 body{
-  background:var(--bg); color:var(--text); padding:10px 10px 40px;
+  background:var(--bg); color:var(--text);
+  padding:0 10px calc(var(--dock-h, 300px) + 12px);
   font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
   -webkit-text-size-adjust:100%; font-size:14px;
 }
-h1{font-size:15px;margin:0 0 8px;letter-spacing:3px;font-weight:600;color:#e6edf3;}
+button,select{touch-action:manipulation;-webkit-user-select:none;user-select:none;}
 h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-weight:500;}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;}
-#top-status{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:8px;color:var(--muted);min-height:14px;}
-#status-dot{width:7px;height:7px;border-radius:50%;background:#484f58;flex:0 0 auto;}
+
+/* ---- 頂部（固定）：狀態 + 機台 ---- */
+.topbar{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -10px 8px;padding:calc(env(safe-area-inset-top) + 6px) 10px 6px;border-bottom:1px solid var(--line);}
+#top-status{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:6px;color:var(--muted);min-height:14px;}
+#top-status .title{font-size:13px;font-weight:700;color:#e6edf3;letter-spacing:2px;margin-right:4px;}
+#status-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#status-dot{width:8px;height:8px;border-radius:50%;background:#484f58;flex:0 0 auto;}
 #status-dot.on{background:#2ecc71;box-shadow:0 0 6px #2ecc71;}
 #status-dot.syncing{background:#f0b90b;animation:pulse 1s infinite;}
 #status-dot.err{background:#e74c3c;}
 @keyframes pulse{50%{opacity:.4;}}
-
-.machine-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;}
-.machine-bar::-webkit-scrollbar{height:5px;}
-.machine-bar::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
+.machine-bar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.machine-bar::-webkit-scrollbar{display:none;}
 .machine-tab{
-  flex:0 0 auto;padding:10px 16px;border-radius:8px;
+  flex:0 0 auto;min-height:40px;padding:0 14px;border-radius:8px;
   background:#21262d;border:1px solid var(--line);color:var(--muted);
-  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
-  white-space:nowrap;letter-spacing:1px;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;
 }
-.machine-tab:hover{border-color:#484f58;color:var(--text);}
 .machine-tab.active{background:var(--gold);color:#0d1117;border-color:var(--gold);}
-.machine-tab .count{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.2);font-size:11px;font-weight:700;}
-.machine-tab.active .count{background:rgba(0,0,0,.25);}
+.machine-tab .count{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.2);font-size:11px;}
 .machine-tab.add{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:500;}
-.machine-tab.add:hover{border-color:var(--gold);color:var(--gold);}
 
-.hand-section{margin-bottom:14px;}
-.hand-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.hand-title{font-size:15px;font-weight:800;letter-spacing:2px;padding:6px 14px;border-radius:6px;}
-.hand-title.p{background:rgba(52,152,219,.2);color:var(--player);}
-.hand-title.b{background:rgba(231,76,60,.2);color:var(--banker);}
-.hand-total{font-size:22px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
-.slots{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
-.slot{
-  flex:1;min-width:60px;height:52px;border-radius:8px;
-  background:#0d1117;border:2px dashed var(--line);
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;font-weight:800;color:var(--text);
-  cursor:pointer;transition:all .15s;position:relative;
+/* ---- 底部輸入區（固定，拇指可及） ---- */
+.dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:#11161d;border-top:1px solid var(--line);
+  padding:6px 8px calc(env(safe-area-inset-bottom) + 8px);
+  box-shadow:0 -6px 20px rgba(0,0,0,.5);
 }
-.slot.filled{border-style:solid;border-color:var(--gold);background:#1c2128;}
-.slot.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,185,11,.3);}
-.slot.empty::after{content:'?';color:#30363d;font-size:24px;}
-.slot.filled::after{content:none;}
-
-.rank-grid-buttons{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px;background:#0d1117;border-radius:8px;}
-.rank-btn{
-  padding:14px 2px;border-radius:6px;border:1px solid var(--line);
-  background:#21262d;color:var(--text);font-size:16px;font-weight:800;
-  cursor:pointer;font-family:inherit;transition:all .1s;
-}
-.rank-btn:hover{background:#30363d;border-color:var(--gold);}
-.rank-btn:active{transform:scale(.95);}
-.rank-btn.p-active{background:rgba(52,152,219,.3);border-color:var(--player);color:#fff;}
-.rank-btn.b-active{background:rgba(231,76,60,.3);border-color:var(--banker);color:#fff;}
-
-.action-row{display:flex;gap:6px;margin-top:10px;}
-.action-row button{flex:1;padding:16px 8px;font-size:15px;font-weight:800;border-radius:8px;border:none;cursor:pointer;font-family:inherit;letter-spacing:2px;}
-.btn-record{background:var(--gold);color:#0d1117;}
-.btn-record:hover{filter:brightness(1.1);}
-.btn-undo{background:#21262d;color:var(--muted);}
-.btn-undo:hover{color:#e74c3c;background:#30363d;}
-
-.last-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;min-height:16px;}
+.dock-inner{max-width:560px;margin:0 auto;}
+.dock-top{display:flex;align-items:center;gap:6px;min-height:34px;}
+.last-hint{flex:1;min-width:0;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .last-hint b{color:var(--text);}
+.dock-btn{flex:0 0 auto;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--muted);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;}
+.dock-btn.danger{color:#ff7b72;border-color:rgba(231,76,60,.35);}
+.dock-btn.toggle{width:40px;padding:0;font-size:14px;}
+.dock.collapsed .dock-body{display:none;}
 
+.hands{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0;}
+.hand{border-radius:10px;padding:6px;border:1px solid var(--line);background:#0d1117;}
+.hand.p{border-color:rgba(52,152,219,.45);}
+.hand.b{border-color:rgba(231,76,60,.45);}
+.hand-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;padding:0 2px;}
+.hand-name{font-size:14px;font-weight:800;letter-spacing:1px;}
+.hand.p .hand-name{color:var(--player);}
+.hand.b .hand-name{color:var(--banker);}
+.hand-total{font-size:20px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1;}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.slot{
+  height:44px;border-radius:7px;background:#161b22;border:2px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:var(--text);cursor:pointer;
+}
+.slot.filled{border-style:solid;border-color:#57606a;background:#1c2128;}
+.slot.active{border-style:solid;border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,185,11,.35);}
+.slot.skip{opacity:.3;cursor:default;font-size:12px;font-weight:500;color:var(--muted);}
+
+.tip{font-size:12px;color:var(--muted);text-align:center;margin:2px 0 6px;min-height:18px;}
+.tip b{color:var(--gold);}
+.tip .res-B{color:var(--banker);font-weight:800;}
+.tip .res-P{color:var(--player);font-weight:800;}
+.tip .res-T{color:var(--tie);font-weight:800;}
+
+.keypad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.key{
+  height:50px;border-radius:9px;border:1px solid var(--line);
+  background:#21262d;color:var(--text);font-size:19px;font-weight:800;
+  cursor:pointer;font-family:inherit;
+}
+.key:active{transform:scale(.94);filter:brightness(1.25);}
+.keypad.p .key.rank{border-color:rgba(52,152,219,.55);}
+.keypad.b .key.rank{border-color:rgba(231,76,60,.55);}
+.keypad.done .key.rank{opacity:.35;}
+.key.back{color:var(--muted);font-size:18px;}
+.key.rec{background:#2d333b;color:#6e7681;font-size:15px;letter-spacing:1px;}
+.key.rec.ready{background:var(--gold);color:#0d1117;border-color:var(--gold);animation:ready 1.2s ease-in-out infinite;}
+@keyframes ready{50%{box-shadow:0 0 0 4px rgba(240,185,11,.35);}}
+
+/* ---- 設定（摺疊） ---- */
+details.panel > summary{list-style:none;cursor:pointer;font-size:13px;color:var(--muted);letter-spacing:1px;min-height:28px;display:flex;align-items:center;}
+details.panel > summary::-webkit-details-marker{display:none;}
+details.panel > summary::after{content:'▸';margin-left:auto;}
+details.panel[open] > summary::after{content:'▾';}
+.set-group{margin-top:12px;}
+.set-group h3{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:1px;margin:0 0 6px;}
 .settings-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .settings-row label{font-size:12px;color:var(--muted);}
-select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;-webkit-appearance:none;appearance:none;}
-.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:12px 14px;font-size:13px;cursor:pointer;font-family:inherit;}
+select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:8px;height:44px;padding:0 12px;font-size:15px;font-family:inherit;-webkit-appearance:none;appearance:none;}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;min-height:44px;padding:0 14px;font-size:14px;cursor:pointer;font-family:inherit;}
 .btn-ghost:hover{border-color:#484f58;color:var(--text);}
-.stats{display:flex;gap:6px;margin-bottom:10px;}
-.stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 2px;text-align:center;}
 .stat .k{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:2px;}
-.stat .v{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;}
+.stat .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
 .stat .v.b{color:var(--banker);}
 .stat .v.p{color:var(--player);}
 .stat .v.t{color:var(--tie);}
@@ -105,11 +128,36 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .dot.banker{background:var(--banker);}
 .dot.player{background:var(--player);}
 .dot.tie{background:var(--tie);}
+.pair-mark{position:absolute;width:7px;height:7px;border-radius:50%;border:1px solid #0d1117;z-index:1;}
+.pair-mark.b{background:var(--banker);bottom:0;right:0;}
+.pair-mark.p{background:var(--player);bottom:0;left:0;}
 .cell.has-tie::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:var(--tie);border-radius:1px;transform:rotate(-45deg);pointer-events:none;}
 
-.bead{display:grid;grid-template-rows:repeat(6,22px);grid-auto-flow:column;grid-auto-columns:22px;gap:2px;width:max-content;}
-.bigroad{display:flex;gap:2px;width:max-content;}
-.br-col{display:flex;flex-direction:column;gap:2px;}
+/* 路單共用：白底 + 格線（格線落在 1px 間隙上，外框由 padding 補齊） */
+.board{
+  --pitch:23px; --grid-line:#c8cdd3;
+  --tie:#e0a800; --red-mark:#d63031; --blue-mark:#1f6fb2;
+  background-color:#fff;
+  background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:var(--pitch) var(--pitch);
+  padding:1px;gap:1px;border-radius:2px;width:max-content;
+}
+.board .pair-mark{border-color:#fff;}
+.bead{display:grid;grid-template-rows:repeat(6,22px);grid-template-columns:repeat(15,22px);grid-auto-flow:column;}
+.bigroad{display:grid;grid-template-rows:repeat(6,22px);grid-template-columns:repeat(15,22px);}
+.tie-n{position:absolute;right:1px;top:-1px;font-size:9px;font-weight:800;color:#8a6d00;z-index:2;}
+.ask-blink{animation:askblink .5s steps(1) infinite;}
+@keyframes askblink{50%{opacity:0;}}
+.ask-row{display:flex;gap:6px;margin-bottom:8px;}
+.ask-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 6px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.ask-btn.b{border-color:rgba(231,76,60,.5);}
+.ask-btn.p{border-color:rgba(52,152,219,.5);}
+.ask-btn.on{background:#30363d;}
+.ask-btn .lbl.b{color:var(--banker);}
+.ask-btn .lbl.p{color:var(--player);}
+.ask-icons{--red-mark:#d63031;--blue-mark:#1f6fb2;display:flex;align-items:center;gap:5px;background:#fff;border-radius:4px;padding:3px 5px;}
+.ask-icons .road-cell{width:10px;height:10px;}
+.ask-icons .none{width:10px;text-align:center;font-size:10px;color:#999;line-height:10px;}
 
 .derived-grid{display:grid;gap:6px;margin-top:4px;}
 .derived-row{display:flex;align-items:flex-start;gap:8px;}
@@ -118,14 +166,18 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .derived-canvas::-webkit-scrollbar{height:5px;}
 .derived-canvas::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
 .road-grid{
-  display:grid;gap:1px;width:max-content;
+  display:grid;
   grid-template-columns:repeat(30,10px);
   grid-template-rows:repeat(6,10px);
+  --pitch:11px;
 }
 .road-cell{position:relative;width:10px;height:10px;}
 .road-cell .hoop{position:absolute;inset:0.5px;border-radius:50%;border:1.5px solid var(--muted);}
 .road-cell .hoop.red{border-color:var(--red-mark);}
 .road-cell .hoop.blue{border-color:var(--blue-mark);}
+.road-cell .solid{position:absolute;inset:1px;border-radius:50%;}
+.road-cell .solid.red{background:var(--red-mark);}
+.road-cell .solid.blue{background:var(--blue-mark);}
 .road-cell .slash{position:absolute;left:0.5px;right:0.5px;top:4px;height:2px;border-radius:1px;transform:rotate(-45deg);}
 .road-cell .slash.red{background:var(--red-mark);}
 .road-cell .slash.blue{background:var(--blue-mark);}
@@ -148,22 +200,27 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .shoe-summary{font-size:11px;color:var(--muted);margin-bottom:8px;}
 .shoe-summary b{color:var(--text);}
 .bar-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
-.bar-label{flex:0 0 26px;font-size:12px;font-weight:700;text-align:right;}
+.bar-label{flex:0 0 34px;font-size:12px;font-weight:700;text-align:right;}
 .bar-label.b{color:var(--banker);}
 .bar-label.p{color:var(--player);}
 .bar-label.t{color:var(--tie);}
+.bar-label.bp{color:var(--banker);}
+.bar-label.pp{color:var(--player);}
 .bar-track{flex:1;height:16px;background:#21262d;border-radius:4px;overflow:hidden;position:relative;}
 .bar-fill{height:100%;border-radius:4px;transition:width .3s ease;}
 .bar-fill.b{background:var(--banker);}
 .bar-fill.p{background:var(--player);}
 .bar-fill.t{background:var(--tie);}
+.bar-fill.bp{background:repeating-linear-gradient(-45deg,var(--banker) 0 4px,#b03a2e 4px 8px);}
+.bar-fill.pp{background:repeating-linear-gradient(-45deg,var(--player) 0 4px,#2471a3 4px 8px);}
+.bar-sep{height:1px;background:var(--line);margin:8px 0;}
 .bar-val{flex:0 0 70px;font-size:11px;font-variant-numeric:tabular-nums;text-align:right;}
 .delta{font-size:10px;margin-left:3px;}
 .delta.up{color:#2ecc71;}
 .delta.down{color:#e74c3c;}
 .baseline{font-size:10px;color:#484f58;margin-top:4px;letter-spacing:.5px;}
-.history-list{max-height:120px;overflow-y:auto;font-size:11px;color:var(--muted);}
-.history-item{padding:3px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
+.history-list{max-height:220px;overflow-y:auto;font-size:12px;color:var(--muted);}
+.history-item{padding:6px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
 .history-item:last-child{border-bottom:none;}
 .history-item .idx{flex:0 0 22px;color:#484f58;}
 .history-item .cards{flex:1;letter-spacing:.5px;}
@@ -171,48 +228,23 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
 .res.B{color:var(--banker);}
 .res.P{color:var(--player);}
 .res.T{color:var(--tie);}
+.pair-tag{font-size:10px;font-weight:700;padding:0 4px;border-radius:3px;flex:0 0 auto;}
+.pair-tag.b{color:var(--banker);background:rgba(231,76,60,.15);}
+.pair-tag.p{color:var(--player);background:rgba(52,152,219,.15);}
 .data-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 .data-row button{flex:1;min-width:80px;}
-.btn-mini{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+.btn-mini{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:8px;min-height:44px;padding:0 10px;font-size:14px;cursor:pointer;font-family:inherit;}
 .btn-mini:hover{border-color:#484f58;}
 .btn-mini.danger{color:#e74c3c;border-color:rgba(231,76,60,.3);}
 .btn-mini.danger:hover{background:rgba(231,76,60,.15);border-color:#e74c3c;}
 .empty{color:#484f58;font-size:12px;padding:6px 2px;}
-.tip{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;letter-spacing:.5px;}
-.tip b{color:var(--gold);}
 </style>
 </head>
 <body>
 
-<h1>百家樂牌組分析</h1>
-<div id="top-status"><span id="status-dot"></span><span id="status-text">初始化…</span></div>
-
-<div class="panel" style="padding:10px;">
+<div class="topbar">
+  <div id="top-status"><span class="title">百家樂</span><span id="status-dot"></span><span id="status-text">初始化…</span></div>
   <div class="machine-bar" id="machine-bar"></div>
-</div>
-
-<div class="panel" style="padding:14px 10px;">
-  <div class="hand-section">
-    <div class="hand-header">
-      <span class="hand-title p">閒</span>
-      <span class="hand-total" id="p-score">–</span>
-    </div>
-    <div class="slots" id="p-slots"></div>
-  </div>
-  <div class="hand-section">
-    <div class="hand-header">
-      <span class="hand-title b">莊</span>
-      <span class="hand-total" id="b-score">–</span>
-    </div>
-    <div class="slots" id="b-slots"></div>
-  </div>
-  <div class="rank-grid-buttons" id="rank-buttons"></div>
-  <div class="tip" id="tip">點 <b>閒家第一格</b> 開始輸入</div>
-  <div class="action-row">
-    <button class="btn-record" id="record">記錄</button>
-    <button class="btn-undo" id="undo">撤銷</button>
-  </div>
-  <div class="last-hint" id="last-hint"></div>
 </div>
 
 <div class="stats">
@@ -220,65 +252,96 @@ select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--l
   <div class="stat"><span class="k">莊</span><span class="v b" id="s-b">0</span></div>
   <div class="stat"><span class="k">閒</span><span class="v p" id="s-p">0</span></div>
   <div class="stat"><span class="k">和</span><span class="v t" id="s-t">0</span></div>
+  <div class="stat"><span class="k">莊對</span><span class="v b" id="s-bp">0</span></div>
+  <div class="stat"><span class="k">閒對</span><span class="v p" id="s-pp">0</span></div>
 </div>
 
-<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead" id="bead"></div></div></div>
-<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad" id="bigroad"></div></div></div>
+<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead board" id="bead"></div></div></div>
+<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad board" id="bigroad"></div></div></div>
 
 <div class="panel">
   <h2>下三路</h2>
+  <div class="ask-row">
+    <button class="ask-btn b" id="ask-b"><span class="lbl b">莊問路</span><span class="ask-icons" id="ask-b-icons"></span></button>
+    <button class="ask-btn p" id="ask-p"><span class="lbl p">閒問路</span><span class="ask-icons" id="ask-p-icons"></span></button>
+  </div>
   <div class="road-legend">
-    <span><i class="hoop-red"></i>紅圈</span>
-    <span><i class="hoop-blue"></i>藍圈</span>
+    <span><i class="hoop-red"></i><i class="hoop-blue"></i>大眼仔</span>
+    <span><i class="red"></i><i class="blue"></i>小路</span>
+    <span><i class="slash-red"></i><i class="slash-blue"></i>蟑螂路</span>
+    <span>紅＝有規律　藍＝無規律</span>
   </div>
   <div class="derived-grid">
     <div class="derived-row">
       <div class="derived-label">大眼仔</div>
-      <div class="derived-canvas"><div class="road-grid" id="bigeye-road"></div></div>
+      <div class="derived-canvas"><div class="road-grid board" id="bigeye-road"></div></div>
     </div>
     <div class="derived-row">
       <div class="derived-label">小路</div>
-      <div class="derived-canvas"><div class="road-grid" id="small-road"></div></div>
+      <div class="derived-canvas"><div class="road-grid board" id="small-road"></div></div>
     </div>
     <div class="derived-row">
       <div class="derived-label">蟑螂路</div>
-      <div class="derived-canvas"><div class="road-grid" id="cockroach-road"></div></div>
+      <div class="derived-canvas"><div class="road-grid board" id="cockroach-road"></div></div>
     </div>
   </div>
 </div>
 
-<div class="panel"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
 <div class="panel"><h2>下一手預測</h2><div id="analysis"></div></div>
+<div class="panel"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
 <div class="panel"><h2>歷史紀錄</h2><div class="history-list" id="history"></div></div>
 
-<div class="panel">
-  <h2>牌靴設定</h2>
-  <div class="settings-row">
-    <label>副數</label>
-    <select class="deck-select" id="decks">
-      <option value="1">1 副</option>
-      <option value="2">2 副</option>
-      <option value="4">4 副</option>
-      <option value="6">6 副</option>
-      <option value="8" selected>8 副</option>
-    </select>
-    <button id="rename-machine" class="btn-ghost">重新命名</button>
-    <button id="delete-machine" class="btn-ghost" style="color:#e74c3c;border-color:rgba(231,76,60,.3);">刪除機台</button>
+<details class="panel">
+  <summary>設定與資料</summary>
+  <div class="set-group">
+    <h3>本機台</h3>
+    <div class="settings-row">
+      <select class="deck-select" id="decks">
+        <option value="1">1 副</option>
+        <option value="2">2 副</option>
+        <option value="4">4 副</option>
+        <option value="6">6 副</option>
+        <option value="8" selected>8 副</option>
+      </select>
+      <button id="rename-machine" class="btn-ghost">重新命名</button>
+      <button id="delete-machine" class="btn-ghost" style="color:#e74c3c;border-color:rgba(231,76,60,.3);">刪除機台</button>
+    </div>
   </div>
-</div>
-
-<div class="panel">
-  <h2>資料管理</h2>
-  <div class="data-row" style="margin-bottom:6px;">
-    <button id="sync-now" class="btn-mini">立即同步</button>
-    <button id="force-pull" class="btn-mini">從雲端覆蓋</button>
-    <button id="clear-cloud" class="btn-mini danger">清空雲端</button>
-  </div>
-  <div class="data-row">
-    <button id="export-btn" class="btn-ghost">匯出</button>
-    <button id="import-btn" class="btn-ghost">匯入</button>
+  <div class="set-group">
+    <h3>雲端資料</h3>
+    <div class="data-row">
+      <button id="force-pull" class="btn-mini">重新載入</button>
+      <button id="export-btn" class="btn-mini">匯出</button>
+      <button id="import-btn" class="btn-mini">匯入</button>
+      <button id="clear-cloud" class="btn-mini danger">清空雲端</button>
+    </div>
   </div>
   <input type="file" id="import-file" accept=".json,application/json" style="display:none;">
+</details>
+
+<!-- 底部輸入區 -->
+<div class="dock" id="dock">
+  <div class="dock-inner">
+    <div class="dock-top">
+      <div class="last-hint" id="last-hint">尚無紀錄</div>
+      <button class="dock-btn danger" id="undo">撤銷上局</button>
+      <button class="dock-btn toggle" id="dock-toggle" aria-label="收合輸入區">▾</button>
+    </div>
+    <div class="dock-body">
+      <div class="hands">
+        <div class="hand p">
+          <div class="hand-head"><span class="hand-name">閒</span><span class="hand-total" id="p-score">–</span></div>
+          <div class="slots" id="p-slots"></div>
+        </div>
+        <div class="hand b">
+          <div class="hand-head"><span class="hand-name">莊</span><span class="hand-total" id="b-score">–</span></div>
+          <div class="slots" id="b-slots"></div>
+        </div>
+      </div>
+      <div class="tip" id="tip"></div>
+      <div class="keypad" id="keypad"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -300,10 +363,8 @@ const POLL_MS = 5000;
 const isConfigured = CONFIG.dbUrl && CONFIG.dbUrl.indexOf('http') === 0
   && CONFIG.roomCode && CONFIG.roomCode.length >= 3;
 
-const storage = (function(){
-  try{ const k='__t__'; window.localStorage.setItem(k,'1'); window.localStorage.removeItem(k); return window.localStorage; }
-  catch(e){ return null; }
-})();
+/* 資料只存雲端：清掉舊版留在瀏覽器的紀錄 */
+try{ window.localStorage.removeItem(STORAGE_KEY); }catch(e){}
 
 function setStatus(text, cls){
   document.getElementById('status-text').textContent = text;
@@ -326,31 +387,24 @@ function getActive(){
 }
 
 let pushTimer = null, pollTimer = null, isPulling = false, lastPushAt = 0;
-let currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
+let loaded = false, dirty = false;
 
-function loadLocal(){
-  if(!storage) return;
-  try{
-    const raw = storage.getItem(STORAGE_KEY);
-    if(!raw) return;
-    const d = JSON.parse(raw);
-    if(d && Array.isArray(d.machines) && d.machines.length){
-      state = d;
-      // 修正：確保每個機台的 hands 是陣列
-      state.machines.forEach(m => {
-        if(!Array.isArray(m.hands)) m.hands = [];
-        if(typeof m.decks !== 'number') m.decks = 8;
-        if(!m.name) m.name = '機台';
-      });
-      if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
-        state.activeId = state.machines[0].id;
-      }
-    }
-  }catch(e){}
-}
-function saveLocal(){
-  if(!storage) return;
-  try{ storage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+/* 以雲端資料取代記憶體中的 state，保留本頁目前選的機台 */
+function adoptState(d){
+  const localActive = state.activeId;
+  state = d;
+  if(!Array.isArray(state.machines)) state.machines = [];
+  state.machines.forEach(m => {
+    if(!Array.isArray(m.hands)) m.hands = [];
+    if(typeof m.decks !== 'number') m.decks = 8;
+    if(!m.name) m.name = '機台';
+  });
+  ensureDefaultMachine();
+  if(localActive && state.machines.find(m => m.id === localActive)){
+    state.activeId = localActive;
+  } else if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
+    state.activeId = state.machines[0].id;
+  }
 }
 function ensureDefaultMachine(){
   if(!state.machines.length){
@@ -358,6 +412,12 @@ function ensureDefaultMachine(){
     state.machines.push(m);
     state.activeId = m.id;
   }
+}
+/* 尚未從雲端載入成功前不允許修改，避免空白資料蓋掉雲端 */
+function ready(){
+  if(loaded) return true;
+  alert('尚未連上雲端，請稍候或按「重新載入」');
+  return false;
 }
 
 function rankValue(rank){
@@ -376,21 +436,29 @@ function getAllUsedCards(machine){
   return out;
 }
 function getRemainingCards(machine){
-  const used = getAllUsedCards(machine);
-  const usedMap = {};
-  for(const c of used){
-    const k = c.rank + '|' + c.suit;
-    usedMap[k] = (usedMap[k] || 0) + 1;
-  }
+  // 輸入不記花色，只依點數扣除，每種點數上限為 副數 × 4
+  const used = {};
+  for(const c of getAllUsedCards(machine)) used[c.rank] = (used[c.rank] || 0) + 1;
   const remaining = [];
   for(const r of RANKS){
-    for(const s of ['♠','♥','♦','♣']){
-      const k = r + '|' + s;
-      const usedCount = usedMap[k] || 0;
-      for(let i = 0; i < machine.decks - usedCount; i++) remaining.push({ rank: r, suit: s });
-    }
+    const n = machine.decks * 4 - (used[r] || 0);
+    for(let i = 0; i < n; i++) remaining.push({ rank: r, suit: DEFAULT_SUIT });
   }
   return remaining;
+}
+/* 對子：該家前兩張點數相同（10 與 J/Q/K 不算） */
+function isPair(cards){
+  return cards.length >= 2 && cards[0].rank === cards[1].rank;
+}
+/* 下一手出對子的精確機率：從剩餘牌抽兩張同點數 */
+function pairProb(remaining){
+  const N = remaining.length;
+  if(N < 2) return 0;
+  const cnt = {};
+  for(const c of remaining) cnt[c.rank] = (cnt[c.rank] || 0) + 1;
+  let sum = 0;
+  for(const r in cnt) sum += cnt[r] * (cnt[r] - 1);
+  return sum / (N * (N - 1));
 }
 function getWinner(pCards, bCards){
   const p = handValue(pCards), b = handValue(bCards);
@@ -476,54 +544,60 @@ async function cloudDelete(){
   if(!res.ok) throw new Error('HTTP ' + res.status);
   return true;
 }
+let editSeq = 0;
 function schedulePush(){
-  if(!isConfigured) return;
+  if(!isConfigured || !loaded) return;
+  dirty = true;
+  editSeq++;
   if(pushTimer) clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushNow, 600);
+  pushTimer = setTimeout(pushNow, 300);
 }
 async function pushNow(){
-  if(!isConfigured) return;
+  if(!isConfigured || !loaded) return;
+  const seq = editSeq;
   setStatus('同步中…', 'syncing');
   try{
     state.lastModified = Date.now();
     await cloudWrite(state);
     lastPushAt = Date.now();
+    if(seq === editSeq) dirty = false;
     setStatus('已同步 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
   }catch(e){
-    setStatus('同步失敗：' + e.message, 'err');
+    // 資料只在記憶體，失敗時保持 dirty，下一輪輪詢會重送
+    setStatus('同步失敗（未上傳，將重試）：' + e.message, 'err');
   }
+}
+function refreshAll(){
+  document.getElementById('decks').value = getActive().decks;
+  updateLastHint();
+  render();
 }
 async function pullAndMerge(silent){
   if(!isConfigured || isPulling) return;
+  // 有尚未上傳的修改時先送出，不要被雲端舊資料蓋掉
+  if(dirty){ await pushNow(); return; }
   isPulling = true;
   try{
     const remote = await cloudRead();
     if(!remote || !Array.isArray(remote.machines) || remote.machines.length === 0){
-      isPulling = false;
-      if(state.machines.length > 0) await pushNow();
-      else setStatus('雲端尚無資料', 'on');
+      // 雲端是空的：以空白資料為準
+      const wasLoaded = loaded;
+      adoptState({ machines: [], activeId: null, lastModified: 0 });
+      loaded = true;
+      refreshAll();
+      if(!wasLoaded){ isPulling = false; schedulePush(); return; }
+      setStatus('雲端尚無資料', 'on');
       return;
     }
     const remoteTime = remote.lastModified || 0;
-    if(Date.now() - lastPushAt < 1500){
+    if(loaded && Date.now() - lastPushAt < 1500){
       if(!silent) setStatus('已是最新', 'on');
       return;
     }
-    if(remoteTime > (state.lastModified || 0)){
-      const localActive = state.activeId;
-      state = remote;
-      state.machines.forEach(m => {
-        if(!Array.isArray(m.hands)) m.hands = [];
-        if(typeof m.decks !== 'number') m.decks = 8;
-        if(!m.name) m.name = '機台';
-      });
-      if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
-        state.activeId = state.machines[0].id;
-      } else if(localActive && state.machines.find(m => m.id === localActive)){
-        state.activeId = localActive;
-      }
-      saveLocal();
-      render();
+    if(!loaded || remoteTime > (state.lastModified || 0)){
+      adoptState(remote);
+      loaded = true;
+      refreshAll();
       setStatus('已從雲端更新 · ' + new Date(remoteTime).toLocaleTimeString('zh-TW', {hour12:false}), 'on');
     } else if(!silent){
       setStatus('已是最新 · ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
@@ -531,7 +605,7 @@ async function pullAndMerge(silent){
       setStatus('已同步', 'on');
     }
   }catch(e){
-    if(!silent) setStatus('讀取失敗：' + e.message, 'err');
+    if(!silent || !loaded) setStatus('讀取失敗：' + e.message, 'err');
   } finally {
     isPulling = false;
   }
@@ -572,10 +646,8 @@ function renderMachineBar(){
     tab.addEventListener('click', () => {
       if(m.id === state.activeId) return;
       state.activeId = m.id;
-      currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
-      saveLocal();
       document.getElementById('decks').value = m.decks;
-      renderInput();
+      clearInput();
       updateLastHint();
       render();
     });
@@ -585,15 +657,14 @@ function renderMachineBar(){
   addBtn.className = 'machine-tab add';
   addBtn.textContent = '+ 新增機台';
   addBtn.addEventListener('click', () => {
+    if(!ready()) return;
     const name = prompt('機台名稱：', '機台 ' + (state.machines.length + 1));
     if(name === null) return;
     const m = newMachine(name.trim() || ('機台 ' + (state.machines.length + 1)));
     state.machines.push(m);
     state.activeId = m.id;
-    currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
-    saveLocal();
     document.getElementById('decks').value = m.decks;
-    renderInput();
+    clearInput();
     updateLastHint();
     render();
     schedulePush();
@@ -603,113 +674,220 @@ function renderMachineBar(){
 
 function renderStats(){
   const m = getActive();
-  let b = 0, p = 0, t = 0;
+  let b = 0, p = 0, t = 0, bp = 0, pp = 0;
   for(const h of m.hands){
     const w = getWinner(h.player, h.banker);
     if(w === 'B') b++; else if(w === 'P') p++; else t++;
+    if(isPair(h.banker)) bp++;
+    if(isPair(h.player)) pp++;
   }
   document.getElementById('s-total').textContent = m.hands.length;
   document.getElementById('s-b').textContent = b;
   document.getElementById('s-p').textContent = p;
   document.getElementById('s-t').textContent = t;
+  document.getElementById('s-bp').textContent = bp;
+  document.getElementById('s-pp').textContent = pp;
 }
 
+function addPairMarks(cell, hand){
+  if(isPair(hand.banker)){ const d = document.createElement('i'); d.className = 'pair-mark b'; cell.appendChild(d); }
+  if(isPair(hand.player)){ const d = document.createElement('i'); d.className = 'pair-mark p'; cell.appendChild(d); }
+}
 function renderBead(){
   const el = document.getElementById('bead');
   el.innerHTML = '';
   const m = getActive();
   const results = m.hands.map(h => getWinner(h.player, h.banker));
-  const cols = Math.max(1, Math.ceil(results.length / 6));
-  for(let i = 0; i < cols * 6; i++){
+  el.style.gridTemplateColumns = 'repeat(' + Math.max(15, Math.ceil(results.length / 6) + 1) + ',22px)';
+  results.forEach((w, i) => {
     const cell = document.createElement('div');
     cell.className = 'cell';
-    if(results[i]){
-      const dot = document.createElement('div');
-      dot.className = 'dot ' + (results[i] === 'B' ? 'banker' : results[i] === 'P' ? 'player' : 'tie');
-      cell.appendChild(dot);
-    }
+    const dot = document.createElement('div');
+    dot.className = 'dot ' + (w === 'B' ? 'banker' : w === 'P' ? 'player' : 'tie');
+    cell.appendChild(dot);
+    addPairMarks(cell, m.hands[i]);
     el.appendChild(cell);
-  }
+  });
 }
+
+/* 問路預覽：'B' / 'P' 時，大路與下三路多畫一格閃爍的假設結果 */
+let askPreview = null, askTimer = null;
 
 function renderBigRoad(){
   const el = document.getElementById('bigroad');
   el.innerHTML = '';
   const m = getActive();
-  const results = getResults(m);
-  const cols = buildBigRoad(results);
-  if(!cols.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
-  for(const col of cols){
-    const colEl = document.createElement('div');
-    colEl.className = 'br-col';
-    for(let i = 0; i < col.cells.length; i++){
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      const dot = document.createElement('div');
-      dot.className = 'dot ' + (col.result === 'B' ? 'banker' : 'player');
-      cell.appendChild(dot);
-      colEl.appendChild(cell);
+  // 和局不佔格，記在前一格上（第一格之前的和局記在第一格）
+  const items = [];
+  let leadTies = 0;
+  for(const h of m.hands){
+    const w = getWinner(h.player, h.banker);
+    if(w === 'T'){
+      if(items.length) items[items.length - 1].ties++; else leadTies++;
+    } else {
+      items.push({ color: w, hand: h, ties: items.length ? 0 : leadTies });
     }
-    el.appendChild(colEl);
   }
+  if(askPreview) items.push({ color: askPreview, hand: null, ties: 0, preview: true });
+  const placed = layoutRoad(items.map(i => i.color));
+  const maxCol = placed.reduce((a, p) => Math.max(a, p.col), 0);
+  el.style.gridTemplateColumns = 'repeat(' + Math.max(15, maxCol + 2) + ',22px)';
+  placed.forEach((p, i) => {
+    const it = items[i];
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (it.ties ? ' has-tie' : '') + (it.preview ? ' ask-blink' : '');
+    cell.style.gridColumn = String(p.col + 1);
+    cell.style.gridRow = String(p.row + 1);
+    const dot = document.createElement('div');
+    dot.className = 'dot ' + (p.color === 'B' ? 'banker' : 'player');
+    cell.appendChild(dot);
+    if(it.hand) addPairMarks(cell, it.hand);
+    if(it.ties > 1){
+      const n = document.createElement('span');
+      n.className = 'tie-n';
+      n.textContent = it.ties;
+      cell.appendChild(n);
+    }
+    el.appendChild(cell);
+  });
 }
 
-function renderDerivedRoad(elId, cols, offset){
+/* 下三路標準規則（offset：大眼仔 1、小路 2、蟑螂路 3）
+   大路每一格 (欄 c, 列 r)：
+   - r = 0（換欄）：比較 c-1 欄與 c-1-offset 欄長度，一樣長 → 紅，不一樣 → 藍
+   - r ≥ 1：看 c-offset 欄第 r 列有沒有牌 → 有：紅
+            沒有，但第 r-1 列有（剛好到底）→ 藍；連 r-1 列也沒有 → 紅
+   起點：r = 0 需要 c ≥ offset+1；r ≥ 1 需要 c ≥ offset */
+function derivedMarkers(cols, offset){
+  const L = cols.map(c => c.cells.length);
+  const out = [];
+  for(let c = offset; c < L.length; c++){
+    for(let r = 0; r < L[c]; r++){
+      if(r === 0){
+        if(c < offset + 1) continue;
+        out.push(L[c-1] === L[c-1-offset] ? 'red' : 'blue');
+      } else {
+        const ref = L[c-offset];
+        out.push(ref > r ? 'red' : ref === r ? 'blue' : 'red');
+      }
+    }
+  }
+  return out;
+}
+
+/* 同色往下排，換色換欄；滿 6 列或下方已被占用就往右拐（長龍） */
+function layoutRoad(markers){
+  const occupied = new Set();
+  const placed = [];
+  let startCol = -1, col = 0, row = 0, prev = null;
+  for(const color of markers){
+    if(color !== prev){
+      startCol++;
+      while(occupied.has(startCol + ',0')) startCol++;
+      col = startCol; row = 0;
+    } else if(row + 1 < 6 && !occupied.has(col + ',' + (row + 1))){
+      row++;
+    } else {
+      col++;
+    }
+    occupied.add(col + ',' + row);
+    placed.push({ color, col, row });
+    prev = color;
+  }
+  return placed;
+}
+
+const ROAD_SHAPE = { 'bigeye-road': 'hoop', 'small-road': 'solid', 'cockroach-road': 'slash' };
+
+function renderDerivedRoad(elId, cols, offset, blinkFrom){
   const el = document.getElementById(elId);
   el.innerHTML = '';
-  if(cols.length < offset + 1){
-    el.innerHTML = '<span class="empty" style="font-size:11px;">資料不足</span>';
-    return;
-  }
-  const markers = [];
-  for(let c = offset; c < cols.length; c++){
-    const curLen = cols[c].cells.length;
-    const refLen = (cols[c - offset] || cols[0]).cells.length;
-    const leftLen = c > 0 ? cols[c-1].cells.length : 0;
-    for(let r = 0; r < curLen; r++){
-      let color;
-      if(r === 0){
-        const p1 = c >= 1 ? cols[c-1].cells.length : 0;
-        const p2 = c >= 2 ? cols[c-2].cells.length : 0;
-        if(p1 === p2) color = 'blue';
-        else if(refLen > 0) color = 'red';
-        else color = 'blue';
-      } else {
-        if(leftLen > r) color = 'red';
-        else if(refLen > r) color = 'blue';
-        else color = 'red';
-      }
-      markers.push(color);
-    }
-  }
-  if(!markers.length){
-    el.innerHTML = '<span class="empty" style="font-size:11px;">資料不足</span>';
-    return;
-  }
-  const grid = document.createElement('div');
-  grid.className = 'road-grid';
-  const totalCells = Math.max(180, markers.length);
-  for(let i = 0; i < totalCells; i++){
+  el.style.gridTemplateColumns = '';
+  const markers = derivedMarkers(cols, offset);
+  if(!markers.length) return;
+  const placed = layoutRoad(markers);
+  const maxCol = placed.reduce((a, p) => Math.max(a, p.col), 0);
+  el.style.gridTemplateColumns = 'repeat(' + Math.max(30, maxCol + 2) + ',10px)';
+  const shape = ROAD_SHAPE[elId];
+  placed.forEach((p, i) => {
     const cell = document.createElement('div');
-    cell.className = 'road-cell';
-    if(i < markers.length){
-      const hoop = document.createElement('div');
-      hoop.className = 'hoop ' + markers[i];
-      cell.appendChild(hoop);
-    }
-    grid.appendChild(cell);
-  }
-  el.appendChild(grid);
+    cell.className = 'road-cell' + (blinkFrom != null && i >= blinkFrom ? ' ask-blink' : '');
+    cell.style.gridColumn = String(p.col + 1);
+    cell.style.gridRow = String(p.row + 1);
+    const mark = document.createElement('div');
+    mark.className = shape + ' ' + p.color;
+    cell.appendChild(mark);
+    el.appendChild(cell);
+  });
 }
+
+const DERIVED = [['bigeye-road', 1], ['small-road', 2], ['cockroach-road', 3]];
 
 function renderDerivedRoads(){
   const m = getActive();
   const results = getResults(m);
   const cols = buildBigRoad(results);
-  renderDerivedRoad('bigeye-road', cols, 1);
-  renderDerivedRoad('small-road', cols, 2);
-  renderDerivedRoad('cockroach-road', cols, 3);
+  if(!askPreview){
+    for(const [id, k] of DERIVED) renderDerivedRoad(id, cols, k);
+    return;
+  }
+  const askCols = buildBigRoad([...results, askPreview]);
+  for(const [id, k] of DERIVED){
+    renderDerivedRoad(id, askCols, k, derivedMarkers(cols, k).length);
+  }
 }
+
+/* 問路：假設下一手開莊／閒，下三路各會多出什麼顏色；資料不足時為 null */
+function askRoad(results, next){
+  const cols = buildBigRoad(results);
+  const askCols = buildBigRoad([...results, next]);
+  return DERIVED.map(([id, k]) => {
+    const before = derivedMarkers(cols, k).length;
+    const after = derivedMarkers(askCols, k);
+    return after.length > before ? after[after.length - 1] : null;
+  });
+}
+
+function renderAsk(){
+  const results = getResults(getActive());
+  [['B', 'ask-b-icons'], ['P', 'ask-p-icons']].forEach(([side, elId]) => {
+    const el = document.getElementById(elId);
+    el.innerHTML = '';
+    askRoad(results, side).forEach((color, i) => {
+      if(!color){
+        const s = document.createElement('span');
+        s.className = 'none';
+        s.textContent = '–';
+        el.appendChild(s);
+        return;
+      }
+      const cell = document.createElement('span');
+      cell.className = 'road-cell';
+      const mark = document.createElement('span');
+      mark.className = ROAD_SHAPE[DERIVED[i][0]] + ' ' + color;
+      cell.appendChild(mark);
+      el.appendChild(cell);
+    });
+  });
+  document.getElementById('ask-b').classList.toggle('on', askPreview === 'B');
+  document.getElementById('ask-p').classList.toggle('on', askPreview === 'P');
+}
+
+function setAskPreview(side){
+  if(askTimer){ clearTimeout(askTimer); askTimer = null; }
+  askPreview = askPreview === side ? null : side;
+  if(askPreview){
+    askTimer = setTimeout(() => { askPreview = null; askTimer = null; renderRoads(); }, 4000);
+  }
+  renderRoads();
+}
+function renderRoads(){
+  renderBigRoad();
+  renderDerivedRoads();
+  renderAsk();
+}
+document.getElementById('ask-b').addEventListener('click', () => setAskPreview('B'));
+document.getElementById('ask-p').addEventListener('click', () => setAskPreview('P'));
 
 function renderShoe(){
   const el = document.getElementById('shoe-status');
@@ -755,10 +933,16 @@ function renderAnalysis(){
   html += bar('b', '莊', r.banker, BASELINE.banker);
   html += bar('p', '閒', r.player, BASELINE.player);
   html += bar('t', '和', r.tie, BASELINE.tie);
+  const pairP = pairProb(remaining);
+  const pairBase = (4 * m.decks - 1) / (52 * m.decks - 1);
+  html += '<div class="bar-sep"></div>';
+  html += bar('bp', '莊對', pairP, pairBase);
+  html += bar('pp', '閒對', pairP, pairBase);
   html += '<div class="baseline">基準：莊 ' + (BASELINE.banker*100).toFixed(2) +
           '% / 閒 ' + (BASELINE.player*100).toFixed(2) +
           '% / 和 ' + (BASELINE.tie*100).toFixed(2) +
-          '%　·　模擬 ' + r.n + ' 次</div>';
+          '%　·　模擬 ' + r.n + ' 次<br>對子基準 ' + (pairBase*100).toFixed(2) +
+          '%（' + m.decks + ' 副）· 對子為依剩餘牌精確計算</div>';
   el.innerHTML = html;
 }
 
@@ -776,17 +960,21 @@ function renderHistory(){
     html += '<div class="history-item">' +
       '<span class="idx">#' + (i + 1) + '</span>' +
       '<span class="cards">閒 ' + pStr + '　莊 ' + bStr + '</span>' +
+      (isPair(h.banker) ? '<span class="pair-tag b">莊對</span>' : '') +
+      (isPair(h.player) ? '<span class="pair-tag p">閒對</span>' : '') +
       '<span class="res ' + w + '">' + w + '</span></div>';
   }
   el.innerHTML = html;
 }
 
 function render(){
+  // 資料有變動時取消問路預覽
+  if(askTimer){ clearTimeout(askTimer); askTimer = null; }
+  askPreview = null;
   renderMachineBar();
   renderStats();
   renderBead();
-  renderBigRoad();
-  renderDerivedRoads();
+  renderRoads();
   renderShoe();
   renderAnalysis();
   renderHistory();
@@ -795,29 +983,89 @@ function render(){
 function updateLastHint(){
   const el = document.getElementById('last-hint');
   const m = getActive();
-  if(!m.hands.length){ el.textContent = ''; return; }
+  if(!m.hands.length){ el.textContent = '尚無紀錄'; return; }
   const last = m.hands[m.hands.length - 1];
   const w = getWinner(last.player, last.banker);
   const pStr = last.player.map(c => c.rank).join(' ');
   const bStr = last.banker.map(c => c.rank).join(' ');
   const wTxt = w === 'B' ? '莊贏' : w === 'P' ? '閒贏' : '和局';
-  el.innerHTML = '上一局：閒 <b>' + pStr + '</b>　莊 <b>' + bStr + '</b>　→ <b>' + wTxt + '</b>';
+  const pairs = [isPair(last.banker) ? '莊對' : '', isPair(last.player) ? '閒對' : ''].filter(Boolean);
+  el.innerHTML = '#' + m.hands.length + '　閒 <b>' + pStr + '</b>　莊 <b>' + bStr + '</b>　→ <b>' + wTxt + '</b>' +
+                 (pairs.length ? '　<b>' + pairs.join('、') + '</b>' : '');
 }
 
 /* ========== 輸入 UI ========== */
+/* 輸入順序：閒1 → 閒2 → 莊1 → 莊2 → (依補牌規則) 閒3 → 莊3
+   第三張要不要輸入由補牌規則決定，不需要的格子自動跳過 */
+const emptyInput = () => ({ p: [null,null,null], b: [null,null,null] });
+let input = emptyInput();
+let activeSlot = { side: 'p', idx: 0 };
+
+function cardsOf(ranks){ return ranks.filter(Boolean).map(r => ({ rank: r, suit: DEFAULT_SUIT })); }
+function bankerDraws(bv, p3){
+  if(p3 === null) return bv <= 5;
+  const v = rankValue(p3);
+  if(bv <= 2) return true;
+  if(bv === 3) return v !== 8;
+  if(bv === 4) return v >= 2 && v <= 7;
+  if(bv === 5) return v >= 4 && v <= 7;
+  if(bv === 6) return v === 6 || v === 7;
+  return false;
+}
+/* 目前輸入內容下「需要」的格子，依輸入順序；第三張要等前面的牌確定才知道要不要 */
+function requiredSlots(inp){
+  const req = [{side:'p',idx:0},{side:'p',idx:1},{side:'b',idx:0},{side:'b',idx:1}];
+  if(!inp.p[0] || !inp.p[1] || !inp.b[0] || !inp.b[1]) return req;
+  const pv = handValue(cardsOf(inp.p.slice(0,2)));
+  const bv = handValue(cardsOf(inp.b.slice(0,2)));
+  if(pv >= 8 || bv >= 8) return req;                 // 天牌，雙方都不補
+  if(pv <= 5){
+    req.push({side:'p',idx:2});
+    if(!inp.p[2]) return req;                        // 要先知道閒家第三張
+    if(bankerDraws(bv, inp.p[2])) req.push({side:'b',idx:2});
+  } else if(bankerDraws(bv, null)){
+    req.push({side:'b',idx:2});
+  }
+  return req;
+}
+function isRequired(inp, side, idx){
+  return requiredSlots(inp).some(s => s.side === side && s.idx === idx);
+}
+/* 改了前面的牌導致第三張不需要時，清掉多餘的第三張 */
+function pruneInput(){
+  for(const side of ['p','b']){
+    if(input[side][2] && !isRequired(input, side, 2)) input[side][2] = null;
+  }
+}
+function nextEmptySlot(){
+  return requiredSlots(input).find(s => !input[s.side][s.idx]) || null;
+}
+function inputComplete(){ return nextEmptySlot() === null; }
+/* 第三張是否已確定「不補」 */
+function thirdSkipped(side){
+  const inp = input;
+  if(!inp.p[0] || !inp.p[1] || !inp.b[0] || !inp.b[1]) return false;
+  if(isRequired(inp, side, 2)) return false;
+  if(side === 'b' && isRequired(inp, 'p', 2) && !inp.p[2]) return false;   // 還不知道
+  return true;
+}
+
+function buzz(){ try{ navigator.vibrate && navigator.vibrate(8); }catch(e){} }
+
 function buildSlots(){
   ['p', 'b'].forEach(side => {
     const container = document.getElementById(side + '-slots');
     container.innerHTML = '';
     for(let i = 0; i < 3; i++){
       const slot = document.createElement('div');
-      slot.className = 'slot empty';
-      slot.dataset.side = side;
-      slot.dataset.idx = i;
+      slot.className = 'slot';
       slot.addEventListener('click', () => {
-        if(!currentInput[side][i] && i > 0 && !currentInput[side][i-1]) return;
-        currentInput.activeSide = side;
-        currentInput.activeIdx = i;
+        // 可點已填的格子修改，或點下一個該填的格子
+        const next = nextEmptySlot();
+        const isNext = next && next.side === side && next.idx === i;
+        if(!input[side][i] && !isNext) return;
+        activeSlot = { side, idx: i };
+        buzz();
         renderInput();
       });
       container.appendChild(slot);
@@ -825,148 +1073,174 @@ function buildSlots(){
   });
 }
 
-function buildRankButtons(){
-  const container = document.getElementById('rank-buttons');
-  container.innerHTML = '';
+function buildKeypad(){
+  const pad = document.getElementById('keypad');
+  pad.innerHTML = '';
   RANKS.forEach(r => {
-    const btn = document.createElement('button');
-    btn.className = 'rank-btn';
-    btn.textContent = r;
-    btn.dataset.rank = r;
-    btn.addEventListener('click', () => {
-      const side = currentInput.activeSide;
-      const idx = currentInput.activeIdx;
-      currentInput[side][idx] = r;
-
-      if(idx === 0){ currentInput.activeIdx = 1; }
-      else if(idx === 1){
-        if(side === 'p'){
-          currentInput.activeSide = 'b';
-          currentInput.activeIdx = 0;
-        } else if(side === 'b'){
-          currentInput.activeSide = 'p';
-          currentInput.activeIdx = 2;
-        }
-      } else if(idx === 2){
-        if(side === 'p'){ currentInput.activeSide = 'b'; currentInput.activeIdx = 2; }
-      }
-      renderInput();
-    });
-    container.appendChild(btn);
+    const k = document.createElement('button');
+    k.className = 'key rank';
+    k.textContent = r;
+    k.addEventListener('click', () => enterRank(r));
+    pad.appendChild(k);
   });
+  const back = document.createElement('button');
+  back.className = 'key back';
+  back.textContent = '⌫';
+  back.setAttribute('aria-label', '刪除上一張');
+  back.addEventListener('click', backspace);
+  pad.appendChild(back);
+  const rec = document.createElement('button');
+  rec.className = 'key rec';
+  rec.id = 'record';
+  rec.textContent = '記錄';
+  rec.addEventListener('click', recordHand);
+  pad.appendChild(rec);
+}
+
+function enterRank(r){
+  if(!activeSlot){ buzz(); return; }                 // 這手已輸入完成
+  input[activeSlot.side][activeSlot.idx] = r;
+  pruneInput();
+  activeSlot = nextEmptySlot();
+  buzz();
+  renderInput();
+}
+/* ⌫：刪掉輸入順序上最後一張已填的牌 */
+function backspace(){
+  const filled = requiredSlots(input).filter(s => input[s.side][s.idx]);
+  if(!filled.length){ buzz(); return; }
+  const last = filled[filled.length - 1];
+  input[last.side][last.idx] = null;
+  pruneInput();
+  activeSlot = last;
+  buzz();
+  renderInput();
 }
 
 function renderInput(){
   ['p','b'].forEach(side => {
-    const container = document.getElementById(side + '-slots');
-    const slots = container.querySelectorAll('.slot');
+    const slots = document.getElementById(side + '-slots').querySelectorAll('.slot');
     slots.forEach((slot, i) => {
-      const val = currentInput[side][i];
-      if(val){
-        slot.textContent = val;
-        slot.classList.remove('empty');
-        slot.classList.add('filled');
-      } else {
-        slot.textContent = '';
-        slot.classList.add('empty');
-        slot.classList.remove('filled');
-      }
-      if(side === currentInput.activeSide && i === currentInput.activeIdx){
-        slot.classList.add('active');
-      } else {
-        slot.classList.remove('active');
-      }
+      const val = input[side][i];
+      const skip = i === 2 && !val && thirdSkipped(side);
+      slot.textContent = val || (skip ? '不補' : '');
+      slot.className = 'slot' + (val ? ' filled' : '') + (skip ? ' skip' : '') +
+        (activeSlot && activeSlot.side === side && activeSlot.idx === i ? ' active' : '');
     });
   });
 
-  const pCards = currentInput.p.filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
-  const bCards = currentInput.b.filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
+  const pCards = cardsOf(input.p), bCards = cardsOf(input.b);
   document.getElementById('p-score').textContent = pCards.length >= 2 ? handValue(pCards) : '–';
   document.getElementById('b-score').textContent = bCards.length >= 2 ? handValue(bCards) : '–';
 
+  const done = inputComplete();
   const tip = document.getElementById('tip');
-  if(currentInput.activeSide === 'p'){
-    tip.innerHTML = '請點數字輸入 <b>閒家第 ' + (currentInput.activeIdx + 1) + ' 張</b>';
-  } else {
-    tip.innerHTML = '請點數字輸入 <b>莊家第 ' + (currentInput.activeIdx + 1) + ' 張</b>';
+  if(done){
+    const w = getWinner(pCards, bCards);
+    const wTxt = w === 'B' ? '莊贏' : w === 'P' ? '閒贏' : '和局';
+    const pairs = [isPair(bCards) ? '莊對' : '', isPair(pCards) ? '閒對' : ''].filter(Boolean);
+    tip.innerHTML = '<span class="res-' + w + '">' + wTxt + '</span>' +
+      (pairs.length ? '　' + pairs.join('、') : '') + '　按 <b>記錄</b> 存檔';
+  } else if(activeSlot){
+    const who = activeSlot.side === 'p' ? '閒家' : '莊家';
+    tip.innerHTML = '輸入 <b>' + who + '第 ' + (activeSlot.idx + 1) + ' 張</b>' +
+      (activeSlot.idx === 2 ? '（補牌）' : '');
   }
 
-  document.querySelectorAll('.rank-btn').forEach(b => {
-    b.classList.remove('p-active', 'b-active');
-    if(currentInput.activeSide === 'p') b.classList.add('p-active');
-    else b.classList.add('b-active');
-  });
+  const pad = document.getElementById('keypad');
+  pad.className = 'keypad ' + (done && !activeSlot ? 'done' : activeSlot ? activeSlot.side : '');
+  document.getElementById('record').classList.toggle('ready', done);
 }
 
 function clearInput(){
-  currentInput = { p: [null,null,null], b: [null,null,null], activeSide: 'p', activeIdx: 0 };
+  input = emptyInput();
+  activeSlot = { side: 'p', idx: 0 };
   renderInput();
-}
-function readHand(side){
-  return currentInput[side].filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
 }
 
 /* ========== 記錄 ========== */
 function recordHand(){
+  if(!ready()) return;
+  if(!inputComplete()){
+    const n = nextEmptySlot();
+    alert('這手還沒輸入完：' + (n.side === 'p' ? '閒家' : '莊家') + '第 ' + (n.idx + 1) + ' 張');
+    return;
+  }
   const m = getActive();
-  const pCards = readHand('p');
-  const bCards = readHand('b');
-  if(pCards.length < 2 || bCards.length < 2){ alert('閒家和莊家至少各需兩張牌'); return; }
+  const pCards = cardsOf(input.p);
+  const bCards = cardsOf(input.b);
   const err = validateNewCards(m, [...pCards, ...bCards]);
   if(err){ alert(err); return; }
   m.hands.push({ player: pCards, banker: bCards });
   state.lastModified = Date.now();
-  saveLocal();
+  buzz();
   clearInput();
   updateLastHint();
   render();
   schedulePush();
 }
 
-document.getElementById('record').addEventListener('click', recordHand);
 document.getElementById('undo').addEventListener('click', function(){
+  if(!ready()) return;
   const m = getActive();
   if(!m.hands.length) return;
+  const last = m.hands[m.hands.length - 1];
+  const desc = '閒 ' + last.player.map(c => c.rank).join(' ') + '　莊 ' + last.banker.map(c => c.rank).join(' ');
+  if(!confirm('撤銷第 ' + m.hands.length + ' 局？\n' + desc)) return;
   m.hands.pop();
   state.lastModified = Date.now();
-  saveLocal();
   updateLastHint();
   render();
   schedulePush();
 });
 
+/* 底部輸入區收合；內容區底部留白跟著輸入區高度走 */
+document.getElementById('dock-toggle').addEventListener('click', function(){
+  const dock = document.getElementById('dock');
+  const collapsed = dock.classList.toggle('collapsed');
+  this.textContent = collapsed ? '▴' : '▾';
+  this.setAttribute('aria-label', collapsed ? '展開輸入區' : '收合輸入區');
+});
+(function(){
+  const dock = document.getElementById('dock');
+  const sync = () => document.body.style.setProperty('--dock-h', dock.offsetHeight + 'px');
+  if(window.ResizeObserver) new ResizeObserver(sync).observe(dock);
+  window.addEventListener('resize', sync);
+  sync();
+})();
+
 document.getElementById('decks').addEventListener('change', function(){
   const m = getActive();
+  if(!ready()){ this.value = m.decks; return; }
   const newDecks = parseInt(this.value, 10);
   if(newDecks < m.decks && m.hands.length){
     if(!confirm('減少副數可能導致已記錄的牌超出牌靴，確定要繼續？')){ this.value = m.decks; return; }
   }
   m.decks = newDecks;
   state.lastModified = Date.now();
-  saveLocal();
   render();
   schedulePush();
 });
 
 document.getElementById('rename-machine').addEventListener('click', function(){
+  if(!ready()) return;
   const m = getActive();
   const name = prompt('新名稱：', m.name);
   if(name === null) return;
   m.name = name.trim() || m.name;
   state.lastModified = Date.now();
-  saveLocal();
   renderMachineBar();
   schedulePush();
 });
 
 document.getElementById('delete-machine').addEventListener('click', function(){
+  if(!ready()) return;
   if(state.machines.length <= 1){ alert('至少需要保留一個機台'); return; }
   const m = getActive();
   if(!confirm('刪除「' + m.name + '」？此動作無法復原。')) return;
   state.machines = state.machines.filter(x => x.id !== m.id);
   state.activeId = state.machines[0].id;
   state.lastModified = Date.now();
-  saveLocal();
   document.getElementById('decks').value = getActive().decks;
   clearInput();
   updateLastHint();
@@ -974,44 +1248,30 @@ document.getElementById('delete-machine').addEventListener('click', function(){
   schedulePush();
 });
 
-document.getElementById('sync-now').addEventListener('click', function(){
-  pullAndMerge(false).then(() => pushNow());
-});
-
 document.getElementById('force-pull').addEventListener('click', function(){
-  if(!confirm('將以雲端資料覆蓋本機紀錄，確定嗎？')) return;
   if(!isConfigured){ alert('尚未設定 Firebase'); return; }
-  cloudRead().then(remote => {
-    if(!remote || !Array.isArray(remote.machines)){ alert('雲端尚無資料'); return; }
-    const localActive = state.activeId;
-    state = remote;
-    state.machines.forEach(m => {
-      if(!Array.isArray(m.hands)) m.hands = [];
-      if(typeof m.decks !== 'number') m.decks = 8;
-      if(!m.name) m.name = '機台';
-    });
-    if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
-      state.activeId = state.machines[0].id;
-    } else if(localActive && state.machines.find(m => m.id === localActive)){
-      state.activeId = localActive;
-    }
-    saveLocal();
-    document.getElementById('decks').value = getActive().decks;
-    updateLastHint();
-    render();
-    setStatus('已強制覆蓋本機', 'on');
-  }).catch(e => setStatus('讀取失敗：' + e.message, 'err'));
+  if(dirty && !confirm('有尚未上傳的修改，重新載入會捨棄，確定嗎？')) return;
+  if(pushTimer){ clearTimeout(pushTimer); pushTimer = null; }
+  dirty = false;
+  loaded = false;
+  setStatus('重新載入中…', 'syncing');
+  pullAndMerge(false);
 });
 
 /* 清空雲端 */
 document.getElementById('clear-cloud').addEventListener('click', function(){
   if(!isConfigured){ alert('尚未設定 Firebase'); return; }
-  if(!confirm('⚠️ 將清空雲端上的所有資料！\n\n本機資料不會被刪除，但雲端會變成空白。\n\n確定要繼續嗎？')) return;
+  if(!confirm('⚠️ 將清空雲端上的所有資料！\n\n所有機台與紀錄都會消失。\n\n確定要繼續嗎？')) return;
   if(!confirm('再次確認：雲端資料將永久刪除，無法復原。')) return;
 
   setStatus('清空中…', 'syncing');
+  if(pushTimer){ clearTimeout(pushTimer); pushTimer = null; }
+  dirty = false;
   cloudDelete().then(() => {
     lastPushAt = 0;
+    adoptState({ machines: [], activeId: null, lastModified: 0 });
+    clearInput();
+    refreshAll();
     setStatus('✓ 雲端已清空 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
   }).catch(e => {
     setStatus('清空失敗：' + e.message, 'err');
@@ -1039,27 +1299,18 @@ document.getElementById('import-btn').addEventListener('click', function(){
 document.getElementById('import-file').addEventListener('change', function(e){
   const file = e.target.files && e.target.files[0];
   if(!file) return;
+  if(!ready()){ e.target.value = ''; return; }
   const reader = new FileReader();
   reader.onload = function(ev){
     try{
       const d = JSON.parse(ev.target.result);
       if(!d || !Array.isArray(d.machines)) throw new Error('格式不正確');
-      if(!confirm('匯入將覆蓋目前所有機台，確定嗎？')) return;
-      state = d;
-      state.machines.forEach(m => {
-        if(!Array.isArray(m.hands)) m.hands = [];
-        if(typeof m.decks !== 'number') m.decks = 8;
-        if(!m.name) m.name = '機台';
-      });
-      if(!state.activeId || !state.machines.find(m => m.id === state.activeId)){
-        state.activeId = state.machines[0].id;
-      }
+      if(!confirm('匯入將覆蓋雲端上所有機台，確定嗎？')) return;
+      state.activeId = null;
+      adoptState(d);
       state.lastModified = Date.now();
-      saveLocal();
-      document.getElementById('decks').value = getActive().decks;
       clearInput();
-      updateLastHint();
-      render();
+      refreshAll();
       schedulePush();
     }catch(err){ alert('匯入失敗：' + err.message); }
     e.target.value = '';
@@ -1072,12 +1323,11 @@ document.addEventListener('visibilitychange', function(){
 });
 
 /* 初始化 */
-loadLocal();
 ensureDefaultMachine();
 document.getElementById('decks').value = getActive().decks;
 buildSlots();
-buildRankButtons();
-renderInput();
+buildKeypad();
+clearInput();
 updateLastHint();
 render();
 
