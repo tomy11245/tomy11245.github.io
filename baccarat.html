@@ -10,96 +10,130 @@
   --banker:#e74c3c; --player:#3498db; --tie:#2ecc71;
   --text:#c9d1d9; --muted:#8b949e; --gold:#f0b90b;
 }
-*{box-sizing:border-box;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;}
 body{
-  background:var(--bg); color:var(--text); padding:14px 14px 48px;
+  background:var(--bg); color:var(--text); padding:10px 10px 40px;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
   -webkit-text-size-adjust:100%; font-size:14px;
 }
-h1{font-size:16px;margin:0 0 12px;letter-spacing:4px;font-weight:600;color:#e6edf3;}
-h2{font-size:11px;margin:0 0 12px;color:var(--muted);letter-spacing:2px;font-weight:500;}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
-#top-status{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px;color:var(--muted);min-height:16px;}
-#status-dot{width:8px;height:8px;border-radius:50%;background:#484f58;flex:0 0 auto;}
+h1{font-size:15px;margin:0 0 8px;letter-spacing:3px;font-weight:600;color:#e6edf3;}
+h2{font-size:11px;margin:0 0 10px;color:var(--muted);letter-spacing:2px;font-weight:500;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;}
+#top-status{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:8px;color:var(--muted);min-height:14px;}
+#status-dot{width:7px;height:7px;border-radius:50%;background:#484f58;flex:0 0 auto;}
 #status-dot.on{background:#2ecc71;box-shadow:0 0 6px #2ecc71;}
 #status-dot.syncing{background:#f0b90b;animation:pulse 1s infinite;}
 #status-dot.err{background:#e74c3c;}
 @keyframes pulse{50%{opacity:.4;}}
+
+/* 輸入區 - 全新設計 */
+.hand-input{
+  display:flex;align-items:center;gap:6px;margin-bottom:10px;
+  background:#0d1117;border-radius:8px;padding:8px;
+}
+.hand-label{
+  flex:0 0 44px;text-align:center;font-weight:800;font-size:15px;
+  padding:8px 0;border-radius:6px;
+}
+.hand-label.p{background:rgba(52,152,219,.2);color:var(--player);border:1px solid rgba(52,152,219,.5);}
+.hand-label.b{background:rgba(231,76,60,.2);color:var(--banker);border:1px solid rgba(231,76,60,.5);}
+.hand-input select{
+  flex:1;background:#21262d;color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:12px 4px;font-size:18px;font-weight:700;
+  text-align:center;text-align-last:center;font-family:inherit;
+  -webkit-appearance:none;appearance:none;min-width:0;
+}
+.hand-input select:focus{outline:none;border-color:var(--gold);}
+.hand-score{
+  flex:0 0 40px;text-align:center;font-size:22px;font-weight:800;
+  font-variant-numeric:tabular-nums;color:var(--gold);
+}
+.hand-input select.suit-hidden{display:none;}
+
+/* 快捷按鈕 */
+.quick-actions{display:flex;gap:6px;margin-top:6px;}
+.quick-actions button{
+  flex:1;padding:14px 6px;font-size:13px;font-weight:700;border-radius:8px;
+  border:none;cursor:pointer;font-family:inherit;letter-spacing:1px;
+  background:#21262d;color:var(--text);
+}
+.quick-actions button:hover{background:#30363d;}
+.quick-actions button.primary{
+  background:var(--gold);color:#0d1117;font-size:15px;letter-spacing:2px;
+}
+.quick-actions button.primary:hover{filter:brightness(1.1);}
+.quick-actions button.undo{color:var(--muted);}
+.quick-actions button.undo:hover{color:#e74c3c;}
+
+/* 最近輸入的小提示 */
+.last-hint{
+  font-size:11px;color:var(--muted);text-align:center;
+  margin-top:8px;min-height:16px;
+}
+.last-hint b{color:var(--text);}
+
+/* 通用 */
 .settings-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .settings-row label{font-size:12px;color:var(--muted);}
-select{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;-webkit-appearance:none;appearance:none;}
-select:focus{outline:none;border-color:#58a6ff;}
-.input-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.tag{flex:0 0 36px;text-align:center;font-weight:700;font-size:13px;padding:6px 0;border-radius:6px;letter-spacing:1px;}
-.tag.p{background:rgba(52,152,219,.15);color:var(--player);border:1px solid rgba(52,152,219,.4);}
-.tag.b{background:rgba(231,76,60,.15);color:var(--banker);border:1px solid rgba(231,76,60,.4);}
-.card-selects{display:flex;gap:5px;flex:1;min-width:0;}
-.card-slot{display:flex;gap:2px;flex:0 0 auto;}
-.card-slot select{padding:6px 3px;font-size:12px;width:44px;text-align:center;text-align-last:center;}
-.card-slot select.suit-sel{width:36px;}
-.hand-score{flex:0 0 32px;text-align:center;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--gold);}
-.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-.btn-primary{flex:1;background:var(--gold);color:#0d1117;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:800;letter-spacing:2px;cursor:pointer;font-family:inherit;}
-.btn-primary:hover{filter:brightness(1.1);}
+select.deck-select{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;-webkit-appearance:none;appearance:none;}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:12px 14px;font-size:13px;cursor:pointer;font-family:inherit;}
 .btn-ghost:hover{border-color:#484f58;color:var(--text);}
-.stats{display:flex;gap:8px;margin-bottom:12px;}
-.stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 8px;text-align:center;}
-.stat .k{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
-.stat .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;}
+.stats{display:flex;gap:6px;margin-bottom:10px;}
+.stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;}
+.stat .k{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:2px;}
+.stat .v{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;}
 .stat .v.b{color:var(--banker);}
 .stat .v.p{color:var(--player);}
 .stat .v.t{color:var(--tie);}
 .scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:4px;}
 .scroll::-webkit-scrollbar{height:6px;}
 .scroll::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
-.cell{position:relative;width:24px;height:24px;flex:0 0 auto;}
+.cell{position:relative;width:22px;height:22px;flex:0 0 auto;}
 .dot{position:absolute;inset:3px;border-radius:50%;}
 .dot.banker{background:var(--banker);}
 .dot.player{background:var(--player);}
 .dot.tie{background:var(--tie);}
-.bead{display:grid;grid-template-rows:repeat(6,24px);grid-auto-flow:column;grid-auto-columns:24px;gap:2px;width:max-content;}
+.bead{display:grid;grid-template-rows:repeat(6,22px);grid-auto-flow:column;grid-auto-columns:22px;gap:2px;width:max-content;}
 .bigroad{display:flex;gap:2px;width:max-content;}
 .br-col{display:flex;flex-direction:column;gap:2px;}
 .cell.has-tie::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:var(--tie);border-radius:1px;transform:rotate(-45deg);pointer-events:none;}
 .empty{color:#484f58;font-size:13px;padding:8px 2px;}
-.rank-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
-.rank-item{background:#21262d;border-radius:6px;padding:5px 2px;text-align:center;}
-.rank-item .r{font-size:11px;color:var(--muted);display:block;}
-.rank-item .c{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+.rank-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.rank-item{background:#21262d;border-radius:6px;padding:4px 2px;text-align:center;}
+.rank-item .r{font-size:10px;color:var(--muted);display:block;}
+.rank-item .c{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
 .rank-item.zero .c{color:#484f58;}
-.shoe-summary{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.shoe-summary{font-size:11px;color:var(--muted);margin-bottom:8px;}
 .shoe-summary b{color:var(--text);}
-.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.bar-label{flex:0 0 28px;font-size:12px;font-weight:700;text-align:right;}
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.bar-label{flex:0 0 26px;font-size:12px;font-weight:700;text-align:right;}
 .bar-label.b{color:var(--banker);}
 .bar-label.p{color:var(--player);}
 .bar-label.t{color:var(--tie);}
-.bar-track{flex:1;height:18px;background:#21262d;border-radius:4px;overflow:hidden;position:relative;}
+.bar-track{flex:1;height:16px;background:#21262d;border-radius:4px;overflow:hidden;position:relative;}
 .bar-fill{height:100%;border-radius:4px;transition:width .3s ease;}
 .bar-fill.b{background:var(--banker);}
 .bar-fill.p{background:var(--player);}
 .bar-fill.t{background:var(--tie);}
-.bar-val{flex:0 0 74px;font-size:12px;font-variant-numeric:tabular-nums;text-align:right;}
-.delta{font-size:10px;margin-left:4px;}
+.bar-val{flex:0 0 70px;font-size:11px;font-variant-numeric:tabular-nums;text-align:right;}
+.delta{font-size:10px;margin-left:3px;}
 .delta.up{color:#2ecc71;}
 .delta.down{color:#e74c3c;}
-.baseline{font-size:10px;color:#484f58;margin-top:6px;letter-spacing:.5px;}
-.history-list{max-height:150px;overflow-y:auto;font-size:11px;color:var(--muted);}
-.history-item{padding:4px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
+.baseline{font-size:10px;color:#484f58;margin-top:4px;letter-spacing:.5px;}
+.history-list{max-height:120px;overflow-y:auto;font-size:11px;color:var(--muted);}
+.history-item{padding:3px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
 .history-item:last-child{border-bottom:none;}
-.history-item .idx{flex:0 0 24px;color:#484f58;}
-.history-item .cards{flex:1;letter-spacing:1px;}
-.history-item .res{font-weight:700;flex:0 0 20px;text-align:center;}
+.history-item .idx{flex:0 0 22px;color:#484f58;}
+.history-item .cards{flex:1;letter-spacing:.5px;}
+.history-item .res{font-weight:700;flex:0 0 18px;text-align:center;}
 .res.B{color:var(--banker);}
 .res.P{color:var(--player);}
 .res.T{color:var(--tie);}
-.data-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-.data-row button{flex:1;min-width:100px;}
-.btn-mini{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.data-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.data-row button{flex:1;min-width:80px;}
+.btn-mini{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
 .btn-mini:hover{border-color:#484f58;}
-.btn-mini.danger{color:#e74c3c;border-color:rgba(231,76,60,.3);}
 </style>
 </head>
 <body>
@@ -107,11 +141,49 @@ select:focus{outline:none;border-color:#58a6ff;}
 <h1>百家樂牌組分析</h1>
 <div id="top-status"><span id="status-dot"></span><span id="status-text">初始化…</span></div>
 
+<!-- 主要輸入區 -->
+<div class="panel" style="padding:14px 10px;">
+  <div class="hand-input">
+    <span class="hand-label p">閒</span>
+    <select id="p1"></select>
+    <select id="p2"></select>
+    <select id="p3"></select>
+    <span class="hand-score" id="p-score">–</span>
+  </div>
+  <div class="hand-input">
+    <span class="hand-label b">莊</span>
+    <select id="b1"></select>
+    <select id="b2"></select>
+    <select id="b3"></select>
+    <span class="hand-score" id="b-score">–</span>
+  </div>
+
+  <div class="quick-actions">
+    <button class="primary" id="record">記錄</button>
+    <button class="undo" id="undo">撤銷</button>
+  </div>
+  <div class="last-hint" id="last-hint"></div>
+</div>
+
+<!-- 統計 -->
+<div class="stats">
+  <div class="stat"><span class="k">局數</span><span class="v" id="s-total">0</span></div>
+  <div class="stat"><span class="k">莊</span><span class="v b" id="s-b">0</span></div>
+  <div class="stat"><span class="k">閒</span><span class="v p" id="s-p">0</span></div>
+  <div class="stat"><span class="k">和</span><span class="v t" id="s-t">0</span></div>
+</div>
+
+<div class="panel"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
+<div class="panel"><h2>下一手預測</h2><div id="analysis"></div></div>
+<div class="panel"><h2>歷史紀錄</h2><div class="history-list" id="history"></div></div>
+<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead" id="bead"></div></div></div>
+<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad" id="bigroad"></div></div></div>
+
 <div class="panel">
   <h2>牌靴設定</h2>
   <div class="settings-row">
     <label>副數</label>
-    <select id="decks">
+    <select class="deck-select" id="decks">
       <option value="1">1 副</option>
       <option value="2">2 副</option>
       <option value="4">4 副</option>
@@ -123,46 +195,14 @@ select:focus{outline:none;border-color:#58a6ff;}
 </div>
 
 <div class="panel">
-  <h2>輸入已開出牌組</h2>
-  <div class="input-row">
-    <span class="tag p">閒</span>
-    <div class="card-selects" id="p-input"></div>
-    <span class="hand-score" id="p-score">–</span>
-  </div>
-  <div class="input-row">
-    <span class="tag b">莊</span>
-    <div class="card-selects" id="b-input"></div>
-    <span class="hand-score" id="b-score">–</span>
-  </div>
-  <div class="actions">
-    <button id="record" class="btn-primary">記錄</button>
-    <button id="clear-input" class="btn-ghost">清除輸入</button>
-    <button id="undo" class="btn-ghost">撤銷</button>
-  </div>
-</div>
-
-<div class="stats">
-  <div class="stat"><span class="k">總局數</span><span class="v" id="s-total">0</span></div>
-  <div class="stat"><span class="k">莊</span><span class="v b" id="s-b">0</span></div>
-  <div class="stat"><span class="k">閒</span><span class="v p" id="s-p">0</span></div>
-  <div class="stat"><span class="k">和</span><span class="v t" id="s-t">0</span></div>
-</div>
-
-<div class="panel"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
-<div class="panel"><h2>下一手預測（蒙地卡羅模擬）</h2><div id="analysis"></div></div>
-<div class="panel"><h2>歷史紀錄</h2><div class="history-list" id="history"></div></div>
-<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead" id="bead"></div></div></div>
-<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad" id="bigroad"></div></div></div>
-
-<div class="panel">
   <h2>資料管理</h2>
-  <div class="data-row" style="margin-bottom:8px;">
+  <div class="data-row" style="margin-bottom:6px;">
     <button id="sync-now" class="btn-mini">立即同步</button>
-    <button id="force-pull" class="btn-mini">強制從雲端覆蓋</button>
+    <button id="force-pull" class="btn-mini">從雲端覆蓋</button>
   </div>
   <div class="data-row">
-    <button id="export-btn" class="btn-ghost">匯出 JSON</button>
-    <button id="import-btn" class="btn-ghost">匯入 JSON</button>
+    <button id="export-btn" class="btn-ghost">匯出</button>
+    <button id="import-btn" class="btn-ghost">匯入</button>
   </div>
   <input type="file" id="import-file" accept=".json,application/json" style="display:none;">
 </div>
@@ -172,7 +212,7 @@ select:focus{outline:none;border-color:#58a6ff;}
 'use strict';
 
 /* =====================================================
-   ★★★ 只要改這裡 ★★★
+   ★★★ 你的設定 ★★★
    ===================================================== */
 const CONFIG = {
   dbUrl: 'https://baccarat-sync-f6f05-default-rtdb.firebaseio.com',
@@ -181,14 +221,14 @@ const CONFIG = {
 /* ===================================================== */
 
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-const SUITS = ['♠','♥','♦','♣'];
-const STORAGE_KEY = 'baccarat.cards.fb';
+// 花色固定用 ♠（不影響百家樂點數計算，只是讓資料格式一致）
+const DEFAULT_SUIT = '♠';
+const STORAGE_KEY = 'baccarat.cards.fb2';
 const BASELINE = { banker: 0.4586, player: 0.4462, tie: 0.0952 };
 const SIM_ITER = 2000;
 const POLL_MS = 5000;
 
 const isConfigured = CONFIG.dbUrl && CONFIG.dbUrl.indexOf('http') === 0
-  && CONFIG.dbUrl.indexOf('這裡貼') === -1
   && CONFIG.roomCode && CONFIG.roomCode.length >= 3;
 
 const storage = (function(){
@@ -247,7 +287,7 @@ function getRemainingCards(){
   }
   const remaining = [];
   for(const r of RANKS){
-    for(const s of SUITS){
+    for(const s of ['♠','♥','♦','♣']){
       const k = r + '|' + s;
       const usedCount = usedMap[k] || 0;
       for(let i = 0; i < state.decks - usedCount; i++) remaining.push({ rank: r, suit: s });
@@ -268,8 +308,11 @@ function validateNewCards(newCards){
     const k = c.rank + c.suit;
     counts[k] = (counts[k] || 0) + 1;
   }
+  // 因為花色都被固定為 ♠，所以同一點數最多用 decks 次（寬鬆檢查）
   for(const k in counts){
-    if(counts[k] > state.decks) return '牌 ' + k + ' 出現超過 ' + state.decks + ' 次';
+    if(counts[k] > state.decks * 4){
+      return '點數 ' + k.split('|')[0] + ' 出現次數超過牌靴上限';
+    }
   }
   return null;
 }
@@ -400,47 +443,74 @@ function stopPolling(){
   if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
 }
 
-function buildCardSelects(container){
-  container.innerHTML = '';
-  for(let i = 0; i < 3; i++){
-    const slot = document.createElement('div');
-    slot.className = 'card-slot';
-    const rankSel = document.createElement('select');
-    rankSel.className = 'rank-sel';
+/* ========== 輸入 UI（簡化版） ========== */
+function buildRankSelects(){
+  // 三個閒家牌 + 三個莊家牌
+  ['p1','p2','p3','b1','b2','b3'].forEach(id => {
+    const sel = document.getElementById(id);
     let opts = '<option value="">–</option>';
     for(const r of RANKS) opts += '<option value="' + r + '">' + r + '</option>';
-    rankSel.innerHTML = opts;
-    const suitSel = document.createElement('select');
-    suitSel.className = 'suit-sel';
-    let sopts = '<option value="">–</option>';
-    for(const s of SUITS) sopts += '<option value="' + s + '">' + s + '</option>';
-    suitSel.innerHTML = sopts;
-    slot.appendChild(rankSel);
-    slot.appendChild(suitSel);
-    container.appendChild(slot);
-  }
-}
-function readCards(container){
-  const cards = [];
-  container.querySelectorAll('.card-slot').forEach(slot => {
-    const rank = slot.querySelector('.rank-sel').value;
-    const suit = slot.querySelector('.suit-sel').value;
-    if(rank && suit) cards.push({ rank: rank, suit: suit });
+    sel.innerHTML = opts;
+    sel.addEventListener('change', onSelectChange);
+    sel.addEventListener('focus', () => sel.select && sel.select());
   });
-  return cards;
-}
-function clearInput(){
-  document.querySelectorAll('#p-input .rank-sel, #p-input .suit-sel, #b-input .rank-sel, #b-input .suit-sel')
-    .forEach(sel => { sel.value = ''; });
-  updateInputScores();
-}
-function updateInputScores(){
-  const p = readCards(document.getElementById('p-input'));
-  const b = readCards(document.getElementById('b-input'));
-  document.getElementById('p-score').textContent = p.length ? handValue(p) : '–';
-  document.getElementById('b-score').textContent = b.length ? handValue(b) : '–';
+  // 第三張牌預設隱藏，需要時才顯示
+  document.getElementById('p3').classList.add('suit-hidden');
+  document.getElementById('b3').classList.add('suit-hidden');
 }
 
+function onSelectChange(){
+  // 判斷是否需要顯示第三張
+  const p1 = document.getElementById('p1').value;
+  const p2 = document.getElementById('p2').value;
+  const b1 = document.getElementById('b1').value;
+  const b2 = document.getElementById('b2').value;
+
+  const pFilled = p1 && p2;
+  const bFilled = b1 && b2;
+
+  // 前兩張都選好後，第三張可以選
+  document.getElementById('p3').classList.toggle('suit-hidden', !pFilled);
+  document.getElementById('b3').classList.toggle('suit-hidden', !bFilled);
+
+  // 更新點數顯示
+  updateScores();
+}
+
+function updateScores(){
+  const p1 = document.getElementById('p1').value;
+  const p2 = document.getElementById('p2').value;
+  const p3 = document.getElementById('p3').value;
+  const b1 = document.getElementById('b1').value;
+  const b2 = document.getElementById('b2').value;
+  const b3 = document.getElementById('b3').value;
+
+  const pCards = [p1, p2, p3].filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
+  const bCards = [b1, b2, b3].filter(Boolean).map(r => ({rank: r, suit: DEFAULT_SUIT}));
+
+  document.getElementById('p-score').textContent = pCards.length >= 2 ? handValue(pCards) : '–';
+  document.getElementById('b-score').textContent = bCards.length >= 2 ? handValue(bCards) : '–';
+}
+
+function clearInput(){
+  ['p1','p2','p3','b1','b2','b3'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('p3').classList.add('suit-hidden');
+  document.getElementById('b3').classList.add('suit-hidden');
+  updateScores();
+}
+
+function readHand(prefix){
+  const cards = [];
+  for(let i = 1; i <= 3; i++){
+    const v = document.getElementById(prefix + i).value;
+    if(v) cards.push({rank: v, suit: DEFAULT_SUIT});
+  }
+  return cards;
+}
+
+/* ========== 渲染 ========== */
 function renderStats(){
   let b = 0, p = 0, t = 0;
   for(const h of state.hands){
@@ -543,7 +613,7 @@ function renderAnalysis(){
   html += bar('b', '莊', r.banker, BASELINE.banker);
   html += bar('p', '閒', r.player, BASELINE.player);
   html += bar('t', '和', r.tie, BASELINE.tie);
-  html += '<div class="baseline">基準值：莊 ' + (BASELINE.banker*100).toFixed(2) +
+  html += '<div class="baseline">基準：莊 ' + (BASELINE.banker*100).toFixed(2) +
           '% / 閒 ' + (BASELINE.player*100).toFixed(2) +
           '% / 和 ' + (BASELINE.tie*100).toFixed(2) +
           '%　·　模擬 ' + r.n + ' 次</div>';
@@ -553,12 +623,12 @@ function renderHistory(){
   const el = document.getElementById('history');
   if(!state.hands.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
   let html = '';
-  const start = Math.max(0, state.hands.length - 50);
+  const start = Math.max(0, state.hands.length - 30);
   for(let i = start; i < state.hands.length; i++){
     const h = state.hands[i];
     const w = getWinner(h.player, h.banker);
-    const pStr = h.player.map(c => c.rank + c.suit).join(' ');
-    const bStr = h.banker.map(c => c.rank + c.suit).join(' ');
+    const pStr = h.player.map(c => c.rank).join(' ');
+    const bStr = h.banker.map(c => c.rank).join(' ');
     html += '<div class="history-item">' +
       '<span class="idx">#' + (i + 1) + '</span>' +
       '<span class="cards">閒 ' + pStr + '　莊 ' + bStr + '</span>' +
@@ -575,29 +645,48 @@ function render(){
   renderHistory();
 }
 
+function updateLastHint(){
+  const el = document.getElementById('last-hint');
+  if(!state.hands.length){ el.textContent = ''; return; }
+  const last = state.hands[state.hands.length - 1];
+  const w = getWinner(last.player, last.banker);
+  const pStr = last.player.map(c => c.rank).join(' ');
+  const bStr = last.banker.map(c => c.rank).join(' ');
+  const wTxt = w === 'B' ? '莊贏' : w === 'P' ? '閒贏' : '和局';
+  el.innerHTML = '上一局：閒 <b>' + pStr + '</b>　莊 <b>' + bStr + '</b>　→ <b>' + wTxt + '</b>';
+}
+
+/* ========== 記錄 ========== */
 function recordHand(){
-  const pCards = readCards(document.getElementById('p-input'));
-  const bCards = readCards(document.getElementById('b-input'));
-  if(pCards.length < 2 || bCards.length < 2){ alert('閒家和莊家至少各需兩張牌'); return; }
-  if(pCards.length > 3 || bCards.length > 3){ alert('每邊最多三張牌'); return; }
+  const pCards = readHand('p');
+  const bCards = readHand('b');
+
+  if(pCards.length < 2 || bCards.length < 2){
+    alert('閒家和莊家至少各需兩張牌');
+    return;
+  }
   const err = validateNewCards([...pCards, ...bCards]);
   if(err){ alert(err); return; }
+
   state.hands.push({ player: pCards, banker: bCards });
   state.lastModified = Date.now();
   saveLocal();
   clearInput();
+  updateLastHint();
   render();
   schedulePush();
+
+  // 記錄後自動把焦點放回第一張，方便連續輸入
+  setTimeout(() => document.getElementById('p1').focus(), 50);
 }
 
 document.getElementById('record').addEventListener('click', recordHand);
-document.getElementById('clear-input').addEventListener('click', clearInput);
-
 document.getElementById('undo').addEventListener('click', function(){
   if(!state.hands.length) return;
   state.hands.pop();
   state.lastModified = Date.now();
   saveLocal();
+  updateLastHint();
   render();
   schedulePush();
 });
@@ -608,6 +697,7 @@ document.getElementById('reset-all').addEventListener('click', function(){
   state.lastModified = Date.now();
   saveLocal();
   clearInput();
+  updateLastHint();
   render();
   schedulePush();
 });
@@ -684,6 +774,7 @@ document.getElementById('import-file').addEventListener('change', function(e){
       state.lastModified = Date.now();
       document.getElementById('decks').value = state.decks;
       saveLocal();
+      updateLastHint();
       render();
       schedulePush();
     }catch(err){ alert('匯入失敗：' + err.message); }
@@ -692,35 +783,41 @@ document.getElementById('import-file').addEventListener('change', function(e){
   reader.readAsText(file);
 });
 
+/* 鍵盤：Enter 記錄 */
 document.addEventListener('keydown', function(e){
-  if(e.metaKey || e.ctrlKey || e.altKey) return;
-  const tag = (e.target.tagName || '').toLowerCase();
-  if(tag === 'select' || tag === 'input' || tag === 'textarea') return;
-  const k = e.key.toLowerCase();
-  if(k === 'z') document.getElementById('undo').click();
-  else if(k === 'enter') recordHand();
-});
-
-window.addEventListener('beforeunload', function(){
-  if(storage){ try{ storage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+  if(e.key === 'Enter' && !e.ctrlKey && !e.metaKey){
+    const tag = (e.target.tagName || '').toLowerCase();
+    if(tag === 'select' || tag === 'input'){
+      // 在選單上按 Enter：關閉選單並移到下一個
+      e.preventDefault();
+      const all = ['p1','p2','p3','b1','b2','b3'];
+      const idx = all.indexOf(e.target.id);
+      if(idx >= 0 && idx < all.length - 1){
+        const next = document.getElementById(all[idx + 1]);
+        if(!next.classList.contains('suit-hidden')) next.focus();
+      }
+    }
+  }
+  if(e.key === 'z' && !e.ctrlKey && !e.metaKey){
+    const tag = (e.target.tagName || '').toLowerCase();
+    if(tag !== 'select' && tag !== 'input') document.getElementById('undo').click();
+  }
 });
 
 document.addEventListener('visibilitychange', function(){
   if(!document.hidden && isConfigured) pullAndMerge(true);
 });
 
+/* 初始化 */
 loadLocal();
 document.getElementById('decks').value = state.decks;
-buildCardSelects(document.getElementById('p-input'));
-buildCardSelects(document.getElementById('b-input'));
-document.querySelectorAll('#p-input select, #b-input select').forEach(sel => {
-  sel.addEventListener('change', updateInputScores);
-});
-updateInputScores();
+buildRankSelects();
+updateScores();
+updateLastHint();
 render();
 
 if(!isConfigured){
-  setStatus('⚠ 尚未設定 Firebase（見程式碼 CONFIG）', 'err');
+  setStatus('⚠ 尚未設定 Firebase', 'err');
 } else {
   setStatus('連線中…', 'syncing');
   pullAndMerge(false).then(() => startPolling());
