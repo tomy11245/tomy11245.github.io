@@ -692,3 +692,94 @@ document.getElementById('force-pull').addEventListener('click', function(){
       return;
     }
     state = {
+      decks: typeof remote.decks === 'number' ? remote.decks : 8,
+      hands: remote.hands,
+      lastModified: remote.lastModified || Date.now()
+    };
+    saveLocal();
+    document.getElementById('decks').value = state.decks;
+    render();
+    setStatus('已強制覆蓋本機', 'on');
+  }).catch(e => setStatus('讀取失敗：' + e.message, 'err'));
+});
+
+document.getElementById('export-btn').addEventListener('click', function(){
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const t = new Date();
+  const stamp = t.getFullYear() + String(t.getMonth()+1).padStart(2,'0') +
+                String(t.getDate()).padStart(2,'0') + '_' +
+                String(t.getHours()).padStart(2,'0') +
+                String(t.getMinutes()).padStart(2,'0');
+  a.href = url;
+  a.download = 'baccarat_' + stamp + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('import-btn').addEventListener('click', function(){
+  document.getElementById('import-file').click();
+});
+
+document.getElementById('import-file').addEventListener('change', function(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const d = JSON.parse(ev.target.result);
+      if(!d || !Array.isArray(d.hands)) throw new Error('格式不正確');
+      if(!confirm('匯入將覆蓋目前紀錄，確定嗎？')) return;
+      state.decks = (typeof d.decks === 'number') ? d.decks : 8;
+      state.hands = d.hands;
+      state.lastModified = Date.now();
+      document.getElementById('decks').value = state.decks;
+      saveLocal();
+      render();
+      schedulePush();
+    }catch(err){ alert('匯入失敗：' + err.message); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if(tag === 'select' || tag === 'input' || tag === 'textarea') return;
+  const k = e.key.toLowerCase();
+  if(k === 'z') document.getElementById('undo').click();
+  else if(k === 'enter') recordHand();
+});
+
+window.addEventListener('beforeunload', function(){
+  if(storage){ try{ storage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+});
+
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden && isConfigured) pullAndMerge(true);
+});
+
+loadLocal();
+document.getElementById('decks').value = state.decks;
+buildCardSelects(document.getElementById('p-input'));
+buildCardSelects(document.getElementById('b-input'));
+document.querySelectorAll('#p-input select, #b-input select').forEach(sel => {
+  sel.addEventListener('change', updateInputScores);
+});
+updateInputScores();
+render();
+
+if(!isConfigured){
+  setStatus('⚠ 尚未設定 GitHub 資訊（見程式碼 CONFIG）', 'err');
+} else {
+  setStatus('連線中…', 'syncing');
+  pullAndMerge(false).then(() => startPolling());
+}
+
+})();
+</script>
+</body>
+</html>
