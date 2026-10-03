@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>百家樂牌組分析</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --line:#30363d;
+  --banker:#e74c3c; --player:#3498db; --tie:#2ecc71;
+  --text:#c9d1d9; --muted:#8b949e; --gold:#f0b90b;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{
+  background:var(--bg); color:var(--text); padding:14px 14px 48px;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  -webkit-text-size-adjust:100%; font-size:14px;
+}
+h1{font-size:16px;margin:0 0 12px;letter-spacing:4px;font-weight:600;color:#e6edf3;}
+h2{font-size:11px;margin:0 0 12px;color:var(--muted);letter-spacing:2px;font-weight:500;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
+#top-status{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px;color:var(--muted);min-height:16px;}
+#status-dot{width:8px;height:8px;border-radius:50%;background:#484f58;flex:0 0 auto;}
+#status-dot.on{background:#2ecc71;box-shadow:0 0 6px #2ecc71;}
+#status-dot.syncing{background:#f0b90b;animation:pulse 1s infinite;}
+#status-dot.err{background:#e74c3c;}
+@keyframes pulse{50%{opacity:.4;}}
+.settings-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.settings-row label{font-size:12px;color:var(--muted);}
+select{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;-webkit-appearance:none;appearance:none;}
+select:focus{outline:none;border-color:#58a6ff;}
+.input-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.tag{flex:0 0 36px;text-align:center;font-weight:700;font-size:13px;padding:6px 0;border-radius:6px;letter-spacing:1px;}
+.tag.p{background:rgba(52,152,219,.15);color:var(--player);border:1px solid rgba(52,152,219,.4);}
+.tag.b{background:rgba(231,76,60,.15);color:var(--banker);border:1px solid rgba(231,76,60,.4);}
+.card-selects{display:flex;gap:5px;flex:1;min-width:0;}
+.card-slot{display:flex;gap:2px;flex:0 0 auto;}
+.card-slot select{padding:6px 3px;font-size:12px;width:44px;text-align:center;text-align-last:center;}
+.card-slot select.suit-sel{width:36px;}
+.hand-score{flex:0 0 32px;text-align:center;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--gold);}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.btn-primary{flex:1;background:var(--gold);color:#0d1117;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:800;letter-spacing:2px;cursor:pointer;font-family:inherit;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:12px 14px;font-size:13px;cursor:pointer;font-family:inherit;}
+.btn-ghost:hover{border-color:#484f58;color:var(--text);}
+.stats{display:flex;gap:8px;margin-bottom:12px;}
+.stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 8px;text-align:center;}
+.stat .k{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+.stat .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;}
+.stat .v.b{color:var(--banker);}
+.stat .v.p{color:var(--player);}
+.stat .v.t{color:var(--tie);}
+.scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:4px;}
+.scroll::-webkit-scrollbar{height:6px;}
+.scroll::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px;}
+.cell{position:relative;width:24px;height:24px;flex:0 0 auto;}
+.dot{position:absolute;inset:3px;border-radius:50%;}
+.dot.banker{background:var(--banker);}
+.dot.player{background:var(--player);}
+.dot.tie{background:var(--tie);}
+.bead{display:grid;grid-template-rows:repeat(6,24px);grid-auto-flow:column;grid-auto-columns:24px;gap:2px;width:max-content;}
+.bigroad{display:flex;gap:2px;width:max-content;}
+.br-col{display:flex;flex-direction:column;gap:2px;}
+.cell.has-tie::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:var(--tie);border-radius:1px;transform:rotate(-45deg);pointer-events:none;}
+.empty{color:#484f58;font-size:13px;padding:8px 2px;}
+.rank-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.rank-item{background:#21262d;border-radius:6px;padding:5px 2px;text-align:center;}
+.rank-item .r{font-size:11px;color:var(--muted);display:block;}
+.rank-item .c{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+.rank-item.zero .c{color:#484f58;}
+.shoe-summary{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.shoe-summary b{color:var(--text);}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.bar-label{flex:0 0 28px;font-size:12px;font-weight:700;text-align:right;}
+.bar-label.b{color:var(--banker);}
+.bar-label.p{color:var(--player);}
+.bar-label.t{color:var(--tie);}
+.bar-track{flex:1;height:18px;background:#21262d;border-radius:4px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:4px;transition:width .3s ease;}
+.bar-fill.b{background:var(--banker);}
+.bar-fill.p{background:var(--player);}
+.bar-fill.t{background:var(--tie);}
+.bar-val{flex:0 0 74px;font-size:12px;font-variant-numeric:tabular-nums;text-align:right;}
+.delta{font-size:10px;margin-left:4px;}
+.delta.up{color:#2ecc71;}
+.delta.down{color:#e74c3c;}
+.baseline{font-size:10px;color:#484f58;margin-top:6px;letter-spacing:.5px;}
+.history-list{max-height:150px;overflow-y:auto;font-size:11px;color:var(--muted);}
+.history-item{padding:4px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
+.history-item:last-child{border-bottom:none;}
+.history-item .idx{flex:0 0 24px;color:#484f58;}
+.history-item .cards{flex:1;letter-spacing:1px;}
+.history-item .res{font-weight:700;flex:0 0 20px;text-align:center;}
+.res.B{color:var(--banker);}
+.res.P{color:var(--player);}
+.res.T{color:var(--tie);}
+.data-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.data-row button{flex:1;min-width:100px;}
+.btn-mini{background:#21262d;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.btn-mini:hover{border-color:#484f58;}
+.btn-mini.danger{color:#e74c3c;border-color:rgba(231,76,60,.3);}
+</style>
+</head>
+<body>
+
+<h1>百家樂牌組分析</h1>
+<div id="top-status"><span id="status-dot"></span><span id="status-text">初始化…</span></div>
+
+<div class="panel">
+  <h2>牌靴設定</h2>
+  <div class="settings-row">
+    <label>副數</label>
+    <select id="decks">
+      <option value="1">1 副</option>
+      <option value="2">2 副</option>
+      <option value="4">4 副</option>
+      <option value="6">6 副</option>
+      <option value="8" selected>8 副</option>
+    </select>
+    <button id="reset-all" class="btn-ghost">全部重置</button>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>輸入已開出牌組</h2>
+  <div class="input-row">
+    <span class="tag p">閒</span>
+    <div class="card-selects" id="p-input"></div>
+    <span class="hand-score" id="p-score">–</span>
+  </div>
+  <div class="input-row">
+    <span class="tag b">莊</span>
+    <div class="card-selects" id="b-input"></div>
+    <span class="hand-score" id="b-score">–</span>
+  </div>
+  <div class="actions">
+    <button id="record" class="btn-primary">記錄</button>
+    <button id="clear-input" class="btn-ghost">清除輸入</button>
+    <button id="undo" class="btn-ghost">撤銷</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><span class="k">總局數</span><span class="v" id="s-total">0</span></div>
+  <div class="stat"><span class="k">莊</span><span class="v b" id="s-b">0</span></div>
+  <div class="stat"><span class="k">閒</span><span class="v p" id="s-p">0</span></div>
+  <div class="stat"><span class="k">和</span><span class="v t" id="s-t">0</span></div>
+</div>
+
+<div class="panel"><h2>剩餘牌組</h2><div id="shoe-status"></div></div>
+<div class="panel"><h2>下一手預測（蒙地卡羅模擬）</h2><div id="analysis"></div></div>
+<div class="panel"><h2>歷史紀錄</h2><div class="history-list" id="history"></div></div>
+<div class="panel"><h2>珠盤路</h2><div class="scroll"><div class="bead" id="bead"></div></div></div>
+<div class="panel"><h2>大路</h2><div class="scroll"><div class="bigroad" id="bigroad"></div></div></div>
+
+<div class="panel">
+  <h2>資料管理</h2>
+  <div class="data-row" style="margin-bottom:8px;">
+    <button id="sync-now" class="btn-mini">立即同步</button>
+    <button id="force-pull" class="btn-mini">強制從雲端覆蓋</button>
+  </div>
+  <div class="data-row">
+    <button id="export-btn" class="btn-ghost">匯出 JSON</button>
+    <button id="import-btn" class="btn-ghost">匯入 JSON</button>
+  </div>
+  <input type="file" id="import-file" accept=".json,application/json" style="display:none;">
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* =====================================================
+   ★★★ 只要改這裡 ★★★
+   1. owner 填你的 GitHub 帳號
+   2. repo 填你的倉庫名稱
+   3. token 填你剛複製的 github_pat_xxxxx
+   ===================================================== */
+const CONFIG = {
+  owner: '你的GitHub帳號',
+  repo: 'baccarat',
+  path: 'data.json',
+  token: 'github_pat_xxxxxxxxxxxxxxxx'
+};
+/* ===================================================== */
+
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const SUITS = ['♠','♥','♦','♣'];
+const STORAGE_KEY = 'baccarat.cards.v5';
+const BASELINE = { banker: 0.4586, player: 0.4462, tie: 0.0952 };
+const SIM_ITER = 2000;
+const POLL_MS = 5000;
+
+const isConfigured = CONFIG.owner && CONFIG.owner !== '你的GitHub帳號'
+  && CONFIG.repo && CONFIG.repo !== '你的倉庫名稱'
+  && CONFIG.token && CONFIG.token.indexOf('github_pat_') === 0;
+
+const storage = (function(){
+  try{ const k='__t__'; window.localStorage.setItem(k,'1'); window.localStorage.removeItem(k); return window.localStorage; }
+  catch(e){ return null; }
+})();
+
+function setStatus(text, cls){
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-dot').className = cls || '';
+}
+
+let state = { decks: 8, hands: [], lastModified: 0 };
+let fileSha = null;
+let pushTimer = null;
+let pollTimer = null;
+let isPulling = false;
+let lastPushAt = 0;
+
+function loadLocal(){
+  if(!storage) return;
+  try{
+    const raw = storage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(d && typeof d.decks === 'number') state.decks = d.decks;
+    if(d && Array.isArray(d.hands)) state.hands = d.hands;
+    if(d && typeof d.lastModified === 'number') state.lastModified = d.lastModified;
+  }catch(e){}
+}
+function saveLocal(){
+  if(!storage) return;
+  try{ storage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+function rankValue(rank){
+  if(rank === 'A') return 1;
+  if(rank === '10' || rank === 'J' || rank === 'Q' || rank === 'K') return 0;
+  return parseInt(rank, 10);
+}
+function handValue(cards){
+  let s = 0;
+  for(const c of cards) s += rankValue(c.rank);
+  return s % 10;
+}
+function getAllUsedCards(){
+  const out = [];
+  for(const h of state.hands) out.push(...h.player, ...h.banker);
+  return out;
+}
+function getRemainingCards(){
+  const used = getAllUsedCards();
+  const usedMap = {};
+  for(const c of used){
+    const k = c.rank + '|' + c.suit;
+    usedMap[k] = (usedMap[k] || 0) + 1;
+  }
+  const remaining = [];
+  for(const r of RANKS){
+    for(const s of SUITS){
+      const k = r + '|' + s;
+      const usedCount = usedMap[k] || 0;
+      for(let i = 0; i < state.decks - usedCount; i++) remaining.push({ rank: r, suit: s });
+    }
+  }
+  return remaining;
+}
+function getWinner(pCards, bCards){
+  const p = handValue(pCards), b = handValue(bCards);
+  if(p > b) return 'P';
+  if(b > p) return 'B';
+  return 'T';
+}
+function validateNewCards(newCards){
+  const all = [...getAllUsedCards(), ...newCards];
+  const counts = {};
+  for(const c of all){
+    const k = c.rank + c.suit;
+    counts[k] = (counts[k] || 0) + 1;
+  }
+  for(const k in counts){
+    if(counts[k] > state.decks) return '牌 ' + k + ' 出現超過 ' + state.decks + ' 次';
+  }
+  return null;
+}
+
+function shuffle(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function playHand(pool){
+  const draw = () => pool.pop();
+  const pCards = [draw(), draw()];
+  const bCards = [draw(), draw()];
+  const pv0 = handValue(pCards), bv0 = handValue(bCards);
+  if(pv0 >= 8 || bv0 >= 8) return pv0 > bv0 ? 'P' : pv0 < bv0 ? 'B' : 'T';
+  let pThird = null;
+  if(pv0 <= 5){ pThird = draw(); pCards.push(pThird); }
+  const pFinal = handValue(pCards);
+  const p3v = pThird ? rankValue(pThird.rank) : -1;
+  let bDraw = false;
+  if(pThird === null){ bDraw = bv0 <= 5; }
+  else {
+    if(bv0 <= 2) bDraw = true;
+    else if(bv0 === 3) bDraw = p3v !== 8;
+    else if(bv0 === 4) bDraw = p3v >= 2 && p3v <= 7;
+    else if(bv0 === 5) bDraw = p3v >= 4 && p3v <= 7;
+    else if(bv0 === 6) bDraw = p3v >= 6 && p3v <= 7;
+  }
+  if(bDraw) bCards.push(draw());
+  const bFinal = handValue(bCards);
+  return pFinal > bFinal ? 'P' : pFinal < bFinal ? 'B' : 'T';
+}
+function simulate(remaining, iterations){
+  let b = 0, p = 0, t = 0;
+  const n = Math.min(iterations, 3000);
+  for(let i = 0; i < n; i++){
+    const pool = shuffle(remaining.slice());
+    const w = playHand(pool);
+    if(w === 'B') b++; else if(w === 'P') p++; else t++;
+  }
+  return { banker: b/n, player: p/n, tie: t/n, n: n };
+}
+
+/* ========== GitHub Contents API ========== */
+function apiUrl(){
+  return 'https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo +
+         '/contents/' + CONFIG.path;
+}
+function headers(){
+  return {
+    'Authorization': 'token ' + CONFIG.token,
+    'Accept': 'application/vnd.github+json'
+  };
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
+}
+function b64EncodeUnicode(str){
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+async function cloudRead(){
+  const res = await fetch(apiUrl() + '?t=' + Date.now(), { headers: headers(), cache: 'no-store' });
+  if(res.status === 404) return null;
+  if(!res.ok){
+    const err = await res.json().catch(() => ({}));
+    throw new Error('HTTP ' + res.status + (err.message ? ': ' + err.message : ''));
+  }
+  const json = await res.json();
+  fileSha = json.sha;
+  const content = b64DecodeUnicode(json.content);
+  return JSON.parse(content);
+}
+
+async function cloudWrite(data){
+  const body = {
+    message: 'update baccarat data',
+    content: b64EncodeUnicode(JSON.stringify(data, null, 2))
+  };
+  if(fileSha) body.sha = fileSha;
+
+  const res = await fetch(apiUrl(), {
+    method: 'PUT',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, headers()),
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const err = await res.json().catch(() => ({}));
+    if(res.status === 409) throw new Error('CONFLICT');
+    throw new Error('HTTP ' + res.status + (err.message ? ': ' + err.message : ''));
+  }
+  const json = await res.json();
+  if(json.content && json.content.sha) fileSha = json.content.sha;
+  return json;
+}
+
+function schedulePush(){
+  if(!isConfigured) return;
+  if(pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushNow, 800);
+}
+
+async function pushNow(){
+  if(!isConfigured) return;
+  setStatus('同步中…', 'syncing');
+  try{
+    await cloudWrite(state);
+    lastPushAt = Date.now();
+    setStatus('已同步 ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
+  }catch(e){
+    if(e.message === 'CONFLICT'){
+      await pullAndMerge(true);
+      try{
+        await cloudWrite(state);
+        lastPushAt = Date.now();
+        setStatus('已同步（解決衝突）', 'on');
+      }catch(e2){
+        setStatus('同步失敗：' + e2.message, 'err');
+      }
+    } else {
+      setStatus('同步失敗：' + e.message, 'err');
+    }
+  }
+}
+
+async function pullAndMerge(silent){
+  if(!isConfigured || isPulling) return;
+  isPulling = true;
+  try{
+    const remote = await cloudRead();
+
+    if(!remote || !Array.isArray(remote.hands) || remote.hands.length === 0){
+      isPulling = false;
+      if(state.hands.length > 0) await pushNow();
+      else setStatus('雲端尚無資料', 'on');
+      return;
+    }
+
+    const remoteTime = remote.lastModified || 0;
+
+    if(Date.now() - lastPushAt < 1500){
+      if(!silent) setStatus('已是最新', 'on');
+      return;
+    }
+
+    if(remoteTime > (state.lastModified || 0)){
+      state = {
+        decks: typeof remote.decks === 'number' ? remote.decks : state.decks,
+        hands: remote.hands,
+        lastModified: remoteTime
+      };
+      saveLocal();
+      document.getElementById('decks').value = state.decks;
+      render();
+      setStatus('已從雲端更新 · ' + new Date(remoteTime).toLocaleTimeString('zh-TW', {hour12:false}), 'on');
+    } else if(!silent){
+      setStatus('已是最新 · ' + new Date().toLocaleTimeString('zh-TW', {hour12:false}), 'on');
+    } else {
+      setStatus('已同步', 'on');
+    }
+  }catch(e){
+    if(!silent) setStatus('讀取失敗：' + e.message, 'err');
+  } finally {
+    isPulling = false;
+  }
+}
+
+function startPolling(){
+  stopPolling();
+  pollTimer = setInterval(() => pullAndMerge(true), POLL_MS);
+}
+function stopPolling(){
+  if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+}
+
+function buildCardSelects(container){
+  container.innerHTML = '';
+  for(let i = 0; i < 3; i++){
+    const slot = document.createElement('div');
+    slot.className = 'card-slot';
+    const rankSel = document.createElement('select');
+    rankSel.className = 'rank-sel';
+    let opts = '<option value="">–</option>';
+    for(const r of RANKS) opts += '<option value="' + r + '">' + r + '</option>';
+    rankSel.innerHTML = opts;
+    const suitSel = document.createElement('select');
+    suitSel.className = 'suit-sel';
+    let sopts = '<option value="">–</option>';
+    for(const s of SUITS) sopts += '<option value="' + s + '">' + s + '</option>';
+    suitSel.innerHTML = sopts;
+    slot.appendChild(rankSel);
+    slot.appendChild(suitSel);
+    container.appendChild(slot);
+  }
+}
+function readCards(container){
+  const cards = [];
+  container.querySelectorAll('.card-slot').forEach(slot => {
+    const rank = slot.querySelector('.rank-sel').value;
+    const suit = slot.querySelector('.suit-sel').value;
+    if(rank && suit) cards.push({ rank: rank, suit: suit });
+  });
+  return cards;
+}
+function clearInput(){
+  document.querySelectorAll('#p-input .rank-sel, #p-input .suit-sel, #b-input .rank-sel, #b-input .suit-sel')
+    .forEach(sel => { sel.value = ''; });
+  updateInputScores();
+}
+function updateInputScores(){
+  const p = readCards(document.getElementById('p-input'));
+  const b = readCards(document.getElementById('b-input'));
+  document.getElementById('p-score').textContent = p.length ? handValue(p) : '–';
+  document.getElementById('b-score').textContent = b.length ? handValue(b) : '–';
+}
+
+function renderStats(){
+  let b = 0, p = 0, t = 0;
+  for(const h of state.hands){
+    const w = getWinner(h.player, h.banker);
+    if(w === 'B') b++; else if(w === 'P') p++; else t++;
+  }
+  document.getElementById('s-total').textContent = state.hands.length;
+  document.getElementById('s-b').textContent = b;
+  document.getElementById('s-p').textContent = p;
+  document.getElementById('s-t').textContent = t;
+}
+function renderBead(){
+  const el = document.getElementById('bead');
+  el.innerHTML = '';
+  const results = state.hands.map(h => getWinner(h.player, h.banker));
+  const cols = Math.max(1, Math.ceil(results.length / 6));
+  for(let i = 0; i < cols * 6; i++){
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if(results[i]){
+      const dot = document.createElement('div');
+      dot.className = 'dot ' + (results[i] === 'B' ? 'banker' : results[i] === 'P' ? 'player' : 'tie');
+      cell.appendChild(dot);
+    }
+    el.appendChild(cell);
+  }
+}
+function renderBigRoad(){
+  const el = document.getElementById('bigroad');
+  el.innerHTML = '';
+  const results = state.hands.map(h => getWinner(h.player, h.banker));
+  const cols = [];
+  let cur = null;
+  for(const r of results){
+    if(r === 'T'){
+      if(cur && cur.cells.length) cur.cells[cur.cells.length - 1].ties++;
+      continue;
+    }
+    if(!cur || cur.result !== r){
+      cur = { result: r, cells: [{ ties: 0 }] };
+      cols.push(cur);
+    } else {
+      cur.cells.push({ ties: 0 });
+    }
+  }
+  if(!cols.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
+  for(const col of cols){
+    const colEl = document.createElement('div');
+    colEl.className = 'br-col';
+    for(const c of col.cells){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const dot = document.createElement('div');
+      dot.className = 'dot ' + (col.result === 'B' ? 'banker' : 'player');
+      cell.appendChild(dot);
+      if(c.ties > 0) cell.classList.add('has-tie');
+      colEl.appendChild(cell);
+    }
+    el.appendChild(colEl);
+  }
+}
+function renderShoe(){
+  const el = document.getElementById('shoe-status');
+  const remaining = getRemainingCards();
+  const total = state.decks * 52;
+  const used = total - remaining.length;
+  const rankCounts = {};
+  for(const r of RANKS) rankCounts[r] = 0;
+  for(const c of remaining) rankCounts[c.rank]++;
+  let html = '<div class="shoe-summary">剩餘 <b>' + remaining.length + '</b> / ' + total +
+             ' 張（已發 ' + used + ' 張）</div><div class="rank-grid">';
+  for(const r of RANKS){
+    const n = rankCounts[r];
+    html += '<div class="rank-item' + (n === 0 ? ' zero' : '') + '">' +
+            '<span class="r">' + r + '</span><span class="c">' + n + '</span></div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+function renderAnalysis(){
+  const el = document.getElementById('analysis');
+  const remaining = getRemainingCards();
+  if(remaining.length < 8){
+    el.innerHTML = '<div class="empty">剩餘牌組不足，無法模擬</div>';
+    return;
+  }
+  const r = simulate(remaining, SIM_ITER);
+  function bar(cls, label, prob, base){
+    const pct = (prob * 100).toFixed(2);
+    const diff = (prob - base) * 100;
+    const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(2);
+    const deltaCls = diff >= 0 ? 'up' : 'down';
+    const w = Math.max(2, prob * 100);
+    return '<div class="bar-row">' +
+      '<span class="bar-label ' + cls + '">' + label + '</span>' +
+      '<div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + w + '%"></div></div>' +
+      '<span class="bar-val">' + pct + '%<span class="delta ' + deltaCls + '">' + diffStr + '</span></span></div>';
+  }
+  let html = '';
+  html += bar('b', '莊', r.banker, BASELINE.banker);
+  html += bar('p', '閒', r.player, BASELINE.player);
+  html += bar('t', '和', r.tie, BASELINE.tie);
+  html += '<div class="baseline">基準值：莊 ' + (BASELINE.banker*100).toFixed(2) +
+          '% / 閒 ' + (BASELINE.player*100).toFixed(2) +
+          '% / 和 ' + (BASELINE.tie*100).toFixed(2) +
+          '%　·　模擬 ' + r.n + ' 次</div>';
+  el.innerHTML = html;
+}
+function renderHistory(){
+  const el = document.getElementById('history');
+  if(!state.hands.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
+  let html = '';
+  const start = Math.max(0, state.hands.length - 50);
+  for(let i = start; i < state.hands.length; i++){
+    const h = state.hands[i];
+    const w = getWinner(h.player, h.banker);
+    const pStr = h.player.map(c => c.rank + c.suit).join(' ');
+    const bStr = h.banker.map(c => c.rank + c.suit).join(' ');
+    html += '<div class="history-item">' +
+      '<span class="idx">#' + (i + 1) + '</span>' +
+      '<span class="cards">閒 ' + pStr + '　莊 ' + bStr + '</span>' +
+      '<span class="res ' + w + '">' + w + '</span></div>';
+  }
+  el.innerHTML = html;
+}
+function render(){
+  renderStats();
+  renderBead();
+  renderBigRoad();
+  renderShoe();
+  renderAnalysis();
+  renderHistory();
+}
+
+function recordHand(){
+  const pCards = readCards(document.getElementById('p-input'));
+  const bCards = readCards(document.getElementById('b-input'));
+  if(pCards.length < 2 || bCards.length < 2){ alert('閒家和莊家至少各需兩張牌'); return; }
+  if(pCards.length > 3 || bCards.length > 3){ alert('每邊最多三張牌'); return; }
+  const err = validateNewCards([...pCards, ...bCards]);
+  if(err){ alert(err); return; }
+  state.hands.push({ player: pCards, banker: bCards });
+  state.lastModified = Date.now();
+  saveLocal();
+  clearInput();
+  render();
+  schedulePush();
+}
+
+document.getElementById('record').addEventListener('click', recordHand);
+document.getElementById('clear-input').addEventListener('click', clearInput);
+
+document.getElementById('undo').addEventListener('click', function(){
+  if(!state.hands.length) return;
+  state.hands.pop();
+  state.lastModified = Date.now();
+  saveLocal();
+  render();
+  schedulePush();
+});
+
+document.getElementById('reset-all').addEventListener('click', function(){
+  if(state.hands.length && !confirm('確定要清空全部紀錄？')) return;
+  state.hands = [];
+  state.lastModified = Date.now();
+  saveLocal();
+  clearInput();
+  render();
+  schedulePush();
+});
+
+document.getElementById('decks').addEventListener('change', function(){
+  const newDecks = parseInt(this.value, 10);
+  if(newDecks < state.decks && state.hands.length){
+    if(!confirm('減少副數可能導致已記錄的牌超出牌靴，確定要繼續？')){
+      this.value = state.decks; return;
+    }
+  }
+  state.decks = newDecks;
+  state.lastModified = Date.now();
+  saveLocal();
+  render();
+  schedulePush();
+});
+
+document.getElementById('sync-now').addEventListener('click', function(){
+  pullAndMerge(false).then(() => pushNow());
+});
+
+document.getElementById('force-pull').addEventListener('click', function(){
+  if(!confirm('將以雲端資料覆蓋本機紀錄，確定嗎？')) return;
+  if(!isConfigured){ alert('尚未設定 GitHub 資訊'); return; }
+  cloudRead().then(remote => {
+    if(!remote || !Array.isArray(remote.hands)){
+      alert('雲端尚無資料');
+      return;
+    }
+    state = {
