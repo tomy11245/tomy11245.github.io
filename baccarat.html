@@ -194,7 +194,7 @@ const POLL_MS = 5000;
 
 const isConfigured = CONFIG.owner && CONFIG.owner !== '你的GitHub帳號'
   && CONFIG.repo && CONFIG.repo !== '你的倉庫名稱'
-  && CONFIG.token && CONFIG.token.indexOf('github_pat_') === 0;
+  && CONFIG.token && CONFIG.token.length > 20;
 
 const storage = (function(){
   try{ const k='__t__'; window.localStorage.setItem(k,'1'); window.localStorage.removeItem(k); return window.localStorage; }
