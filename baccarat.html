@@ -531,9 +531,16 @@ body.modal-open{overflow:hidden;}
     </div>
   </div>
   <div class="set-group">
-    <h3>三寶齊開加送（和＋莊對＋閒對同一手都中）</h3>
+    <h3>下注金額</h3>
     <div class="settings-row bonus-row">
-      <label>每注 <input type="number" inputmode="numeric" min="1" step="1" id="unit-bet" class="num-input"></label>
+      <label>莊閒每注 <input type="number" inputmode="numeric" min="1" step="1" id="bp-base" class="num-input"></label>
+      <label>單注上限 <input type="number" inputmode="numeric" min="0" step="1" id="bp-cap" class="num-input" placeholder="不限"></label>
+      <label>超過時 <select id="bp-cap-mode" class="deck-select"><option value="clamp">停在上限</option><option value="reset">回到起始注</option></select></label>
+      <span class="bonus-hint">連贏時下一注＝這注＋贏的 50%（例：押莊 200 贏 190 → 下一注 295），輸了回到起始注，和局退回維持原注。單注上限填 0 或空白＝不限</span>
+    </div>
+    <h3 style="margin-top:12px">和／對子（固定注）與三寶齊開加送（和＋莊對＋閒對同一手都中）</h3>
+    <div class="settings-row bonus-row">
+      <label>和／對子每注 <input type="number" inputmode="numeric" min="1" step="1" id="unit-bet" class="num-input"></label>
       <label>加送 <input type="number" inputmode="numeric" min="0" step="1" id="bonus-amt" class="num-input"></label>
       <span class="bonus-hint" id="bonus-hint"></span>
     </div>
@@ -857,7 +864,25 @@ const pairJointBase = decks => { const rc = {}; RANKS.forEach(r => rc[r] = decks
 
 /* ========== 三寶齊開加送 ==========
    和＋莊對＋閒對同一手都押中時加送獎金；以「注」計＝加送金額 ÷ 每注金額 */
+/* 莊閒：每注 bpBase 起，連贏時下一注＝這注本金＋這注贏的 50%，輸了回到 bpBase，和局退回維持原注
+   和局／對子：固定每注 unitBet，不加碼 */
+function bpBase(){ const v = +getPrefs().bpBase; return v > 0 ? v : 200; }
+const BP_RAISE = 0.5;
+/* 單注上限：0＝不限；超過時 capMode 'clamp'＝停在上限，'reset'＝回到起始注 */
+function bpCap(){ const v = +getPrefs().bpCap; return v > 0 ? v : 0; }
+function bpCapMode(){ return getPrefs().bpCapMode === 'reset' ? 'reset' : 'clamp'; }
+function nextBpStake(stake, won){
+  if(!won) return bpBase();
+  let next = Math.round(stake + won * BP_RAISE);
+  const cap = bpCap();
+  if(cap && next > cap) next = bpCapMode() === 'reset' ? bpBase() : cap;
+  return next;
+}
 function unitBet(){ const v = +getPrefs().unitBet; return v > 0 ? v : 300; }
+function fmtCash(v){
+  v = Math.round(v);
+  return (v > 0 ? '+' : v < 0 ? '−' : '') + '$' + Math.abs(v).toLocaleString('en-US');
+}
 function bonusAmt(){ const v = +getPrefs().bonusAmt; return v >= 0 && getPrefs().bonusAmt != null ? v : 50000; }
 function bonusUnits(){ return bonusAmt() / unitBet(); }
 function fmtMoney(units){
@@ -1030,7 +1055,13 @@ function syncBonusInputs(){
   const u = document.getElementById('unit-bet'), b = document.getElementById('bonus-amt');
   if(document.activeElement !== u) u.value = unitBet();
   if(document.activeElement !== b) b.value = bonusAmt();
-  document.getElementById('bonus-hint').textContent = '＝每注的 ' + (+bonusUnits().toFixed(2)) + ' 倍；盈虧金額以每注 $' + unitBet().toLocaleString('en-US') + ' 換算';
+  const bb = document.getElementById('bp-base');
+  if(document.activeElement !== bb) bb.value = bpBase();
+  const bc = document.getElementById('bp-cap');
+  if(document.activeElement !== bc) bc.value = bpCap() || '';
+  document.getElementById('bp-cap-mode').value = bpCapMode();
+  document.getElementById('bp-cap-mode').disabled = !bpCap();
+  document.getElementById('bonus-hint').textContent = '加送＝和／對子每注的 ' + (+bonusUnits().toFixed(2)) + ' 倍';
 }
 function refreshAll(){
   syncBonusInputs();
@@ -1225,7 +1256,8 @@ function renderRoadViewModal(){
   document.getElementById('rv-stats').innerHTML =
     '<span>押中 <b>' + d.hits + '</b></span><span>未中 <b>' + (d.bets - d.hits) + '</b></span>' +
     '<span>成功率 <b>' + (d.bets ? (d.hits / d.bets * 100).toFixed(1) + '%' : '—') + '</b></span>' +
-    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注（' + fmtMoney(d.pnl) + '）</span>' +
+    '<span>金額 <b class="' + (d.money > 0 ? 'pos' : d.money < 0 ? 'neg' : '') + '">' + fmtCash(d.money) + '</b></span>' +
+    '<span>平注 ' + fmtUnits(d.pnl) + ' 注</span>' +
     '<span>下一手 <b>' + (d.next && d.next.side ? sideTxt(d.next.side) : '觀望') + '</b></span>';
   drawBigRoad(document.getElementById('rv-board'), m, d.pts, idxs => {
     document.getElementById('rv-info').innerHTML = idxs.map(j => rvDesc(d.pts[j], j)).join('<br>');
@@ -1235,8 +1267,8 @@ function renderRoadViewModal(){
   for(let i = d.pts.length - 1; i >= 0; i--){
     const pt = d.pts[i];
     if(!pt.side) continue;
-    list += '<div data-i="' + i + '"><span>' + rvDesc(pt, i) + '</span><span class="g ' + (pt.gain > 0 ? 'pos' : pt.gain < 0 ? 'neg' : '') + '">' +
-      fmtUnits(pt.gain) + '</span></div>';
+    list += '<div data-i="' + i + '"><span>' + rvDesc(pt, i) + '　<small>注 $' + Math.round(pt.stake).toLocaleString('en-US') + '</small></span>' +
+      '<span class="g ' + (pt.money > 0 ? 'pos' : pt.money < 0 ? 'neg' : '') + '">' + fmtCash(pt.money) + '</span></div>';
   }
   document.getElementById('rv-list').innerHTML = list || '<div>還沒有押過</div>';
 }
@@ -1830,7 +1862,7 @@ const STRATEGIES = [
 STRATEGIES.forEach(st => { st.cat = catOf(st.id); });
 
 function backtest(m){
-  const series = STRATEGIES.map(() => ({ pts: [], hits: 0, bets: 0, pnl: 0, evSum: 0, next: null }));
+  const series = STRATEGIES.map(() => ({ pts: [], hits: 0, bets: 0, pnl: 0, evSum: 0, money: 0, stake: null, next: null }));
   const results = [];
   const shared = {};
   // 以往牌靴＝所有機台的舊靴＋其他機台目前這靴（不含正在回測的這一靴）
@@ -1842,7 +1874,11 @@ function backtest(m){
     // 綜合策略最後算：此時 series 只含這一手之前的成績
     STRATEGIES.forEach((st, k) => { if(st.meta) preds[k] = st.meta(preds, series); });
     if(i === m.hands.length){
-      preds.forEach((pr, k) => { series[k].next = pr; });
+      preds.forEach((pr, k) => {
+        series[k].next = pr;
+        if(pr && pr.side) series[k].nextStake = (pr.side === 'B' || pr.side === 'P') ? (series[k].stake || bpBase())
+          : unitBet() * (COMBO[pr.side] ? COMBO[pr.side].length : 1);
+      });
       break;
     }
     const h = m.hands[i];
@@ -1864,7 +1900,20 @@ function backtest(m){
       if(hit) sr.hits++;
       const gain = side ? betPnl(side, w, bp, pp) : null;
       if(side){ sr.pnl += gain; if(pr.ev != null) sr.evSum += pr.ev; }
-      sr.pts.push({ n: i + 1, side, conf: pr ? pr.conf : null, w, bp, pp, hit, gain,
+      // 實際金額：莊閒連贏加碼；和局／對子固定注
+      let stake = null, money = null;
+      if(side === 'B' || side === 'P'){
+        if(sr.stake == null) sr.stake = bpBase();
+        stake = sr.stake;
+        money = gain * stake;
+        if(gain > 0) sr.stake = nextBpStake(stake, money);
+        else if(gain < 0) sr.stake = nextBpStake(stake, 0);
+      } else if(side){
+        stake = unitBet() * (COMBO[side] ? COMBO[side].length : 1);
+        money = gain * unitBet();
+      }
+      if(money != null) sr.money += money;
+      sr.pts.push({ n: i + 1, side, conf: pr ? pr.conf : null, w, bp, pp, hit, gain, stake, money, moneyCum: sr.money,
                     rate: sr.bets ? sr.hits / sr.bets * 100 : null,
                     pnlCum: sr.pnl, evCum: sr.evSum });
     });
@@ -1881,7 +1930,8 @@ const SORTS = {
   hits:    { label: '押中次數',         val: d => d.hits },
   misses:  { label: '未押中次數',       val: d => d.bets - d.hits },
   edge:    { label: '優於基準（成功率−基準）', val: (d, st) => d.bets ? d.hits / d.bets * 100 - (st.ref || 50) : null },
-  pnl:     { label: '盈虧（每手 1 注）', val: d => d.bets ? d.pnl : null }
+  pnl:     { label: '盈虧金額（莊閒連贏加碼）', val: d => d.bets ? d.money : null },
+  flat:    { label: '平注盈虧（每手 1 注）', val: d => d.bets ? d.pnl : null }
 };
 function getPrefs(){
   if(!state.prefs || typeof state.prefs !== 'object') state.prefs = {};
@@ -2056,13 +2106,15 @@ function stratCard({ st, k, d, pinned }){
     '<span class="strat-next">下一手 <span class="side ' + (nx && nx.side ? nx.side : '') + '">' + (nx && nx.side ? sideTxt(nx.side) : '觀望') + '</span>' +
     (nx ? (nx.ev != null
       ? '<span>' + (nx.side ? '' : (COMBO[nx.best] ? '' : '最高 ' + sideTxt(nx.best) + ' ')) + (COMBO[nx.best] ? (nx.best === 'TRI' ? '三注' : '兩注') + '合計期望 <b>' + (nx.ev > 0 ? '+' : '') + nx.ev.toFixed(3) + ' 注</b>' : '期望值 <b>' + (nx.ev > 0 ? '+' : '') + (nx.ev * 100).toFixed(2) + '%</b>') + '</span>'
-      : '<span>信心 <b>' + nx.conf.toFixed(1) + '%</b></span>') : '') + '</span>' +
+      : '<span>信心 <b>' + nx.conf.toFixed(1) + '%</b></span>') : '') +
+    (nx && nx.side && d.nextStake ? '<span>下注 <b>$' + d.nextStake.toLocaleString('en-US') + '</b></span>' : '') + '</span>' +
     (nx && nx.from ? '<span class="strat-rule">目前跟：' + nx.from + '</span>' : '') +
     '<span class="strat-rule">' + st.rule + '</span></div>' +
     '<div class="strat-kpi"><span>成功率 <b>' + (d.bets ? (d.hits / d.bets * 100).toFixed(1) + '%' : '—') + '</b></span>' +
     '<span>押中 <b>' + d.hits + '</b></span><span>未中 <b>' + (d.bets - d.hits) + '</b></span><span>共 ' + d.bets + ' 手</span>' +
     (st.ref ? '<span>基準 ' + st.ref.toFixed(2) + '%</span>' : '') +
-    '<span>盈虧 <b class="' + (d.pnl > 0 ? 'pos' : d.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(d.pnl) + '</b> 注（' + fmtMoney(d.pnl) + '）</span></div>' +
+    '<span>金額 <b class="' + (d.money > 0 ? 'pos' : d.money < 0 ? 'neg' : '') + '">' + fmtCash(d.money) + '</b></span>' +
+    '<span>平注 ' + fmtUnits(d.pnl) + ' 注</span></div>' +
     '<div class="chart" data-k="' + k + '"></div></div>';
 }
 
@@ -2083,29 +2135,29 @@ function renderOverview(){
   const pr = getPrefs();
   const scope = pr.ovScope === 'all' ? 'all' : 'cur';
   const rows = [];
-  const total = STRATEGIES.map(() => ({ pnl: 0, bets: 0, hits: 0, machines: 0 }));
+  const total = STRATEGIES.map(() => ({ pnl: 0, money: 0, bets: 0, hits: 0, machines: 0 }));
   state.machines.forEach(m => {
     const sets = [m.hands].concat(scope === 'all' ? (m.shoes || []).map(sh => sh.hands) : []);
     const decksOf = h => { const sh = (m.shoes || []).find(x => x.hands === h); return sh ? sh.decks : m.decks; };
-    const agg = STRATEGIES.map(() => ({ pnl: 0, bets: 0, hits: 0 }));
+    const agg = STRATEGIES.map(() => ({ pnl: 0, money: 0, bets: 0, hits: 0 }));
     let handsN = 0, next = null;
     sets.forEach(h => {
       if(!h.length) return;
       handsN += h.length;
       const data = backtestHands(h, decksOf(h));
-      data.forEach((d, k) => { agg[k].pnl += d.pnl; agg[k].bets += d.bets; agg[k].hits += d.hits; });
+      data.forEach((d, k) => { agg[k].pnl += d.pnl; agg[k].money += d.money; agg[k].bets += d.bets; agg[k].hits += d.hits; });
       if(h === m.hands) next = data.map(d => d.next);
     });
     if(!handsN) return;
     let best = -1;
     agg.forEach((a, k) => {
-      total[k].pnl += a.pnl; total[k].bets += a.bets; total[k].hits += a.hits; if(a.bets) total[k].machines++;
-      if(a.bets >= OV_MIN_BETS && (best < 0 || a.pnl > agg[best].pnl)) best = k;
+      total[k].pnl += a.pnl; total[k].money += a.money; total[k].bets += a.bets; total[k].hits += a.hits; if(a.bets) total[k].machines++;
+      if(a.bets >= OV_MIN_BETS && (best < 0 || a.money > agg[best].money)) best = k;
     });
     rows.push({ m, handsN, shoes: scope === 'all' ? sets.filter(h => h.length).length : 1, best, a: best >= 0 ? agg[best] : null,
                 nx: best >= 0 && next ? next[best] : null });
   });
-  rows.sort((x, y) => (y.a ? y.a.pnl : -1e9) - (x.a ? x.a.pnl : -1e9));
+  rows.sort((x, y) => (y.a ? y.a.money : -1e9) - (x.a ? x.a.money : -1e9));
 
   let html = '<div class="ov-scope" role="tablist">' +
     '<button data-ov="cur" class="' + (scope === 'cur' ? 'on' : '') + '">目前牌靴</button>' +
@@ -2114,14 +2166,14 @@ function renderOverview(){
     el.innerHTML = html + '<div class="empty">還沒有任何機台有紀錄</div>';
     return;
   }
-  html += '<table class="ov-table"><thead><tr><th>機台</th><th>最高獲利策略</th><th class="num">盈虧</th><th class="num">下一手</th></tr></thead><tbody>';
+  html += '<table class="ov-table"><thead><tr><th>機台</th><th>最高獲利策略</th><th class="num">金額</th><th class="num">下一手</th></tr></thead><tbody>';
   rows.forEach(r => {
     const cur = r.m.id === state.activeId;
     html += '<tr class="row' + (cur ? ' cur' : '') + '" data-ov-m="' + r.m.id + '">' +
       '<td><span class="mn">' + escapeHtml(r.m.name) + '</span><span class="sub">' + r.handsN + ' 局' + (scope === 'all' ? '・' + r.shoes + ' 靴' : '') + '</span></td>';
     if(r.a){
       html += '<td>' + STRATEGIES[r.best].name + '<span class="sub">成功率 ' + (r.a.hits / r.a.bets * 100).toFixed(1) + '%・押 ' + r.a.bets + ' 次</span></td>' +
-        '<td class="num ' + (r.a.pnl > 0 ? 'pos' : r.a.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(r.a.pnl) + ' 注</td>' +
+        '<td class="num ' + (r.a.money > 0 ? 'pos' : r.a.money < 0 ? 'neg' : '') + '">' + fmtCash(r.a.money) + '<span class="sub">平注 ' + fmtUnits(r.a.pnl) + ' 注</span></td>' +
         '<td class="num"><span class="nx ' + (r.nx && r.nx.side ? r.nx.side : '') + '">' + (r.nx && r.nx.side ? sideTxt(r.nx.side) : scope === 'cur' || r.nx ? '觀望' : '—') + '</span></td>';
     } else {
       html += '<td colspan="3" class="sub">押注次數還不夠（每個策略至少押 ' + OV_MIN_BETS + ' 次才比較）</td>';
@@ -2131,17 +2183,17 @@ function renderOverview(){
   html += '</tbody></table>';
 
   // 全部機台合計排行
-  const ranked = total.map((t, k) => ({ t, k })).filter(x => x.t.bets >= OV_MIN_BETS).sort((a, b) => b.t.pnl - a.t.pnl).slice(0, 5);
+  const ranked = total.map((t, k) => ({ t, k })).filter(x => x.t.bets >= OV_MIN_BETS).sort((a, b) => b.t.money - a.t.money).slice(0, 5);
   if(ranked.length){
-    html += '<div class="ov-h">全部機台合計・盈虧前 5 名</div><table class="ov-table"><thead><tr><th>策略</th><th class="num">成功率</th><th class="num">押注</th><th class="num">盈虧</th></tr></thead><tbody>';
+    html += '<div class="ov-h">全部機台合計・金額前 5 名</div><table class="ov-table"><thead><tr><th>策略</th><th class="num">成功率</th><th class="num">押注</th><th class="num">金額</th></tr></thead><tbody>';
     ranked.forEach(({ t, k }) => {
       html += '<tr><td>' + STRATEGIES[k].name + '<span class="sub">' + t.machines + ' 台機台有押</span></td>' +
         '<td class="num">' + (t.hits / t.bets * 100).toFixed(1) + '%</td><td class="num">' + t.bets + '</td>' +
-        '<td class="num ' + (t.pnl > 0 ? 'pos' : t.pnl < 0 ? 'neg' : '') + '">' + fmtUnits(t.pnl) + ' 注</td></tr>';
+        '<td class="num ' + (t.money > 0 ? 'pos' : t.money < 0 ? 'neg' : '') + '">' + fmtCash(t.money) + '<span class="sub">平注 ' + fmtUnits(t.pnl) + ' 注</span></td></tr>';
     });
     html += '</tbody></table>';
   }
-  html += '<div class="ov-note">盈虧＝每手押 1 注（莊抽 5%、和 8 倍、對子 11 倍）。「最高獲利」是過去的結果，押注次數少時多半是運氣；' +
+  html += '<div class="ov-note">金額＝莊閒每注 $' + bpBase() + ' 起、連贏加上贏的 50%、輸了回原注；和／對子固定每注 $' + unitBet() + '（莊抽 5%、和 8 倍、對子 11 倍）。平注＝每手 1 注。「最高獲利」是過去的結果，押注次數少時多半是運氣；' +
     '點機台那一列可切換過去。</div>';
   el.innerHTML = html;
 }
@@ -2176,7 +2228,9 @@ function renderStrategies(){
   const data = getBacktest(m);
   let html = '<div class="strat-legend"><span><i></i>成功率（累計）</span><span><i class="conf"></i>信心率（該手）</span></div>' +
     '<div class="strat-note">成功率＝押中次數 ÷ 下注次數。押莊閒時和局不計，基準 50%；押和局／對子每手都計，' +
-    '基準是賠率的損益兩平點（和 8 倍 11.11%、對子 11 倍 8.33%）。百家樂每手結果互相獨立，路單類策略長期會回到基準附近；' +
+    '基準是賠率的損益兩平點（和 8 倍 11.11%、對子 11 倍 8.33%）。<b>金額</b>＝莊閒每注 $' + bpBase() + ' 起、連贏時下一注加上贏的 50%、輸了回到原注' +
+    (bpCap() ? '（單注上限 $' + bpCap() + '，超過' + (bpCapMode() === 'reset' ? '回到起始注' : '停在上限') + '）' : '') + '；' +
+    '和／對子固定每注 $' + unitBet() + '。<b>平注</b>＝每手都押 1 注的盈虧。百家樂每手結果互相獨立，路單類策略長期會回到基準附近；' +
     '信心率是策略本身的訊號強弱或預估機率，不代表保證。</div>';
   const pr = getPrefs();
   html += '<div class="strat-ctrl"><label for="strat-sort">排序</label><select id="strat-sort">' +
@@ -2990,11 +3044,12 @@ document.getElementById('decks').addEventListener('change', function(){
   schedulePush();
 });
 
-['unit-bet', 'bonus-amt'].forEach(id => document.getElementById(id).addEventListener('change', function(){
+const MONEY_INPUTS = { 'unit-bet': ['unitBet', 1], 'bonus-amt': ['bonusAmt', 0], 'bp-base': ['bpBase', 1], 'bp-cap': ['bpCap', 0], 'bp-cap-mode': ['bpCapMode', null] };
+Object.keys(MONEY_INPUTS).forEach(id => document.getElementById(id).addEventListener('change', function(){
   if(!ready()){ syncBonusInputs(); return; }
-  const v = Math.max(id === 'unit-bet' ? 1 : 0, Math.round(+this.value || 0));
-  getPrefs()[id === 'unit-bet' ? 'unitBet' : 'bonusAmt'] = v;
-  lastBT = null; btCache = new WeakMap();           // 加送改變：重新回測
+  const [key, min] = MONEY_INPUTS[id];
+  getPrefs()[key] = min === null ? this.value : Math.max(min, Math.round(+this.value || 0));
+  lastBT = null; btCache = new WeakMap();           // 金額設定改變：重新回測
   state.lastModified = Date.now();
   syncBonusInputs();
   render();
