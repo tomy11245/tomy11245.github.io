@@ -1704,13 +1704,16 @@ const STRAT_CATS = [
 ];
 function catOf(id){
   if(id.indexOf('meta') === 0) return 'meta';
-  if(id === 'banker' || id === 'follow' || id === 'count') return 'basic';
+  if(id === 'banker' || id === 'follow' || id === 'count' || id === 'bclpy') return 'basic';
   if(id.indexOf('road') === 0) return 'roads';
   if(id.indexOf('T') === 0) return 'tie';
   if(id === 'ev') return 'ev';
   if(id === 'triple' || id === 'tieBoth' || id === 'bothPair') return 'combo';
   return 'pair';                                     // BPcount、BPgap、PPcount、PPgap
 }
+
+/* bcl.py 的參數（START_ROUND、W_BASE、W_RECENT、RECENT_N、SCORE_THRESHOLD） */
+const BCLPY = { startRound: 11, wBase: 0.7, wRecent: 0.3, recentN: 5, threshold: 0.02 };
 
 /* ========== 綜合策略 ==========
    參考其他「押莊閒」策略到這一手之前的成績（不偷看當手結果）。
@@ -1801,6 +1804,25 @@ const STRATEGIES = [
       if(!o) return null;
       const side = o.banker >= o.player ? 'B' : 'P';
       return { side, conf: Math.max(o.banker, o.player) / (o.banker + o.player) * 100 };
+    }
+  },
+  {
+    // 移植自桌面 bcl.py：精確勝率 × 0.7 ＋ 近 5 局比例 × 0.3，差距超過 0.02 才押；前 10 局不押
+    id: 'bclpy', name: '近期加權（bcl.py）', short: '近權',
+    rule: '第 11 局起，分數＝剩餘牌精確勝率 × 0.7 ＋ 近 5 局（不含和）莊閒比例 × 0.3，莊閒分數差超過 0.02 押高的一方，否則觀望。信心率＝押的那一方的分數',
+    predict: ctx => {
+      const P = BCLPY;
+      if(ctx.i < P.startRound - 1) return null;
+      const o = exactOdds(ctx.counts);
+      if(!o) return null;
+      const recent = ctx.results.slice(-P.recentN);
+      const nb = recent.filter(r => r === 'B').length, np = recent.length - nb;
+      const rb = recent.length ? nb / recent.length : 0.5, rp = recent.length ? np / recent.length : 0.5;
+      const sB = P.wBase * o.banker + P.wRecent * rb;
+      const sP = P.wBase * o.player + P.wRecent * rp;
+      if(sB - sP > P.threshold) return { side: 'B', conf: sB * 100 };
+      if(sP - sB > P.threshold) return { side: 'P', conf: sP * 100 };
+      return null;
     }
   },
   {
