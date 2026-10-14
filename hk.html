@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>香港廣東話入門教材</title>
+    <title>香港廣東話入門 · 練習題庫</title>
     <style>
         * {
             margin: 0;
@@ -37,40 +37,37 @@
             }
         }
 
-        /* 標題區 */
         .hero {
             text-align: center;
-            margin-bottom: 2.8rem;
+            margin-bottom: 2.5rem;
             border-bottom: 2px dashed #ffb7a5;
-            padding-bottom: 1.8rem;
+            padding-bottom: 1.5rem;
         }
 
         .hero h1 {
-            font-size: 2.2rem;
+            font-size: 2.1rem;
             font-weight: 700;
-            letter-spacing: -0.5px;
             color: #b3472c;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
             line-height: 1.2;
         }
 
         .hero .sub {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: #6b5b4f;
             background: #fff1e8;
             display: inline-block;
-            padding: 0.3rem 1.6rem;
+            padding: 0.3rem 1.5rem;
             border-radius: 40px;
-            margin-top: 0.5rem;
+            margin-top: 0.4rem;
         }
 
-        /* 通用卡片 */
         .section {
-            margin-bottom: 3rem;
+            margin-bottom: 2.8rem;
         }
 
         .section-title {
-            font-size: 1.7rem;
+            font-size: 1.5rem;
             font-weight: 650;
             color: #3f2e25;
             display: flex;
@@ -82,69 +79,67 @@
         }
 
         .section-title span {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
         }
 
         p {
             margin-bottom: 0.8rem;
         }
 
-        .note {
-            background: #fef6e9;
-            border-left: 6px solid #f3b33d;
-            padding: 1rem 1.4rem;
-            border-radius: 12px;
-            margin: 1.4rem 0;
-            font-size: 0.97rem;
-            color: #4d3e2e;
-        }
-
-        .note strong {
-            color: #c4451c;
-        }
-
-        /* 表格 */
-        .table-wrap {
-            overflow-x: auto;
-            margin: 1.2rem 0;
+        /* 題目卡片 */
+        .quiz-item {
+            background: #fcf9f6;
+            border: 1px solid #f0e4da;
             border-radius: 18px;
-            border: 1px solid #eee6dd;
-            background: #ffffff;
+            padding: 1.3rem 1.5rem;
+            margin-bottom: 1.2rem;
+            transition: 0.15s ease;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.96rem;
-            min-width: 560px;
+        .quiz-item:hover {
+            border-color: #e6c9b8;
         }
 
-        th {
-            background: #f7ede5;
-            color: #3f2e25;
+        .question {
             font-weight: 600;
-            padding: 1rem 1rem;
-            text-align: left;
-            border-bottom: 2px solid #e4d6cb;
-            white-space: nowrap;
+            color: #3f2e25;
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
         }
 
-        td {
-            padding: 0.9rem 1rem;
-            border-bottom: 1px solid #f0e8e1;
-            vertical-align: top;
+        .question .num {
+            display: inline-block;
+            background: #e07b5e;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            width: 1.7rem;
+            height: 1.7rem;
+            line-height: 1.7rem;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 0.5rem;
         }
 
-        tr:last-child td {
-            border-bottom: none;
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem 1.8rem;
+            padding-left: 2.2rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .option {
+            font-size: 0.98rem;
+            color: #4d3e2e;
         }
 
         .jyutping {
             font-family: 'Courier New', 'SF Mono', monospace;
             background: #f1ede8;
-            padding: 0.15rem 0.5rem;
+            padding: 0.1rem 0.45rem;
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             color: #9e5e3e;
             font-weight: 500;
             white-space: nowrap;
@@ -153,78 +148,69 @@
         .cantonese-word {
             font-weight: 650;
             color: #b3472c;
-            font-size: 1.08rem;
         }
 
-        /* 卡片網格 */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.2rem;
-            margin: 1.2rem 0;
+        /* 答案區 */
+        .answer-box {
+            margin-top: 0.9rem;
+            padding: 0.8rem 1.1rem;
+            background: #e6f2f0;
+            border-radius: 12px;
+            border-left: 4px solid #3f8f7b;
+            font-size: 0.95rem;
+            color: #1f4d42;
         }
 
-        @media (max-width: 600px) {
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .mini-card {
-            background: #fcf9f6;
-            border-radius: 18px;
-            padding: 1.3rem 1.4rem;
-            border: 1px solid #f0e4da;
-        }
-
-        .mini-card h4 {
-            font-size: 1.15rem;
-            margin-bottom: 0.8rem;
-            color: #6b3e2c;
-            border-bottom: 1px dashed #e3cfc2;
-            padding-bottom: 0.5rem;
-        }
-
-        .mini-card ul {
-            font-size: 0.96rem;
-            color: #3b2f28;
-            padding-left: 1.2rem;
-        }
-
-        .mini-card li {
-            margin-bottom: 0.4rem;
-        }
-
-        /* 發音陷阱 */
-        .trap-box {
-            background: #fff1ee;
-            border-radius: 16px;
-            padding: 1.2rem 1.5rem;
-            border: 1px solid #f5cfc2;
-            margin-top: 1.2rem;
-        }
-
-        .trap-item {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            gap: 0.5rem 1.5rem;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid #f5dbd0;
-        }
-
-        .trap-item:last-child {
-            border-bottom: none;
-        }
-
-        .trap-item .word {
+        .answer-box summary {
+            cursor: pointer;
             font-weight: 600;
-            min-width: 60px;
-            font-size: 1.1rem;
-            color: #b3472c;
+            color: #1d6b58;
+            user-select: none;
+            list-style: none;
         }
 
-        /* 頁腳 */
+        .answer-box summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .answer-box summary::before {
+            content: "▶ ";
+            font-size: 0.8rem;
+            display: inline-block;
+            transition: transform 0.15s;
+            margin-right: 0.3rem;
+        }
+
+        .answer-box[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .answer-content {
+            margin-top: 0.7rem;
+            padding-top: 0.7rem;
+            border-top: 1px dashed #b8d9cf;
+        }
+
+        .answer-content .correct {
+            color: #1d6b58;
+            font-weight: 700;
+        }
+
+        .explain {
+            color: #4d6b63;
+            font-size: 0.9rem;
+            margin-top: 0.35rem;
+        }
+
+        /* 填空題底線 */
+        .blank {
+            display: inline-block;
+            border-bottom: 2px solid #c0a89a;
+            min-width: 4rem;
+            text-align: center;
+            margin: 0 0.2rem;
+        }
+
         .footer {
             margin-top: 2.5rem;
             padding-top: 1.5rem;
@@ -233,169 +219,406 @@
             color: #9e8577;
             font-size: 0.92rem;
         }
+
+        /* 分數提示 */
+        .score-hint {
+            background: #fef6e9;
+            border-radius: 12px;
+            padding: 0.7rem 1.2rem;
+            font-size: 0.92rem;
+            color: #7a5c3e;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 <div class="container">
 
-    <!-- 標題區 -->
     <div class="hero">
-        <h1>🇭🇰 香港廣東話入門教材</h1>
-        <div class="sub">台灣人專屬 · 三個月日常對話速成</div>
+        <h1>📝 香港廣東話練習題庫</h1>
+        <div class="sub">點開每題的答案，看看自己對了多少</div>
     </div>
 
-    <!-- ========== 第一週 ========== -->
-    <div class="section">
-        <div class="section-title"><span>📌</span> 第一週：先認得這 5 個「粵語字」</div>
-        <p>台灣人寫字用國語，但香港人講話有很多專屬漢字，不認得就聽不懂。先死磕這幾個，每天寫 5 遍。</p>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr><th>粵語字</th><th>粵拼</th><th>國語意思</th><th>例句（粵語）</th><th>國語對照</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td><span class="cantonese-word">嘅</span></td><td><span class="jyutping">ge3</span></td><td>的</td><td>我<span class="cantonese-word">嘅</span>手機</td><td>我的手機</td></tr>
-                    <tr><td><span class="cantonese-word">咗</span></td><td><span class="jyutping">zo2</span></td><td>了</td><td>食<span class="cantonese-word">咗</span>飯未？</td><td>吃了飯沒？</td></tr>
-                    <tr><td><span class="cantonese-word">喺</span></td><td><span class="jyutping">hai2</span></td><td>在</td><td>你<span class="cantonese-word">喺</span>邊度？</td><td>你在哪裡？</td></tr>
-                    <tr><td><span class="cantonese-word">唔</span></td><td><span class="jyutping">m4</span></td><td>不</td><td>我<span class="cantonese-word">唔</span>知</td><td>我不知道</td></tr>
-                    <tr><td><span class="cantonese-word">冇</span></td><td><span class="jyutping">mou5</span></td><td>沒有</td><td>我<span class="cantonese-word">冇</span>錢</td><td>我沒有錢</td></tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="score-hint">
+        💡 每題先自己作答，再點「看答案」對照。答對 12 題以上，基礎就穩了！
     </div>
 
-    <!-- ========== 第二週 ========== -->
+    <!-- ========== 第一部分：粵語字 ========== -->
     <div class="section">
-        <div class="section-title"><span>👋</span> 第二週：打招呼 + 最萬能的禮貌詞</div>
+        <div class="section-title"><span>📌</span> 第一部分：粵語字配對</div>
 
-        <div class="grid-2">
-            <div class="mini-card">
-                <h4>基礎問候</h4>
-                <ul>
-                    <li><span class="cantonese-word">你好</span> <span class="jyutping">nei5 hou2</span></li>
-                    <li><span class="cantonese-word">早晨</span> <span class="jyutping">zou2 san4</span>（早上好，香港人更常說這個）</li>
-                    <li><span class="cantonese-word">食咗飯未？</span> 直譯「吃了飯沒」，但實際就是「你好嗎」的功能</li>
-                </ul>
+        <!-- Q1 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">1</span>「我<span class="cantonese-word">嘅</span>手機」是什麼意思？</div>
+            <div class="options">
+                <span class="option">A. 我的手機</span>
+                <span class="option">B. 你的手機</span>
+                <span class="option">C. 他的手機</span>
+                <span class="option">D. 誰的手機</span>
             </div>
-            <div class="mini-card">
-                <h4>兩個「謝謝」，千萬別搞混</h4>
-                <p style="margin-bottom:0.8rem;">這是台灣人最容易出錯的地方。廣東話的「謝謝」分兩種，用錯了會很尷尬。</p>
-                <ul>
-                    <li><span class="cantonese-word">唔該</span> <span class="jyutping">m4 goi1</span> — 別人<strong>幫你做事</strong>（遞東西、開門、問路）<br><span style="font-size:0.9rem; color:#7a6a5e;">接近「麻煩你」「勞駕」</span></li>
-                    <li style="margin-top:0.6rem;"><span class="cantonese-word">多謝</span> <span class="jyutping">do1 ze6</span> — 別人<strong>送你東西</strong>、請你吃飯、給你錢<br><span style="font-size:0.9rem; color:#7a6a5e;">就是「謝謝」</span></li>
-                </ul>
-                <div style="background:#fff1e8; border-radius:12px; padding:0.6rem 1rem; margin-top:1rem; font-size:0.92rem;">
-                    <strong>💡 記憶口訣：</strong> 出於「服務」用唔該，出於「餽贈」用多謝。
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 我的手機</span>
+                    <div class="explain">「嘅」等於國語的「的」。<span class="jyutping">ge3</span></div>
                 </div>
-            </div>
+            </details>
         </div>
-    </div>
 
-    <!-- ========== 第三週 ========== -->
-    <div class="section">
-        <div class="section-title"><span>🧩</span> 第三週：最核心的三個句型</div>
-        <p>學語言最怕背一堆用不到的句子。這三個句型覆蓋了日常對話的 60%。</p>
-
-        <div class="grid-2" style="margin-top:1.2rem;">
-            <div class="mini-card">
-                <h4>1️⃣ 你係……？ <span style="font-size:0.9rem; font-weight:400; color:#8b7a6e;">（你是……？）</span></h4>
-                <ul>
-                    <li>你<span class="cantonese-word">係</span>邊個？ → 你是誰？</li>
-                    <li>你<span class="cantonese-word">係</span>邊度人？ → 你是哪裡人？<br><span style="font-size:0.9rem; color:#6b5b4f;">（台灣人可答：我係台灣人）</span></li>
-                </ul>
+        <!-- Q2 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">2</span>「食<span class="cantonese-word">咗</span>飯未？」的「咗」對應國語的哪個字？</div>
+            <div class="options">
+                <span class="option">A. 在</span>
+                <span class="option">B. 了</span>
+                <span class="option">C. 的</span>
+                <span class="option">D. 不</span>
             </div>
-            <div class="mini-card">
-                <h4>2️⃣ 你有冇……？ <span style="font-size:0.9rem; font-weight:400; color:#8b7a6e;">（你有沒有……？）</span></h4>
-                <ul>
-                    <li>你<span class="cantonese-word">有冇</span>人民幣？ → 你有沒有人民幣？</li>
-                    <li>你<span class="cantonese-word">有冇</span>去過香港？ → 你有沒有去過香港？</li>
-                </ul>
-            </div>
-            <div class="mini-card">
-                <h4>3️⃣ 我想…… <span style="font-size:0.9rem; font-weight:400; color:#8b7a6e;">（我想要……）</span></h4>
-                <ul>
-                    <li>我<span class="cantonese-word">想</span>食飯 → 我想吃飯</li>
-                    <li>我<span class="cantonese-word">想</span>去街 → 我想出門逛逛</li>
-                </ul>
-            </div>
-            <div class="mini-card" style="background:#f5f0ea;">
-                <h4>🎯 小練習</h4>
-                <p>用「你有冇……」造句問身邊的人 3 個問題，例如「你有冇掛住我？」（你有沒有想我？）。</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== 第四週 ========== -->
-    <div class="section">
-        <div class="section-title"><span>🛍️</span> 第四週：購物 + 點餐（最實用場景）</div>
-
-        <div class="grid-2">
-            <div class="mini-card">
-                <h4>🍜 點餐必備</h4>
-                <ul>
-                    <li><span class="cantonese-word">唔該，我要呢個</span> → 麻煩你，我要這個</li>
-                    <li><span class="cantonese-word">唔該，埋單</span> → 麻煩你，結帳</li>
-                    <li><span class="cantonese-word">好食</span> → 好吃（<span class="cantonese-word">好正</span> = 超讚，<span class="cantonese-word">好難食</span> = 很難吃）</li>
-                </ul>
-            </div>
-            <div class="mini-card" style="background:#fff3ef;">
-                <h4>⚠️ 台灣人最容易踩的文化地雷</h4>
-                <p><strong>飯店 ≠ 飯店</strong></p>
-                <p style="margin-top:0.5rem;">台灣人說「飯店」通常指<strong>住宿的旅館</strong>，但香港人說「飯店」其實是指<strong>吃飯的餐廳</strong>（尤其是酒樓）。香港的住宿場所叫「<strong>酒店</strong>」。</p>
-                <div class="table-wrap" style="margin-top:1rem;">
-                    <table style="min-width:auto; font-size:0.9rem;">
-                        <thead><tr><th>詞語</th><th>台灣人的理解</th><th>香港人的理解</th></tr></thead>
-                        <tbody>
-                            <tr><td>飯店</td><td>旅館</td><td>餐廳（中式酒樓）</td></tr>
-                            <tr><td>酒店</td><td>有特殊意味的場所</td><td>正規的住宿旅館</td></tr>
-                            <tr><td>菜</td><td>所有配飯的菜餚</td><td>特指<strong>蔬菜</strong></td></tr>
-                        </tbody>
-                    </table>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. 了</span>
+                    <div class="explain">「咗」表示動作完成，等於國語的「了」。<span class="jyutping">zo2</span></div>
                 </div>
+            </details>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">3</span>「你<span class="cantonese-word">喺</span>邊度？」的「喺」是什麼意思？</div>
+            <div class="options">
+                <span class="option">A. 在</span>
+                <span class="option">B. 去</span>
+                <span class="option">C. 從</span>
+                <span class="option">D. 到</span>
             </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 在</span>
+                    <div class="explain">「喺」表示位置，等於國語的「在」。<span class="jyutping">hai2</span></div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">4</span>「我<span class="cantonese-word">唔</span>知」和「我<span class="cantonese-word">冇</span>錢」中的「唔」和「冇」分別是什麼意思？</div>
+            <div class="options">
+                <span class="option">A. 不 / 沒有</span>
+                <span class="option">B. 沒有 / 不</span>
+                <span class="option">C. 不 / 不</span>
+                <span class="option">D. 沒有 / 沒有</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 不 / 沒有</span>
+                    <div class="explain">「唔」<span class="jyutping">m4</span> = 不；「冇」<span class="jyutping">mou5</span> = 沒有。兩者完全不同。</div>
+                </div>
+            </details>
         </div>
     </div>
 
-    <!-- ========== 進階：台灣人發音陷阱 ========== -->
+    <!-- ========== 第二部分：問候與禮貌 ========== -->
     <div class="section">
-        <div class="section-title"><span>🔊</span> 進階：台灣人特有的發音陷阱</div>
-        <p>台灣人的國語沒有 <strong>ng</strong> 聲母和 <strong>gw</strong> 聲母，這兩個是香港廣東話的標誌性發音，不練會一輩子有台灣腔。</p>
+        <div class="section-title"><span>👋</span> 第二部分：問候與禮貌用語</div>
 
-        <div class="trap-box">
-            <div class="trap-item">
-                <span class="word">我</span>
-                <span>正確：<span class="jyutping">ngo5</span>（喉嚨要先有鼻音）</span>
-                <span style="color:#b3472c;">❌ 台灣人容易唸成：<span class="jyutping">o5</span>（直接發「哦」）</span>
+        <!-- Q5 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">5</span>香港人早上見面，最常說哪一句？</div>
+            <div class="options">
+                <span class="option">A. 晚安</span>
+                <span class="option">B. 早晨</span>
+                <span class="option">C. 再見</span>
+                <span class="option">D. 多謝</span>
             </div>
-            <div class="trap-item">
-                <span class="word">國</span>
-                <span>正確：<span class="jyutping">gwok3</span>（嘴唇要圓）</span>
-                <span style="color:#b3472c;">❌ 台灣人容易唸成：<span class="jyutping">gok3</span>（像「各」）</span>
-            </div>
-            <div class="trap-item">
-                <span class="word">你</span>
-                <span>正確：<span class="jyutping">nei5</span>（舌尖頂上顎的 n）</span>
-                <span style="color:#b3472c;">❌ 台灣人容易唸成：<span class="jyutping">lei5</span>（像「里」）</span>
-            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. 早晨</span>
+                    <div class="explain">「早晨」<span class="jyutping">zou2 san4</span> 是香港人最常用的早上問候，比「你好」更地道。</div>
+                </div>
+            </details>
         </div>
 
-        <div class="note" style="margin-top:1.4rem;">
-            <strong>🎤 練習方法：</strong> 發「我」的時候，先像台語的「我」一樣把鼻音做出來，再過渡到「哦」。發「國」的時候，嘴唇先嘟起來像要親親，再發「郭」。
+        <!-- Q6 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">6</span>別人幫你開門，你應該說：</div>
+            <div class="options">
+                <span class="option">A. 多謝</span>
+                <span class="option">B. 唔該</span>
+                <span class="option">C. 你好</span>
+                <span class="option">D. 早晨</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. 唔該</span>
+                    <div class="explain">別人幫你做事（服務）用「唔該」<span class="jyutping">m4 goi1</span>；別人送你東西才用「多謝」<span class="jyutping">do1 ze6</span>。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q7 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">7</span>朋友請你吃飯，你要說：</div>
+            <div class="options">
+                <span class="option">A. 唔該</span>
+                <span class="option">B. 多謝</span>
+                <span class="option">C. 早晨</span>
+                <span class="option">D. 再見</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. 多謝</span>
+                    <div class="explain">別人請你吃飯是「餽贈」，用「多謝」<span class="jyutping">do1 ze6</span>。如果用「唔該」會很奇怪。</div>
+                </div>
+            </details>
         </div>
     </div>
 
-    <!-- ========== 資源推薦 ========== -->
+    <!-- ========== 第三部分：核心句型 ========== -->
     <div class="section">
-        <div class="section-title"><span>📚</span> 延伸資源</div>
-        <div class="note" style="margin-top:0.5rem;">
-            如果想系統學，香港中文大學的《粵語（香港話）教程》是最權威的教材，搭配粵拼教學影片效果最好。免費的可以用「粵語審音配詞字庫」查每個字的準確發音。
+        <div class="section-title"><span>🧩</span> 第三部分：核心句型填空</div>
+
+        <!-- Q8 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">8</span>「你是誰？」的粵語是「你<span class="blank">?</span>邊個？」</div>
+            <div class="options">
+                <span class="option">A. 係</span>
+                <span class="option">B. 喺</span>
+                <span class="option">C. 有</span>
+                <span class="option">D. 想</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 係</span>
+                    <div class="explain">「係」<span class="jyutping">hai6</span> = 是（動詞）；「喺」<span class="jyutping">hai2</span> = 在（位置）。兩者發音相近但意思不同。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q9 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">9</span>「你有沒有去過香港？」的粵語是「你<span class="blank">?</span>去過香港？」</div>
+            <div class="options">
+                <span class="option">A. 有冇</span>
+                <span class="option">B. 冇冇</span>
+                <span class="option">C. 係唔係</span>
+                <span class="option">D. 有唔有</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 有冇</span>
+                    <div class="explain">「有冇」<span class="jyutping">jau5 mou5</span> 就是「有沒有」，是廣東話最常用的問句之一。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q10 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">10</span>「我想吃飯」的粵語是：</div>
+            <div class="options">
+                <span class="option">A. 我想食飯</span>
+                <span class="option">B. 我食想飯</span>
+                <span class="option">C. 我飯想食</span>
+                <span class="option">D. 我想飯食</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 我想食飯</span>
+                    <div class="explain">粵語語序和國語一樣：主詞 + 想 + 動詞 + 受詞。注意「食」= 吃。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q11 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">11</span>「你是哪裡人？」的粵語是「你係<span class="blank">?</span>人？」</div>
+            <div class="options">
+                <span class="option">A. 邊度</span>
+                <span class="option">B. 邊個</span>
+                <span class="option">C. 幾多</span>
+                <span class="option">D. 點解</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 邊度</span>
+                    <div class="explain">「邊度」<span class="jyutping">bin1 dou6</span> = 哪裡；「邊個」<span class="jyutping">bin1 go3</span> = 誰。不要搞混。</div>
+                </div>
+            </details>
         </div>
     </div>
 
-    <!-- 頁腳 -->
+    <!-- ========== 第四部分：購物與點餐 ========== -->
+    <div class="section">
+        <div class="section-title"><span>🛍️</span> 第四部分：購物與點餐</div>
+
+        <!-- Q12 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">12</span>在茶餐廳吃完飯，要結帳時要說：</div>
+            <div class="options">
+                <span class="option">A. 唔該，埋單</span>
+                <span class="option">B. 多謝，再見</span>
+                <span class="option">C. 你好，食飯</span>
+                <span class="option">D. 早晨，唔該</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：A. 唔該，埋單</span>
+                    <div class="explain">「埋單」<span class="jyutping">maai4 daan1</span> = 結帳。前面加「唔該」是禮貌用法。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q13 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">13</span>香港人說「去飯店吃飯」，意思是：</div>
+            <div class="options">
+                <span class="option">A. 去旅館吃飯</span>
+                <span class="option">B. 去餐廳吃飯</span>
+                <span class="option">C. 去酒店吃飯</span>
+                <span class="option">D. 去家裡吃飯</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. 去餐廳吃飯</span>
+                    <div class="explain">香港的「飯店」= 餐廳（中式酒樓）；住宿的地方叫「酒店」。台灣人最容易在這裡搞錯。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q14 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">14</span>「好正」是什麼意思？</div>
+            <div class="options">
+                <span class="option">A. 很好吃</span>
+                <span class="option">B. 超讚、很棒</span>
+                <span class="option">C. 很貴</span>
+                <span class="option">D. 很遠</span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. 超讚、很棒</span>
+                    <div class="explain">「好正」<span class="jyutping">hou2 zeng3</span> 是香港人常用的讚美詞，形容事物很棒、很讚。</div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- ========== 第五部分：發音陷阱 ========== -->
+    <div class="section">
+        <div class="section-title"><span>🔊</span> 第五部分：發音陷阱</div>
+
+        <!-- Q15 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">15</span>「我」的粵語正確發音是：</div>
+            <div class="options">
+                <span class="option">A. <span class="jyutping">o5</span></span>
+                <span class="option">B. <span class="jyutping">ngo5</span></span>
+                <span class="option">C. <span class="jyutping">wo5</span></span>
+                <span class="option">D. <span class="jyutping">go5</span></span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. <span class="jyutping">ngo5</span></span>
+                    <div class="explain">台灣人容易直接發「哦」<span class="jyutping">o5</span>，但正確要先有鼻音 ng。練習：先像台語「我」一樣把鼻音做出來。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q16 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">16</span>「國」的粵語正確發音是：</div>
+            <div class="options">
+                <span class="option">A. <span class="jyutping">gok3</span></span>
+                <span class="option">B. <span class="jyutping">gwok3</span></span>
+                <span class="option">C. <span class="jyutping">kok3</span></span>
+                <span class="option">D. <span class="jyutping">wok3</span></span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. <span class="jyutping">gwok3</span></span>
+                    <div class="explain">台灣人容易唸成「各」<span class="jyutping">gok3</span>，但正確要圓唇 gw。練習：嘴唇先嘟起來像要親親，再發「郭」。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q17 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">17</span>「你」的粵語正確發音是：</div>
+            <div class="options">
+                <span class="option">A. <span class="jyutping">lei5</span></span>
+                <span class="option">B. <span class="jyutping">nei5</span></span>
+                <span class="option">C. <span class="jyutping">dei5</span></span>
+                <span class="option">D. <span class="jyutping">hei5</span></span>
+            </div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：B. <span class="jyutping">nei5</span></span>
+                    <div class="explain">台灣人容易唸成「里」<span class="jyutping">lei5</span>，但正確是舌尖頂上顎的 n。多練「n」開頭的字。</div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- ========== 第六部分：翻譯挑戰 ========== -->
+    <div class="section">
+        <div class="section-title"><span>✍️</span> 第六部分：翻譯挑戰</div>
+
+        <!-- Q18 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">18</span>請把「我不知道」翻譯成粵語。</div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：我唔知</span>
+                    <div class="explain"><span class="jyutping">ngo5 m4 zi1</span>。「唔」= 不，「知」= 知道。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q19 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">19</span>請把「你有沒有想我？」翻譯成粵語。</div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：你有冇掛住我？</span>
+                    <div class="explain"><span class="jyutping">nei5 jau5 mou5 gwaa3 zyu6 ngo5</span>。「掛住」= 想念、掛念。</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Q20 -->
+        <div class="quiz-item">
+            <div class="question"><span class="num">20</span>請把「麻煩你，我要這個」翻譯成粵語。</div>
+            <details class="answer-box">
+                <summary>看答案</summary>
+                <div class="answer-content">
+                    <span class="correct">✅ 答案：唔該，我要呢個</span>
+                    <div class="explain"><span class="jyutping">m4 goi1, ngo5 jiu3 ni1 go3</span>。「呢個」= 這個。</div>
+                </div>
+            </details>
+        </div>
+    </div>
+
     <div class="footer">
-        <p>❤️ 專屬教材 · 每週更新 · 一起進步</p>
+        <p>❤️ 全部 20 題 · 答對 12 題以上基礎就穩了</p>
+        <p style="margin-top:0.3rem;">加油！你已經比多數台灣人更懂粵語了 🇭🇰</p>
     </div>
 
 </div>
