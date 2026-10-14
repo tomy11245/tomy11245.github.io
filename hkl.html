@@ -54,7 +54,6 @@
             margin-top: 0.4rem;
         }
 
-        /* 等級選擇 */
         .level-selector {
             display: flex;
             flex-wrap: wrap;
@@ -112,7 +111,6 @@
             font-size: 0.65rem;
         }
 
-        /* 等級資訊 */
         .level-info {
             text-align: center;
             margin-bottom: 1.5rem;
@@ -134,7 +132,6 @@
             margin-top: 0.3rem;
         }
 
-        /* 頂部分數條 */
         .score-bar {
             position: sticky;
             top: 10px;
@@ -209,7 +206,6 @@
         }
         .btn-outline:hover { background: #f5efe9; }
 
-        /* 題目卡片 */
         .quiz-item {
             background: #fcf9f6;
             border: 1.5px solid #f0e4da;
@@ -307,7 +303,6 @@
         .answer-box .explain { color: #4d6b63; font-size: 0.9rem; margin-top: 0.35rem; }
         .answer-box .user-answer { color: #b3472c; font-size: 0.9rem; margin-top: 0.2rem; }
 
-        /* 成績結算 */
         .result-panel {
             display: none;
             background: linear-gradient(135deg, #fdf6f0, #fff1e8);
@@ -369,17 +364,14 @@
         <div class="sub">10 個等級 · 每級 10 題 · 選項隨機打亂</div>
     </div>
 
-    <!-- 等級選擇 -->
     <div class="level-selector" id="levelSelector"></div>
     <div class="unlock-hint" id="unlockHint">🔓 等級 1 已解鎖，答對 8 題以上即可解鎖下一級</div>
 
-    <!-- 等級資訊 -->
     <div class="level-info" id="levelInfo">
         <div class="level-name" id="levelName">等級 1 · 粵語新手</div>
         <div class="level-desc" id="levelDesc">認識最基本的粵語字與問候語</div>
     </div>
 
-    <!-- 頂部分數條 -->
     <div class="score-bar">
         <div class="score-display">
             <span>🏆 已答 <span class="num" id="answeredCount">0</span> / 10</span>
@@ -391,10 +383,8 @@
         <button class="btn btn-outline" id="resetBtn" style="display:none;">重新作答</button>
     </div>
 
-    <!-- 題目容器 -->
     <form id="quizForm"></form>
 
-    <!-- 成績結算 -->
     <div class="result-panel" id="resultPanel">
         <div class="emoji-big" id="resultEmoji">🎉</div>
         <div class="big-score"><span id="finalScore">0</span><span> / 10</span></div>
@@ -415,8 +405,6 @@
 (function() {
     // ============================================================
     // 題庫資料：每個等級 10 題
-    // 每題格式：{ q: 題目, options: [選項陣列], answer: 正確答案索引, explain: 解析 }
-    // answer 用「原始選項索引」，程式會自動打亂並重新對應
     // ============================================================
     const questionBank = {
         1: [
@@ -560,13 +548,10 @@
         10: '完全理解所有廣東話跟發音'
     };
 
-    // ============================================================
-    // 狀態管理
-    // ============================================================
     let currentLevel = 1;
     let unlockedLevel = 1;
     let submitted = false;
-    let currentQuestions = []; // 當前題目（已打亂選項）
+    let currentQuestions = [];
 
     const form = document.getElementById('quizForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -584,11 +569,6 @@
     const levelUpBanner = document.getElementById('levelUpBanner');
     const unlockHint = document.getElementById('unlockHint');
 
-    // ============================================================
-    // 工具函式
-    // ============================================================
-
-    // Fisher-Yates 洗牌
     function shuffle(arr) {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -598,17 +578,12 @@
         return a;
     }
 
-    // 準備題目：打亂選項順序，並記錄正確答案的新位置
     function prepareQuestions(level) {
         const raw = questionBank[level];
         return raw.map(item => {
-            // 建立索引陣列 [0,1,2,3]
             const indices = item.options.map((_, i) => i);
-            // 打亂索引
             const shuffledIndices = shuffle(indices);
-            // 根據打亂後的索引重建選項陣列
             const shuffledOptions = shuffledIndices.map(i => item.options[i]);
-            // 找出正確答案在打亂後的新位置
             const newAnswerIndex = shuffledIndices.indexOf(item.answer);
             return {
                 q: item.q,
@@ -619,7 +594,6 @@
         });
     }
 
-    // 渲染等級按鈕
     function renderLevelButtons() {
         levelSelector.innerHTML = '';
         for (let i = 1; i <= 10; i++) {
@@ -643,22 +617,16 @@
         }
     }
 
-    // 切換等級
     function switchLevel(level) {
         currentLevel = level;
         submitted = false;
 
-        // 更新等級資訊
         levelName.textContent = `等級 ${level} · ${levelNames[level]}`;
         levelDesc.textContent = levelDescs[level];
 
-        // 準備題目（打亂選項）
         currentQuestions = prepareQuestions(level);
-
-        // 渲染題目
         renderQuestions();
 
-        // 重置 UI
         resultPanel.classList.remove('show');
         levelUpBanner.classList.remove('show');
         submitBtn.disabled = true;
@@ -668,14 +636,13 @@
         progressFill.style.width = '0%';
         unlockHint.textContent = `🔓 等級 ${unlockedLevel} 已解鎖，答對 8 題以上即可解鎖下一級`;
 
-        // 更新按鈕狀態
         renderLevelButtons();
-
-        // 滾動到頂部
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 渲染題目
+    // ============================================================
+    // ★ 關鍵修正：選項改用 innerHTML 渲染，保留 HTML 標籤
+    // ============================================================
     function renderQuestions() {
         form.innerHTML = '';
         currentQuestions.forEach((item, idx) => {
@@ -684,33 +651,27 @@
             quizItem.className = 'quiz-item';
             quizItem.dataset.q = qNum;
 
-            // 題目
             const questionDiv = document.createElement('div');
             questionDiv.className = 'question';
             questionDiv.innerHTML = `<span class="num">${qNum}</span>${item.q}`;
             quizItem.appendChild(questionDiv);
 
-            // 選項
             const optionsDiv = document.createElement('div');
             optionsDiv.className = 'options';
             item.options.forEach((opt, optIdx) => {
                 const label = document.createElement('label');
                 label.className = 'option';
-                const radio = document.createElement('input');
-                radio.type = 'radio';
-                radio.name = `q${qNum}`;
-                radio.value = optIdx;
-                label.appendChild(radio);
-                label.appendChild(document.createTextNode(' ' + opt));
+                // 使用 innerHTML 保留注音 span 標籤
+                label.innerHTML = `<input type="radio" name="q${qNum}" value="${optIdx}"><span>${opt}</span>`;
                 optionsDiv.appendChild(label);
             });
             quizItem.appendChild(optionsDiv);
 
-            // 答案解析
             const answerBox = document.createElement('div');
             answerBox.className = 'answer-box';
             answerBox.id = `ans${qNum}`;
             const correctLetter = String.fromCharCode(65 + item.answer);
+            // 使用 innerHTML 保留注音 span 標籤
             answerBox.innerHTML = `
                 <div class="label">✅ 正確答案：${correctLetter}. ${item.options[item.answer]}</div>
                 <div class="explain">${item.explain}</div>
@@ -720,7 +681,6 @@
             form.appendChild(quizItem);
         });
 
-        // 綁定選項事件
         form.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 if (submitted) return;
@@ -734,7 +694,6 @@
         });
     }
 
-    // 更新進度
     function updateProgress() {
         const selected = form.querySelectorAll('input[type="radio"]:checked');
         const count = selected.length;
@@ -744,7 +703,6 @@
         submitBtn.disabled = (count < total) || submitted;
     }
 
-    // 提交評分
     function submitQuiz() {
         if (submitted) return;
         submitted = true;
@@ -760,7 +718,6 @@
             const userAnswer = selected ? parseInt(selected.value) : null;
             const correct = item.answer;
 
-            // 標記選項樣式
             form.querySelectorAll(`input[name="q${qNum}"]`).forEach(radio => {
                 const label = radio.closest('.option');
                 label.classList.add('disabled');
@@ -773,7 +730,6 @@
                 }
             });
 
-            // 判斷對錯
             if (userAnswer === correct) {
                 score++;
                 quizItem.classList.add('correct');
@@ -781,7 +737,6 @@
                 quizItem.classList.add('wrong');
             }
 
-            // 顯示用戶答案
             if (userAnswer !== null && userAnswer !== correct) {
                 const userAnsDiv = document.createElement('div');
                 userAnsDiv.className = 'user-answer';
@@ -791,7 +746,6 @@
             answerBox.classList.add('show');
         });
 
-        // 顯示成績
         finalScoreSpan.textContent = score;
         resultPanel.classList.add('show');
 
@@ -814,7 +768,6 @@
             resultDetail.textContent = '建議重新看一遍教材，再挑戰一次。';
         }
 
-        // 判斷是否解鎖下一級
         if (score >= 8 && currentLevel === unlockedLevel && unlockedLevel < 10) {
             unlockedLevel = currentLevel + 1;
             levelUpBanner.textContent = `🎉 恭喜！你已解鎖等級 ${unlockedLevel}！`;
@@ -829,7 +782,6 @@
             levelUpBanner.classList.add('show');
         }
 
-        // 按鈕狀態
         submitBtn.disabled = true;
         submitBtn.textContent = '已評分';
         resetBtn.style.display = 'inline-block';
@@ -837,7 +789,6 @@
         resultPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // 重新作答
     function resetQuiz() {
         submitted = false;
         form.reset();
@@ -867,13 +818,8 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ============================================================
-    // 初始化
-    // ============================================================
     function init() {
-        // 初始載入等級 1
         switchLevel(1);
-
         submitBtn.addEventListener('click', submitQuiz);
         resetBtn.addEventListener('click', resetQuiz);
     }
