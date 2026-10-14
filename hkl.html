@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港廣東話 · 分級測驗系統</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #faf7f2;
+            font-family: 'Segoe UI', 'Helvetica Neue', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            color: #2e2e2e;
+            line-height: 1.7;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.03);
+            padding: 2.5rem 2rem;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 1.6rem 1.2rem; }
+            body { padding: 1rem 0.5rem; }
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px dashed #ffb7a5;
+            padding-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #b3472c;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .hero .sub {
+            font-size: 1.05rem;
+            color: #6b5b4f;
+            background: #fff1e8;
+            display: inline-block;
+            padding: 0.3rem 1.5rem;
+            border-radius: 40px;
+            margin-top: 0.4rem;
+        }
+
+        /* 等級選擇 */
+        .level-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.6rem;
+            margin: 2rem 0;
+        }
+
+        .level-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid #e8ddd4;
+            background: #fcf9f6;
+            color: #7a6a5e;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-family: inherit;
+            position: relative;
+        }
+
+        .level-btn:hover {
+            border-color: #e07b5e;
+            background: #fff1e8;
+            transform: translateY(-2px);
+        }
+
+        .level-btn.active {
+            background: #b3472c;
+            border-color: #b3472c;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(179,71,44,0.3);
+        }
+
+        .level-btn.locked {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .level-btn .lock-icon {
+            font-size: 0.8rem;
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            background: #c9b8ae;
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            line-height: 20px;
+            text-align: center;
+            font-size: 0.65rem;
+        }
+
+        /* 等級資訊 */
+        .level-info {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #fdf6f0;
+            border-radius: 18px;
+            border: 1px solid #f0e4da;
+        }
+
+        .level-info .level-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #b3472c;
+        }
+
+        .level-info .level-desc {
+            font-size: 0.95rem;
+            color: #7a6a5e;
+            margin-top: 0.3rem;
+        }
+
+        /* 頂部分數條 */
+        .score-bar {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: #ffffff;
+            border: 2px solid #e8ddd4;
+            border-radius: 60px;
+            padding: 0.7rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            margin-bottom: 2rem;
+        }
+
+        .score-display {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #b3472c;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .score-display .num {
+            font-size: 1.3rem;
+            color: #e07b5e;
+        }
+
+        .progress-wrap {
+            flex: 1;
+            min-width: 120px;
+            height: 12px;
+            background: #f0e8e1;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f3b33d, #e07b5e);
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+
+        .btn {
+            border: none;
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #b3472c;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #9a3a22; transform: translateY(-1px); }
+        .btn-primary:disabled { background: #c9b8ae; cursor: not-allowed; transform: none; }
+
+        .btn-outline {
+            background: transparent;
+            color: #7a6a5e;
+            border: 1.5px solid #d8cbc2;
+        }
+        .btn-outline:hover { background: #f5efe9; }
+
+        /* 題目卡片 */
+        .quiz-item {
+            background: #fcf9f6;
+            border: 1.5px solid #f0e4da;
+            border-radius: 18px;
+            padding: 1.3rem 1.5rem;
+            margin-bottom: 1.2rem;
+            transition: 0.2s ease;
+        }
+        .quiz-item.correct { border-color: #7bc4a8; background: #f2faf6; }
+        .quiz-item.wrong { border-color: #e8a79a; background: #fff6f4; }
+
+        .question {
+            font-weight: 600;
+            color: #3f2e25;
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
+        }
+        .question .num {
+            display: inline-block;
+            background: #e07b5e;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            width: 1.7rem;
+            height: 1.7rem;
+            line-height: 1.7rem;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .quiz-item.correct .question .num { background: #3f8f7b; }
+        .quiz-item.wrong .question .num { background: #c0392b; }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-left: 2.2rem;
+        }
+        .option {
+            font-size: 0.98rem;
+            color: #4d3e2e;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 10px;
+            transition: 0.15s ease;
+            user-select: none;
+        }
+        .option:hover { background: #f5ede6; }
+        .option input[type="radio"] {
+            margin-top: 0.35rem;
+            accent-color: #b3472c;
+            width: 1.05rem;
+            height: 1.05rem;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .option.selected { background: #fff1e8; }
+        .option.correct-answer { background: #e6f2ec; font-weight: 600; }
+        .option.wrong-answer { background: #fde8e4; text-decoration: line-through; opacity: 0.75; }
+        .option.disabled { cursor: default; pointer-events: none; }
+
+        .bopomofo {
+            font-family: 'Courier New', 'SF Mono', monospace;
+            background: #eef3f7;
+            padding: 0.1rem 0.45rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #3a6b8a;
+            font-weight: 500;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+        .cantonese-word { font-weight: 650; color: #b3472c; }
+
+        .answer-box {
+            margin-top: 0.9rem;
+            padding: 0.8rem 1.1rem;
+            background: #e6f2f0;
+            border-radius: 12px;
+            border-left: 4px solid #3f8f7b;
+            font-size: 0.95rem;
+            color: #1f4d42;
+            display: none;
+        }
+        .answer-box.show { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .answer-box .label { font-weight: 700; color: #1d6b58; margin-bottom: 0.3rem; }
+        .answer-box .explain { color: #4d6b63; font-size: 0.9rem; margin-top: 0.35rem; }
+        .answer-box .user-answer { color: #b3472c; font-size: 0.9rem; margin-top: 0.2rem; }
+
+        /* 成績結算 */
+        .result-panel {
+            display: none;
+            background: linear-gradient(135deg, #fdf6f0, #fff1e8);
+            border: 2px solid #f3c9b8;
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+            animation: fadeIn 0.4s ease;
+        }
+        .result-panel.show { display: block; }
+        .result-panel .big-score {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #b3472c;
+            line-height: 1.1;
+        }
+        .result-panel .big-score span { font-size: 1.5rem; color: #9e8577; font-weight: 500; }
+        .result-panel .comment { font-size: 1.2rem; color: #6b3e2c; margin-top: 0.8rem; font-weight: 600; }
+        .result-panel .detail { color: #8b7a6e; font-size: 0.95rem; margin-top: 0.5rem; }
+        .result-panel .emoji-big { font-size: 3rem; margin-bottom: 0.3rem; }
+
+        .level-up-banner {
+            display: none;
+            background: linear-gradient(135deg, #f3b33d, #e07b5e);
+            color: #fff;
+            border-radius: 18px;
+            padding: 1.2rem 1.5rem;
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            animation: fadeIn 0.4s ease;
+        }
+        .level-up-banner.show { display: block; }
+
+        .footer {
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px dashed #ffd9cc;
+            text-align: center;
+            color: #9e8577;
+            font-size: 0.92rem;
+        }
+
+        .unlock-hint {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #9e8577;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="hero">
+        <h1>🎮 香港廣東話 · 分級測驗</h1>
+        <div class="sub">10 個等級 · 每級 10 題 · 選項隨機打亂</div>
+    </div>
+
+    <!-- 等級選擇 -->
+    <div class="level-selector" id="levelSelector"></div>
+    <div class="unlock-hint" id="unlockHint">🔓 等級 1 已解鎖，答對 8 題以上即可解鎖下一級</div>
+
+    <!-- 等級資訊 -->
+    <div class="level-info" id="levelInfo">
+        <div class="level-name" id="levelName">等級 1 · 粵語新手</div>
+        <div class="level-desc" id="levelDesc">認識最基本的粵語字與問候語</div>
+    </div>
+
+    <!-- 頂部分數條 -->
+    <div class="score-bar">
+        <div class="score-display">
+            <span>🏆 已答 <span class="num" id="answeredCount">0</span> / 10</span>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <button class="btn btn-primary" id="submitBtn" disabled>提交評分</button>
+        <button class="btn btn-outline" id="resetBtn" style="display:none;">重新作答</button>
+    </div>
+
+    <!-- 題目容器 -->
+    <form id="quizForm"></form>
+
+    <!-- 成績結算 -->
+    <div class="result-panel" id="resultPanel">
+        <div class="emoji-big" id="resultEmoji">🎉</div>
+        <div class="big-score"><span id="finalScore">0</span><span> / 10</span></div>
+        <div class="comment" id="resultComment"></div>
+        <div class="detail" id="resultDetail"></div>
+    </div>
+
+    <div class="level-up-banner" id="levelUpBanner"></div>
+
+    <div class="footer">
+        <p>❤️ 共 10 個等級 · 答對 8 題以上即可解鎖下一級</p>
+        <p style="margin-top:0.3rem;">等級 10 = 完全理解所有廣東話跟發音 🇭🇰</p>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    // ============================================================
+    // 題庫資料：每個等級 10 題
+    // 每題格式：{ q: 題目, options: [選項陣列], answer: 正確答案索引, explain: 解析 }
+    // answer 用「原始選項索引」，程式會自動打亂並重新對應
+    // ============================================================
+    const questionBank = {
+        1: [
+            { q: '「我<span class="cantonese-word">嘅</span>手機」是什麼意思？', options: ['我的手機','你的手機','他的手機','誰的手機'], answer: 0, explain: '「嘅」=的，<span class="bopomofo">ㄍㄝˇ</span>。' },
+            { q: '「食<span class="cantonese-word">咗</span>飯未？」的「咗」對應國語的哪個字？', options: ['在','了','的','不'], answer: 1, explain: '「咗」=了（完成式），<span class="bopomofo">ㄗㄛˊ</span>。' },
+            { q: '「你<span class="cantonese-word">喺</span>邊度？」的「喺」是什麼意思？', options: ['在','去','從','到'], answer: 0, explain: '「喺」=在（位置），<span class="bopomofo">ㄏㄞˊ</span>。' },
+            { q: '「我<span class="cantonese-word">唔</span>知」的「唔」是什麼意思？', options: ['不','沒有','要','會'], answer: 0, explain: '「唔」=不，<span class="bopomofo">ㄇˊ</span>。' },
+            { q: '「我<span class="cantonese-word">冇</span>錢」的「冇」是什麼意思？', options: ['不','沒有','要','會'], answer: 1, explain: '「冇」=沒有，<span class="bopomofo">ㄇㄡˊ</span>。' },
+            { q: '香港人早上見面最常說哪一句？', options: ['晚安','早晨','再見','多謝'], answer: 1, explain: '「早晨」<span class="bopomofo">ㄗㄡˊ ㄙㄢˋ</span>=早上好。' },
+            { q: '「你係邊個？」是什麼意思？', options: ['你是誰？','你在哪裡？','你好嗎？','你要去哪？'], answer: 0, explain: '「邊個」=誰，<span class="bopomofo">ㄅㄧㄣ ㄍㄛˇ</span>。' },
+            { q: '「你好」的粵語發音注音是？', options: ['<span class="bopomofo">ㄋㄟˊ ㄏㄡˊ</span>','<span class="bopomofo">ㄌㄟˊ ㄏㄡˊ</span>','<span class="bopomofo">ㄋㄧˇ ㄏㄠˇ</span>','<span class="bopomofo">ㄋㄟˊ ㄏㄠˇ</span>'], answer: 0, explain: '「你好」<span class="bopomofo">ㄋㄟˊ ㄏㄡˊ</span>，注意「你」是 ㄋ 不是 ㄌ。' },
+            { q: '「我」的粵語正確注音是？', options: ['<span class="bopomofo">ㄛˊ</span>','<span class="bopomofo">ㄫㄛˊ</span>','<span class="bopomofo">ㄨㄛˊ</span>','<span class="bopomofo">ㄍㄛˊ</span>'], answer: 1, explain: '「我」<span class="bopomofo">ㄫㄛˊ</span>，要有鼻音 ㄫ。' },
+            { q: '「食咗飯未？」這句話的功能是什麼？', options: ['問吃飽沒（問候）','問多少錢','問去哪裡','問幾點'], answer: 0, explain: '香港人用「食咗飯未？」當日常問候，等於「你好嗎」。' }
+        ],
+        2: [
+            { q: '別人幫你開門，你要說？', options: ['多謝','唔該','你好','早晨'], answer: 1, explain: '服務用「唔該」<span class="bopomofo">ㄇˊ ㄍㄛㄧ</span>。' },
+            { q: '朋友請你吃飯，你要說？', options: ['唔該','多謝','早晨','再見'], answer: 1, explain: '餽贈用「多謝」<span class="bopomofo">ㄉㄛ ㄗㄝˊ</span>。' },
+            { q: '「你係邊度人？」是什麼意思？', options: ['你是誰？','你是哪裡人？','你要去哪？','你幾歲？'], answer: 1, explain: '「邊度」=哪裡，<span class="bopomofo">ㄅㄧㄣ ㄉㄡˊ</span>。' },
+            { q: '「你有冇去過香港？」的「有冇」是什麼意思？', options: ['有沒有','是不是','要不要','會不會'], answer: 0, explain: '「有冇」<span class="bopomofo">ㄧㄡˊ ㄇㄡˊ</span>=有沒有。' },
+            { q: '「我想食飯」是什麼意思？', options: ['我想吃飯','我想睡覺','我想出門','我想喝水'], answer: 0, explain: '「食」=吃，「飯」=飯。' },
+            { q: '「早晨」的粵語注音是？', options: ['<span class="bopomofo">ㄗㄡˊ ㄙㄢˋ</span>','<span class="bopomofo">ㄗㄠˊ ㄔㄣˊ</span>','<span class="bopomofo">ㄗㄡˊ ㄔㄣˊ</span>','<span class="bopomofo">ㄗㄠˊ ㄙㄢˋ</span>'], answer: 0, explain: '「早晨」<span class="bopomofo">ㄗㄡˊ ㄙㄢˋ</span>。' },
+            { q: '「唔該，埋單」是什麼意思？', options: ['麻煩你，結帳','麻煩你，點餐','麻煩你，開門','麻煩你，借過'], answer: 0, explain: '「埋單」=結帳，<span class="bopomofo">ㄇㄞˊ ㄉㄢ</span>。' },
+            { q: '「佢」的粵語正確注音是？', options: ['<span class="bopomofo">ㄎㄩˊ</span>','<span class="bopomofo">ㄎㄨˊ</span>','<span class="bopomofo">ㄑㄩˊ</span>','<span class="bopomofo">ㄐㄩˊ</span>'], answer: 0, explain: '「佢」=他/她，<span class="bopomofo">ㄎㄩˊ</span>，嘴唇要圓。' },
+            { q: '「你」的粵語正確注音是？', options: ['<span class="bopomofo">ㄌㄟˊ</span>','<span class="bopomofo">ㄋㄟˊ</span>','<span class="bopomofo">ㄉㄟˊ</span>','<span class="bopomofo">ㄏㄟˊ</span>'], answer: 1, explain: '「你」<span class="bopomofo">ㄋㄟˊ</span>，不是 ㄌㄟ。' },
+            { q: '「食」的粵語發音結尾要怎麼處理？', options: ['自然結束','急促收住（入聲）','拉長','往上揚'], answer: 1, explain: '「食」<span class="bopomofo">ㄙㄧㄍˊ</span>是入聲，結尾 ㄍ 要急促收住。' }
+        ],
+        3: [
+            { q: '「呢個」和「嗰個」分別是什麼意思？', options: ['這個 / 那個','那個 / 這個','哪個 / 這個','這個 / 哪個'], answer: 0, explain: '「呢個」=這個；「嗰個」=那個。' },
+            { q: '「佢哋」的「哋」對應國語的哪個字？', options: ['們','的','了','在'], answer: 0, explain: '「哋」<span class="bopomofo">ㄉㄟˊ</span>=們。' },
+            { q: '「我哋一齊去飲茶好唔好？」是在邀請什麼？', options: ['一起去喝茶吃點心','一起去看電影','一起去逛街','一起去做功課'], answer: 0, explain: '「飲茶」在香港指上茶樓吃點心。' },
+            { q: '「呢度有冇人坐？」是什麼意思？', options: ['這裡有沒有人坐？','這裡有沒有人？','這裡有沒有人要來？','這裡有沒有人知道？'], answer: 0, explain: '在茶餐廳找位子時必用。' },
+            { q: '「我唔知點解佢咁嬲」是什麼意思？', options: ['我不知道為什麼他這麼生氣','我不知道他為什麼這麼開心','我不想知道他為什麼生氣','我知不知道他為什麼生氣'], answer: 0, explain: '「點解」=為什麼；「咁」=這麼；「嬲」=生氣。' },
+            { q: '「呢個幾多錢？」是什麼意思？', options: ['這個多少錢？','這個多少個？','這個多少天？','這個多大？'], answer: 0, explain: '「幾多」=多少，<span class="bopomofo">ㄍㄟˊ ㄉㄛ</span>。' },
+            { q: '香港人說「呢度啲菜好貴」，「菜」指的是？', options: ['蔬菜','所有菜餚','肉類','水果'], answer: 0, explain: '香港的「菜」通常特指蔬菜。' },
+            { q: '「唔使客氣」是什麼意思？', options: ['不用客氣','不要客氣','不必謝謝','不用麻煩'], answer: 0, explain: '「唔使」=不用、不必。' },
+            { q: '「早唞」是什麼意思？', options: ['早安','晚安','再見','謝謝'], answer: 1, explain: '「早唞」<span class="bopomofo">ㄗㄡˊ ㄊㄡˊ</span>=晚安、早點休息。' },
+            { q: '「對唔住」和「唔好意思」的差別是？', options: ['對唔住較正式；唔好意思較輕微','兩個完全一樣','對唔住較輕微；唔好意思較正式','對唔住=謝謝'], answer: 0, explain: '「對唔住」用於正式道歉；「唔好意思」用於打擾或小失誤。' }
+        ],
+        4: [
+            { q: '「你係唔係台灣人？」和「你係邊度人？」的差別是？', options: ['前者問是不是，後者問哪裡','前者問哪裡，後者問是不是','兩個完全一樣','前者問誰，後者問哪裡'], answer: 0, explain: '「係唔係」=是不是；「邊度」=哪裡。' },
+            { q: '「我哋一齊去飲茶好唔好？」的「好唔好」是什麼意思？', options: ['好不好','是不是','要不要','有沒有'], answer: 0, explain: '「好唔好」=好不好，用於徵求同意。' },
+            { q: '「呢度有冇人坐？」的「有冇」是什麼意思？', options: ['有沒有','是不是','要不要','會不會'], answer: 0, explain: '「有冇」=有沒有。' },
+            { q: '「我唔知點解佢咁嬲」的「嬲」是什麼意思？', options: ['生氣','開心','傷心','害怕'], answer: 0, explain: '「嬲」<span class="bopomofo">ㄋㄠ</span>=生氣。' },
+            { q: '「凍檸茶」是什麼？', options: ['冰檸檬茶','熱檸檬茶','冰奶茶','熱奶茶'], answer: 0, explain: '「凍」=冰，「檸茶」=檸檬茶。' },
+            { q: '「唔該，我要一杯凍檸茶」中的「唔該」可以用什麼取代？', options: ['多謝','早晨','你好','再見'], answer: 0, explain: '點餐是服務，應該用「唔該」，不能用「多謝」。' },
+            { q: '「呢個幾多錢？」的「幾多」注音是？', options: ['<span class="bopomofo">ㄍㄟˊ ㄉㄛ</span>','<span class="bopomofo">ㄐㄧˇ ㄉㄨㄛ</span>','<span class="bopomofo">ㄍㄟˇ ㄉㄨㄛ</span>','<span class="bopomofo">ㄐㄧˊ ㄉㄛ</span>'], answer: 0, explain: '「幾多」<span class="bopomofo">ㄍㄟˊ ㄉㄛ</span>。' },
+            { q: '「唔使客氣」的「唔使」是什麼意思？', options: ['不用、不必','不是','不要','不會'], answer: 0, explain: '「唔使」<span class="bopomofo">ㄇˊ ㄙㄞˊ</span>=不用、不必。' },
+            { q: '「早唞」的「唞」是什麼意思？', options: ['休息','早上','晚上','再見'], answer: 0, explain: '「唞」=休息，「早唞」=早點休息。' },
+            { q: '「對唔住」的注音是？', options: ['<span class="bopomofo">ㄉㄨㄟˇ ㄇˊ ㄗㄩˊ</span>','<span class="bopomofo">ㄉㄨㄟˋ ㄇˊ ㄗㄨˊ</span>','<span class="bopomofo">ㄉㄨㄟˇ ㄇˊ ㄗㄨˊ</span>','<span class="bopomofo">ㄉㄨㄟˋ ㄇˊ ㄗㄩˊ</span>'], answer: 0, explain: '「對唔住」<span class="bopomofo">ㄉㄨㄟˇ ㄇˊ ㄗㄩˊ</span>。' }
+        ],
+        5: [
+            { q: '「佢嘅書喺檯面」是什麼意思？', options: ['他的書在桌上','我的書在抽屜','你的書在椅子','誰的書在地上'], answer: 0, explain: '「佢」=他/她；「嘅」=的；「喺」=在；「檯」=桌子。' },
+            { q: '「我唔記得佢有冇嚟過」中的「嚟」是什麼意思？', options: ['來','去','走','回'], answer: 0, explain: '「嚟」<span class="bopomofo">ㄌㄞˊ</span>=來。' },
+            { q: '「呢個」和「嗰個」的注音分別是？', options: ['<span class="bopomofo">ㄋㄧ ㄍㄛˇ</span> / <span class="bopomofo">ㄍㄛˊ ㄍㄛˇ</span>','<span class="bopomofo">ㄋㄚˋ ㄍㄛˇ</span> / <span class="bopomofo">ㄍㄛˊ ㄍㄛˇ</span>','<span class="bopomofo">ㄋㄧ ㄍㄛˇ</span> / <span class="bopomofo">ㄋㄚˋ ㄍㄛˇ</span>','<span class="bopomofo">ㄍㄛˊ ㄍㄛˇ</span> / <span class="bopomofo">ㄋㄧ ㄍㄛˇ</span>'], answer: 0, explain: '「呢個」=這個；「嗰個」=那個。' },
+            { q: '「佢哋」的「哋」注音是？', options: ['<span class="bopomofo">ㄉㄟˊ</span>','<span class="bopomofo">ㄉㄧˊ</span>','<span class="bopomofo">ㄉㄟˇ</span>','<span class="bopomofo">ㄉㄧˇ</span>'], answer: 0, explain: '「哋」<span class="bopomofo">ㄉㄟˊ</span>=們。' },
+            { q: '「我哋一齊去飲茶好唔好？」的「一齊」是什麼意思？', options: ['一起','一定','一直','一樣'], answer: 0, explain: '「一齊」=一起。' },
+            { q: '「呢度有冇人坐？」的「呢度」是什麼意思？', options: ['這裡','那裡','哪裡','到處'], answer: 0, explain: '「呢度」<span class="bopomofo">ㄋㄧ ㄉㄡˊ</span>=這裡。' },
+            { q: '「我唔知點解佢咁嬲」的「咁」是什麼意思？', options: ['這麼','那麼','什麼','怎麼'], answer: 0, explain: '「咁」<span class="bopomofo">ㄍㄢˇ</span>=這麼。' },
+            { q: '「凍檸茶」的「凍」注音是？', options: ['<span class="bopomofo">ㄉㄨㄥˇ</span>','<span class="bopomofo">ㄉㄨㄥˋ</span>','<span class="bopomofo">ㄉㄨㄣˇ</span>','<span class="bopomofo">ㄉㄨㄣˋ</span>'], answer: 0, explain: '「凍」<span class="bopomofo">ㄉㄨㄥˇ</span>=冰。' },
+            { q: '「呢個幾多錢？」的「錢」注音是？', options: ['<span class="bopomofo">ㄑㄧㄣˊ</span>','<span class="bopomofo">ㄑㄧㄢˊ</span>','<span class="bopomofo">ㄘㄧㄣˊ</span>','<span class="bopomofo">ㄘㄧㄢˊ</span>'], answer: 0, explain: '「錢」<span class="bopomofo">ㄑㄧㄣˊ</span>，粵語發音與國語不同。' },
+            { q: '「唔使客氣」的「客氣」注音是？', options: ['<span class="bopomofo">ㄏㄚˇ ㄏㄟˇ</span>','<span class="bopomofo">ㄎㄝ ㄎㄧˊ</span>','<span class="bopomofo">ㄏㄝ ㄏㄧˊ</span>','<span class="bopomofo">ㄎㄚ ㄎㄟˊ</span>'], answer: 0, explain: '「客氣」<span class="bopomofo">ㄏㄚˇ ㄏㄟˇ</span>。' }
+        ],
+        6: [
+            { q: '「你係唔係台灣人？」的「係唔係」注音是？', options: ['<span class="bopomofo">ㄏㄞˊ ㄇˊ ㄏㄞˊ</span>','<span class="bopomofo">ㄏㄞˋ ㄇˊ ㄏㄞˋ</span>','<span class="bopomofo">ㄏㄞˊ ㄅㄨˋ ㄏㄞˊ</span>','<span class="bopomofo">ㄒㄧˋ ㄇˊ ㄒㄧˋ</span>'], answer: 0, explain: '「係唔係」<span class="bopomofo">ㄏㄞˊ ㄇˊ ㄏㄞˊ</span>=是不是。' },
+            { q: '「我哋一齊去飲茶好唔好？」的「飲茶」注音是？', options: ['<span class="bopomofo">ㄧㄚㄇˊ ㄘㄚˊ</span>','<span class="bopomofo">ㄧㄣˇ ㄔㄚˊ</span>','<span class="bopomofo">ㄧㄚㄇˇ ㄘㄚˊ</span>','<span class="bopomofo">ㄧㄣ ㄘㄚˊ</span>'], answer: 0, explain: '「飲茶」<span class="bopomofo">ㄧㄚㄇˊ ㄘㄚˊ</span>，結尾閉唇 m。' },
+            { q: '「呢度有冇人坐？」的「有冇」注音是？', options: ['<span class="bopomofo">ㄧㄡˊ ㄇㄡˊ</span>','<span class="bopomofo">ㄧㄡˇ ㄇㄡˇ</span>','<span class="bopomofo">ㄧㄡˊ ㄇㄡˇ</span>','<span class="bopomofo">ㄧㄡˇ ㄇㄡˊ</span>'], answer: 0, explain: '「有冇」<span class="bopomofo">ㄧㄡˊ ㄇㄡˊ</span>=有沒有。' },
+            { q: '「我唔知點解佢咁嬲」的「點解」注音是？', options: ['<span class="bopomofo">ㄉㄧㄇˊ ㄍㄞˊ</span>','<span class="bopomofo">ㄉㄧㄢˇ ㄐㄧㄝˇ</span>','<span class="bopomofo">ㄉㄧㄇˇ ㄍㄞˊ</span>','<span class="bopomofo">ㄉㄧㄢˊ ㄍㄞˇ</span>'], answer: 0, explain: '「點解」<span class="bopomofo">ㄉㄧㄇˊ ㄍㄞˊ</span>，結尾閉唇 m。' },
+            { q: '「凍檸茶」的「檸」注音是？', options: ['<span class="bopomofo">ㄌㄧㄥˊ</span>','<span class="bopomofo">ㄋㄧㄥˊ</span>','<span class="bopomofo">ㄌㄧㄣˊ</span>','<span class="bopomofo">ㄋㄧㄣˊ</span>'], answer: 0, explain: '「檸」<span class="bopomofo">ㄌㄧㄥˊ</span>。' },
+            { q: '「唔該，我要一杯凍檸茶」的「一杯」注音是？', options: ['<span class="bopomofo">ㄧㄚㄇ ㄅㄨㄧ</span>','<span class="bopomofo">ㄧ ㄅㄟ</span>','<span class="bopomofo">ㄧㄚㄇˇ ㄅㄨㄧ</span>','<span class="bopomofo">ㄧˊ ㄅㄟ</span>'], answer: 0, explain: '「一杯」<span class="bopomofo">ㄧㄚㄇ ㄅㄨㄧ</span>，粵語「一」結尾閉唇 m。' },
+            { q: '「呢個幾多錢？」的「幾多」注音是？', options: ['<span class="bopomofo">ㄍㄟˊ ㄉㄛ</span>','<span class="bopomofo">ㄐㄧˇ ㄉㄨㄛ</span>','<span class="bopomofo">ㄍㄟˇ ㄉㄨㄛ</span>','<span class="bopomofo">ㄐㄧˊ ㄉㄛ</span>'], answer: 0, explain: '「幾多」<span class="bopomofo">ㄍㄟˊ ㄉㄛ</span>。' },
+            { q: '「唔使客氣」的「唔使」注音是？', options: ['<span class="bopomofo">ㄇˊ ㄙㄞˊ</span>','<span class="bopomofo">ㄇˊ ㄕˇ</span>','<span class="bopomofo">ㄅㄨˋ ㄕˇ</span>','<span class="bopomofo">ㄅㄨˊ ㄙㄞˊ</span>'], answer: 0, explain: '「唔使」<span class="bopomofo">ㄇˊ ㄙㄞˊ</span>=不用。' },
+            { q: '「早唞」的「唞」注音是？', options: ['<span class="bopomofo">ㄊㄡˊ</span>','<span class="bopomofo">ㄊㄡˇ</span>','<span class="bopomofo">ㄉㄡˊ</span>','<span class="bopomofo">ㄉㄡˇ</span>'], answer: 0, explain: '「唞」<span class="bopomofo">ㄊㄡˊ</span>=休息。' },
+            { q: '「對唔住」的「住」注音是？', options: ['<span class="bopomofo">ㄗㄩˊ</span>','<span class="bopomofo">ㄓㄨˋ</span>','<span class="bopomofo">ㄗㄨˊ</span>','<span class="bopomofo">ㄓㄩˊ</span>'], answer: 0, explain: '「住」<span class="bopomofo">ㄗㄩˊ</span>。' }
+        ],
+        7: [
+            { q: '「佢嘅書喺檯面」的「檯」是什麼意思？', options: ['桌子','椅子','地板','書架'], answer: 0, explain: '「檯」=桌子。' },
+            { q: '「我唔記得佢有冇嚟過」的「記得」注音是？', options: ['<span class="bopomofo">ㄍㄟˇ ㄉㄚㄍˊ</span>','<span class="bopomofo">ㄐㄧˋ ㄉㄜˊ</span>','<span class="bopomofo">ㄍㄟˋ ㄉㄚㄍˊ</span>','<span class="bopomofo">ㄐㄧˊ ㄉㄜˊ</span>'], answer: 0, explain: '「記得」<span class="bopomofo">ㄍㄟˇ ㄉㄚㄍˊ</span>，結尾入聲。' },
+            { q: '「呢個」的「呢」注音是？', options: ['<span class="bopomofo">ㄋㄧ</span>','<span class="bopomofo">ㄋㄧˊ</span>','<span class="bopomofo">ㄋㄧˇ</span>','<span class="bopomofo">ㄋㄧˋ</span>'], answer: 0, explain: '「呢」<span class="bopomofo">ㄋㄧ</span>。' },
+            { q: '「嗰個」的「嗰」注音是？', options: ['<span class="bopomofo">ㄍㄛˊ</span>','<span class="bopomofo">ㄍㄛˇ</span>','<span class="bopomofo">ㄍㄜˊ</span>','<span class="bopomofo">ㄍㄜˇ</span>'], answer: 0, explain: '「嗰」<span class="bopomofo">ㄍㄛˊ</span>。' },
+            { q: '「佢哋」的「哋」注音是？', options: ['<span class="bopomofo">ㄉㄟˊ</span>','<span class="bopomofo">ㄉㄧˊ</span>','<span class="bopomofo">ㄉㄟˇ</span>','<span class="bopomofo">ㄉㄧˇ</span>'], answer: 0, explain: '「哋」<span class="bopomofo">ㄉㄟˊ</span>=們。' },
+            { q: '「我哋一齊去飲茶好唔好？」的「好唔好」注音是？', options: ['<span class="bopomofo">ㄏㄡˊ ㄇˊ ㄏㄡˊ</span>','<span class="bopomofo">ㄏㄠˇ ㄅㄨˋ ㄏㄠˇ</span>','<span class="bopomofo">ㄏㄡˇ ㄇˊ ㄏㄡˇ</span>','<span class="bopomofo">ㄏㄠˊ ㄇˊ ㄏㄠˊ</span>'], answer: 0, explain: '「好唔好」<span class="bopomofo">ㄏㄡˊ ㄇˊ ㄏㄡˊ</span>。' },
+            { q: '「呢度有冇人坐？」的「呢度」注音是？', options: ['<span class="bopomofo">ㄋㄧ ㄉㄡˊ</span>','<span class="bopomofo">ㄋㄧˇ ㄉㄨˋ</span>','<span class="bopomofo">ㄋㄧˊ ㄉㄡˊ</span>','<span class="bopomofo">ㄋㄧ ㄉㄨˊ</span>'], answer: 0, explain: '「呢度」<span class="bopomofo">ㄋㄧ ㄉㄡˊ</span>=這裡。' },
+            { q: '「我唔知點解佢咁嬲」的「咁」注音是？', options: ['<span class="bopomofo">ㄍㄢˇ</span>','<span class="bopomofo">ㄍㄢˋ</span>','<span class="bopomofo">ㄍㄢˊ</span>','<span class="bopomofo">ㄍㄢ</span>'], answer: 0, explain: '「咁」<span class="bopomofo">ㄍㄢˇ</span>=這麼。' },
+            { q: '「凍檸茶」的「凍」注音是？', options: ['<span class="bopomofo">ㄉㄨㄥˇ</span>','<span class="bopomofo">ㄉㄨㄥˋ</span>','<span class="bopomofo">ㄉㄨㄣˇ</span>','<span class="bopomofo">ㄉㄨㄣˋ</span>'], answer: 0, explain: '「凍」<span class="bopomofo">ㄉㄨㄥˇ</span>=冰。' },
+            { q: '「唔該，我要一杯凍檸茶」的「唔該」注音是？', options: ['<span class="bopomofo">ㄇˊ ㄍㄛㄧ</span>','<span class="bopomofo">ㄇˊ ㄍㄞ</span>','<span class="bopomofo">ㄇˋ ㄍㄛㄧ</span>','<span class="bopomofo">ㄇ ㄍㄛㄧ</span>'], answer: 0, explain: '「唔該」<span class="bopomofo">ㄇˊ ㄍㄛㄧ</span>。' }
+        ],
+        8: [
+            { q: '「佢嘅書喺檯面」的「檯」注音是？', options: ['<span class="bopomofo">ㄊㄛㄧˊ</span>','<span class="bopomofo">ㄊㄞˊ</span>','<span class="bopomofo">ㄊㄛㄧˇ</span>','<span class="bopomofo">ㄊㄞˇ</span>'], answer: 0, explain: '「檯」<span class="bopomofo">ㄊㄛㄧˊ</span>。' },
+            { q: '「我唔記得佢有冇嚟過」的「嚟」注音是？', options: ['<span class="bopomofo">ㄌㄞˊ</span>','<span class="bopomofo">ㄌㄞˋ</span>','<span class="bopomofo">ㄌㄟˊ</span>','<span class="bopomofo">ㄌㄟˋ</span>'], answer: 0, explain: '「嚟」<span class="bopomofo">ㄌㄞˊ</span>=來。' },
+            { q: '「呢個」的「個」注音是？', options: ['<span class="bopomofo">ㄍㄛˇ</span>','<span class="bopomofo">ㄍㄜˇ</span>','<span class="bopomofo">ㄍㄛˊ</span>','<span class="bopomofo">ㄍㄜˊ</span>'], answer: 0, explain: '「個」<span class="bopomofo">ㄍㄛˇ</span>。' },
+            { q: '「佢哋」的「佢」注音是？', options: ['<span class="bopomofo">ㄎㄩˊ</span>','<span class="bopomofo">ㄎㄨˊ</span>','<span class="bopomofo">ㄑㄩˊ</span>','<span class="bopomofo">ㄐㄩˊ</span>'], answer: 0, explain: '「佢」<span class="bopomofo">ㄎㄩˊ</span>。' },
+            { q: '「我哋一齊去飲茶好唔好？」的「一齊」注音是？', options: ['<span class="bopomofo">ㄧㄚㄇ ㄘㄞˊ</span>','<span class="bopomofo">ㄧ ㄑㄧˊ</span>','<span class="bopomofo">ㄧㄚㄇˇ ㄘㄞˊ</span>','<span class="bopomofo">ㄧˊ ㄑㄧˊ</span>'], answer: 0, explain: '「一齊」<span class="bopomofo">ㄧㄚㄇ ㄘㄞˊ</span>。' },
+            { q: '「呢度有冇人坐？」的「坐」注音是？', options: ['<span class="bopomofo">ㄘㄛˊ</span>','<span class="bopomofo">ㄗㄨㄛˋ</span>','<span class="bopomofo">ㄘㄛˇ</span>','<span class="bopomofo">ㄗㄨㄛˇ</span>'], answer: 0, explain: '「坐」<span class="bopomofo">ㄘㄛˊ</span>。' },
+            { q: '「我唔知點解佢咁嬲」的「嬲」注音是？', options: ['<span class="bopomofo">ㄋㄠ</span>','<span class="bopomofo">ㄋㄠˊ</span>','<span class="bopomofo">ㄋㄧㄠˇ</span>','<span class="bopomofo">ㄋㄧㄠˊ</span>'], answer: 0, explain: '「嬲」<span class="bopomofo">ㄋㄠ</span>=生氣。' },
+            { q: '「凍檸茶」的「檸」注音是？', options: ['<span class="bopomofo">ㄌㄧㄥˊ</span>','<span class="bopomofo">ㄋㄧㄥˊ</span>','<span class="bopomofo">ㄌㄧㄣˊ</span>','<span class="bopomofo">ㄋㄧㄣˊ</span>'], answer: 0, explain: '「檸」<span class="bopomofo">ㄌㄧㄥˊ</span>。' },
+            { q: '「唔使客氣」的「客氣」注音是？', options: ['<span class="bopomofo">ㄏㄚˇ ㄏㄟˇ</span>','<span class="bopomofo">ㄎㄝ ㄎㄧˊ</span>','<span class="bopomofo">ㄏㄝ ㄏㄧˊ</span>','<span class="bopomofo">ㄎㄚ ㄎㄟˊ</span>'], answer: 0, explain: '「客氣」<span class="bopomofo">ㄏㄚˇ ㄏㄟˇ</span>。' },
+            { q: '「早唞」的「早」注音是？', options: ['<span class="bopomofo">ㄗㄡˊ</span>','<span class="bopomofo">ㄗㄠˇ</span>','<span class="bopomofo">ㄗㄡˇ</span>','<span class="bopomofo">ㄗㄠˊ</span>'], answer: 0, explain: '「早」<span class="bopomofo">ㄗㄡˊ</span>。' }
+        ],
+        9: [
+            { q: '「佢嘅書喺檯面」的「喺」注音是？', options: ['<span class="bopomofo">ㄏㄞˊ</span>','<span class="bopomofo">ㄏㄞˋ</span>','<span class="bopomofo">ㄒㄧˋ</span>','<span class="bopomofo">ㄏㄟˊ</span>'], answer: 0, explain: '「喺」<span class="bopomofo">ㄏㄞˊ</span>=在。' },
+            { q: '「我唔記得佢有冇嚟過」的「記」注音是？', options: ['<span class="bopomofo">ㄍㄟˇ</span>','<span class="bopomofo">ㄐㄧˋ</span>','<span class="bopomofo">ㄍㄟˋ</span>','<span class="bopomofo">ㄐㄧˇ</span>'], answer: 0, explain: '「記」<span class="bopomofo">ㄍㄟˇ</span>。' },
+            { q: '「呢個」的「呢」注音是？', options: ['<span class="bopomofo">ㄋㄧ</span>','<span class="bopomofo">ㄋㄧˊ</span>','<span class="bopomofo">ㄋㄧˇ</span>','<span class="bopomofo">ㄋㄧˋ</span>'], answer: 0, explain: '「呢」<span class="bopomofo">ㄋㄧ</span>。' },
+            { q: '「嗰個」的「嗰」注音是？', options: ['<span class="bopomofo">ㄍㄛˊ</span>','<span class="bopomofo">ㄍㄛˇ</span>','<span class="bopomofo">ㄍㄜˊ</span>','<span class="bopomofo">ㄍㄜˇ</span>'], answer: 0, explain: '「嗰」<span class="bopomofo">ㄍㄛˊ</span>。' },
+            { q: '「佢哋」的「哋」注音是？', options: ['<span class="bopomofo">ㄉㄟˊ</span>','<span class="bopomofo">ㄉㄧˊ</span>','<span class="bopomofo">ㄉㄟˇ</span>','<span class="bopomofo">ㄉㄧˇ</span>'], answer: 0, explain: '「哋」<span class="bopomofo">ㄉㄟˊ</span>=們。' },
+            { q: '「我哋一齊去飲茶好唔好？」的「飲」注音是？', options: ['<span class="bopomofo">ㄧㄚㄇˊ</span>','<span class="bopomofo">ㄧㄣˇ</span>','<span class="bopomofo">ㄧㄚㄇˇ</span>','<span class="bopomofo">ㄧㄣˊ</span>'], answer: 0, explain: '「飲」<span class="bopomofo">ㄧㄚㄇˊ</span>，結尾閉唇 m。' },
+            { q: '「呢度有冇人坐？」的「有」注音是？', options: ['<span class="bopomofo">ㄧㄡˊ</span>','<span class="bopomofo">ㄧㄡˇ</span>','<span class="bopomofo">ㄧㄡˋ</span>','<span class="bopomofo">ㄧㄡ</span>'], answer: 0, explain: '「有」<span class="bopomofo">ㄧㄡˊ</span>。' },
+            { q: '「我唔知點解佢咁嬲」的「知」注音是？', options: ['<span class="bopomofo">ㄗㄧ</span>','<span class="bopomofo">ㄓㄧ</span>','<span class="bopomofo">ㄗㄧˊ</span>','<span class="bopomofo">ㄓㄧˊ</span>'], answer: 0, explain: '「知」<span class="bopomofo">ㄗㄧ</span>。' },
+            { q: '「凍檸茶」的「茶」注音是？', options: ['<span class="bopomofo">ㄘㄚˊ</span>','<span class="bopomofo">ㄔㄚˊ</span>','<span class="bopomofo">ㄘㄚˇ</span>','<span class="bopomofo">ㄔㄚˇ</span>'], answer: 0, explain: '「茶」<span class="bopomofo">ㄘㄚˊ</span>。' },
+            { q: '「唔該」的「該」注音是？', options: ['<span class="bopomofo">ㄍㄛㄧ</span>','<span class="bopomofo">ㄍㄞ</span>','<span class="bopomofo">ㄍㄛㄧˊ</span>','<span class="bopomofo">ㄍㄞˊ</span>'], answer: 0, explain: '「該」<span class="bopomofo">ㄍㄛㄧ</span>。' }
+        ],
+        10: [
+            { q: '「佢嘅書喺檯面」的「嘅」注音是？', options: ['<span class="bopomofo">ㄍㄝˇ</span>','<span class="bopomofo">ㄍㄜˇ</span>','<span class="bopomofo">ㄍㄝˊ</span>','<span class="bopomofo">ㄍㄜˊ</span>'], answer: 0, explain: '「嘅」<span class="bopomofo">ㄍㄝˇ</span>=的。' },
+            { q: '「我唔記得佢有冇嚟過」的「過」注音是？', options: ['<span class="bopomofo">ㄍㄛˇ</span>','<span class="bopomofo">ㄍㄨㄛˋ</span>','<span class="bopomofo">ㄍㄛˊ</span>','<span class="bopomofo">ㄍㄨㄛˇ</span>'], answer: 0, explain: '「過」<span class="bopomofo">ㄍㄛˇ</span>。' },
+            { q: '「呢個」的「個」注音是？', options: ['<span class="bopomofo">ㄍㄛˇ</span>','<span class="bopomofo">ㄍㄜˇ</span>','<span class="bopomofo">ㄍㄛˊ</span>','<span class="bopomofo">ㄍㄜˊ</span>'], answer: 0, explain: '「個」<span class="bopomofo">ㄍㄛˇ</span>。' },
+            { q: '「佢哋」的「佢」注音是？', options: ['<span class="bopomofo">ㄎㄩˊ</span>','<span class="bopomofo">ㄎㄨˊ</span>','<span class="bopomofo">ㄑㄩˊ</span>','<span class="bopomofo">ㄐㄩˊ</span>'], answer: 0, explain: '「佢」<span class="bopomofo">ㄎㄩˊ</span>。' },
+            { q: '「我哋一齊去飲茶好唔好？」的「茶」注音是？', options: ['<span class="bopomofo">ㄘㄚˊ</span>','<span class="bopomofo">ㄔㄚˊ</span>','<span class="bopomofo">ㄘㄚˇ</span>','<span class="bopomofo">ㄔㄚˇ</span>'], answer: 0, explain: '「茶」<span class="bopomofo">ㄘㄚˊ</span>。' },
+            { q: '「呢度有冇人坐？」的「度」注音是？', options: ['<span class="bopomofo">ㄉㄡˊ</span>','<span class="bopomofo">ㄉㄨˋ</span>','<span class="bopomofo">ㄉㄡˇ</span>','<span class="bopomofo">ㄉㄨˇ</span>'], answer: 0, explain: '「度」<span class="bopomofo">ㄉㄡˊ</span>。' },
+            { q: '「我唔知點解佢咁嬲」的「解」注音是？', options: ['<span class="bopomofo">ㄍㄞˊ</span>','<span class="bopomofo">ㄐㄧㄝˇ</span>','<span class="bopomofo">ㄍㄞˇ</span>','<span class="bopomofo">ㄐㄧㄝˊ</span>'], answer: 0, explain: '「解」<span class="bopomofo">ㄍㄞˊ</span>。' },
+            { q: '「凍檸茶」的「凍」注音是？', options: ['<span class="bopomofo">ㄉㄨㄥˇ</span>','<span class="bopomofo">ㄉㄨㄥˋ</span>','<span class="bopomofo">ㄉㄨㄣˇ</span>','<span class="bopomofo">ㄉㄨㄣˋ</span>'], answer: 0, explain: '「凍」<span class="bopomofo">ㄉㄨㄥˇ</span>=冰。' },
+            { q: '「唔使客氣」的「使」注音是？', options: ['<span class="bopomofo">ㄙㄞˊ</span>','<span class="bopomofo">ㄕˇ</span>','<span class="bopomofo">ㄙㄞˇ</span>','<span class="bopomofo">ㄕˊ</span>'], answer: 0, explain: '「使」<span class="bopomofo">ㄙㄞˊ</span>。' },
+            { q: '「對唔住」的「對」注音是？', options: ['<span class="bopomofo">ㄉㄨㄟˇ</span>','<span class="bopomofo">ㄉㄨㄟˋ</span>','<span class="bopomofo">ㄉㄨㄟˊ</span>','<span class="bopomofo">ㄉㄨㄟ</span>'], answer: 0, explain: '「對」<span class="bopomofo">ㄉㄨㄟˇ</span>。' }
+        ]
+    };
+
+    const levelNames = {
+        1: '粵語新手', 2: '問候達人', 3: '日常會話', 4: '句型基礎',
+        5: '發音入門', 6: '注音進階', 7: '粵字辨識', 8: '聲調掌握',
+        9: '流利對話', 10: '粵語大師'
+    };
+
+    const levelDescs = {
+        1: '認識最基本的粵語字與問候語',
+        2: '掌握唔該/多謝的差異與基礎問句',
+        3: '能理解日常對話與購物點餐',
+        4: '熟悉核心句型與文化差異',
+        5: '開始練習注音符號標註的發音',
+        6: '精準掌握粵語注音與入聲',
+        7: '辨識更多粵語字與其發音',
+        8: '掌握聲調與閉唇音細節',
+        9: '能理解複雜句型與發音',
+        10: '完全理解所有廣東話跟發音'
+    };
+
+    // ============================================================
+    // 狀態管理
+    // ============================================================
+    let currentLevel = 1;
+    let unlockedLevel = 1;
+    let submitted = false;
+    let currentQuestions = []; // 當前題目（已打亂選項）
+
+    const form = document.getElementById('quizForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const answeredCountSpan = document.getElementById('answeredCount');
+    const progressFill = document.getElementById('progressFill');
+    const resultPanel = document.getElementById('resultPanel');
+    const finalScoreSpan = document.getElementById('finalScore');
+    const resultComment = document.getElementById('resultComment');
+    const resultDetail = document.getElementById('resultDetail');
+    const resultEmoji = document.getElementById('resultEmoji');
+    const levelSelector = document.getElementById('levelSelector');
+    const levelName = document.getElementById('levelName');
+    const levelDesc = document.getElementById('levelDesc');
+    const levelUpBanner = document.getElementById('levelUpBanner');
+    const unlockHint = document.getElementById('unlockHint');
+
+    // ============================================================
+    // 工具函式
+    // ============================================================
+
+    // Fisher-Yates 洗牌
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    // 準備題目：打亂選項順序，並記錄正確答案的新位置
+    function prepareQuestions(level) {
+        const raw = questionBank[level];
+        return raw.map(item => {
+            // 建立索引陣列 [0,1,2,3]
+            const indices = item.options.map((_, i) => i);
+            // 打亂索引
+            const shuffledIndices = shuffle(indices);
+            // 根據打亂後的索引重建選項陣列
+            const shuffledOptions = shuffledIndices.map(i => item.options[i]);
+            // 找出正確答案在打亂後的新位置
+            const newAnswerIndex = shuffledIndices.indexOf(item.answer);
+            return {
+                q: item.q,
+                options: shuffledOptions,
+                answer: newAnswerIndex,
+                explain: item.explain
+            };
+        });
+    }
+
+    // 渲染等級按鈕
+    function renderLevelButtons() {
+        levelSelector.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'level-btn';
+            btn.textContent = i;
+            btn.dataset.level = i;
+            if (i === currentLevel) btn.classList.add('active');
+            if (i > unlockedLevel) {
+                btn.classList.add('locked');
+                const lock = document.createElement('span');
+                lock.className = 'lock-icon';
+                lock.textContent = '🔒';
+                btn.appendChild(lock);
+            }
+            btn.addEventListener('click', () => {
+                if (i > unlockedLevel) return;
+                switchLevel(i);
+            });
+            levelSelector.appendChild(btn);
+        }
+    }
+
+    // 切換等級
+    function switchLevel(level) {
+        currentLevel = level;
+        submitted = false;
+
+        // 更新等級資訊
+        levelName.textContent = `等級 ${level} · ${levelNames[level]}`;
+        levelDesc.textContent = levelDescs[level];
+
+        // 準備題目（打亂選項）
+        currentQuestions = prepareQuestions(level);
+
+        // 渲染題目
+        renderQuestions();
+
+        // 重置 UI
+        resultPanel.classList.remove('show');
+        levelUpBanner.classList.remove('show');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '提交評分';
+        resetBtn.style.display = 'none';
+        answeredCountSpan.textContent = '0';
+        progressFill.style.width = '0%';
+        unlockHint.textContent = `🔓 等級 ${unlockedLevel} 已解鎖，答對 8 題以上即可解鎖下一級`;
+
+        // 更新按鈕狀態
+        renderLevelButtons();
+
+        // 滾動到頂部
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 渲染題目
+    function renderQuestions() {
+        form.innerHTML = '';
+        currentQuestions.forEach((item, idx) => {
+            const qNum = idx + 1;
+            const quizItem = document.createElement('div');
+            quizItem.className = 'quiz-item';
+            quizItem.dataset.q = qNum;
+
+            // 題目
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question';
+            questionDiv.innerHTML = `<span class="num">${qNum}</span>${item.q}`;
+            quizItem.appendChild(questionDiv);
+
+            // 選項
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options';
+            item.options.forEach((opt, optIdx) => {
+                const label = document.createElement('label');
+                label.className = 'option';
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `q${qNum}`;
+                radio.value = optIdx;
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(' ' + opt));
+                optionsDiv.appendChild(label);
+            });
+            quizItem.appendChild(optionsDiv);
+
+            // 答案解析
+            const answerBox = document.createElement('div');
+            answerBox.className = 'answer-box';
+            answerBox.id = `ans${qNum}`;
+            const correctLetter = String.fromCharCode(65 + item.answer);
+            answerBox.innerHTML = `
+                <div class="label">✅ 正確答案：${correctLetter}. ${item.options[item.answer]}</div>
+                <div class="explain">${item.explain}</div>
+            `;
+            quizItem.appendChild(answerBox);
+
+            form.appendChild(quizItem);
+        });
+
+        // 綁定選項事件
+        form.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (submitted) return;
+                const name = this.name;
+                form.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+                    r.closest('.option').classList.remove('selected');
+                });
+                this.closest('.option').classList.add('selected');
+                updateProgress();
+            });
+        });
+    }
+
+    // 更新進度
+    function updateProgress() {
+        const selected = form.querySelectorAll('input[type="radio"]:checked');
+        const count = selected.length;
+        const total = currentQuestions.length;
+        answeredCountSpan.textContent = count;
+        progressFill.style.width = (count / total * 100) + '%';
+        submitBtn.disabled = (count < total) || submitted;
+    }
+
+    // 提交評分
+    function submitQuiz() {
+        if (submitted) return;
+        submitted = true;
+
+        let score = 0;
+        const total = currentQuestions.length;
+
+        currentQuestions.forEach((item, idx) => {
+            const qNum = idx + 1;
+            const selected = form.querySelector(`input[name="q${qNum}"]:checked`);
+            const quizItem = document.querySelector(`.quiz-item[data-q="${qNum}"]`);
+            const answerBox = document.getElementById(`ans${qNum}`);
+            const userAnswer = selected ? parseInt(selected.value) : null;
+            const correct = item.answer;
+
+            // 標記選項樣式
+            form.querySelectorAll(`input[name="q${qNum}"]`).forEach(radio => {
+                const label = radio.closest('.option');
+                label.classList.add('disabled');
+                const val = parseInt(radio.value);
+                if (val === correct) {
+                    label.classList.add('correct-answer');
+                }
+                if (userAnswer !== null && val === userAnswer && userAnswer !== correct) {
+                    label.classList.add('wrong-answer');
+                }
+            });
+
+            // 判斷對錯
+            if (userAnswer === correct) {
+                score++;
+                quizItem.classList.add('correct');
+            } else {
+                quizItem.classList.add('wrong');
+            }
+
+            // 顯示用戶答案
+            if (userAnswer !== null && userAnswer !== correct) {
+                const userAnsDiv = document.createElement('div');
+                userAnsDiv.className = 'user-answer';
+                userAnsDiv.textContent = `❌ 你選了：${String.fromCharCode(65 + userAnswer)}`;
+                answerBox.insertBefore(userAnsDiv, answerBox.querySelector('.explain'));
+            }
+            answerBox.classList.add('show');
+        });
+
+        // 顯示成績
+        finalScoreSpan.textContent = score;
+        resultPanel.classList.add('show');
+
+        const percentage = score / total;
+        if (percentage === 1) {
+            resultEmoji.textContent = '🏆';
+            resultComment.textContent = '完美！全部答對！';
+            resultDetail.textContent = '你對這個等級的內容完全掌握了。';
+        } else if (percentage >= 0.8) {
+            resultEmoji.textContent = '🌟';
+            resultComment.textContent = '太厲害了！只差一點就滿分！';
+            resultDetail.textContent = '你的粵語基礎非常紮實，繼續保持！';
+        } else if (percentage >= 0.6) {
+            resultEmoji.textContent = '😊';
+            resultComment.textContent = '不錯喔！再複習一下錯的題目。';
+            resultDetail.textContent = '把錯的題目再看一遍，會更上一層樓。';
+        } else {
+            resultEmoji.textContent = '📚';
+            resultComment.textContent = '別灰心，這個等級需要多練習！';
+            resultDetail.textContent = '建議重新看一遍教材，再挑戰一次。';
+        }
+
+        // 判斷是否解鎖下一級
+        if (score >= 8 && currentLevel === unlockedLevel && unlockedLevel < 10) {
+            unlockedLevel = currentLevel + 1;
+            levelUpBanner.textContent = `🎉 恭喜！你已解鎖等級 ${unlockedLevel}！`;
+            levelUpBanner.classList.add('show');
+            renderLevelButtons();
+            unlockHint.textContent = `🔓 等級 ${unlockedLevel} 已解鎖！繼續挑戰吧！`;
+        } else if (score >= 8 && currentLevel < 10) {
+            levelUpBanner.textContent = `🎉 這個等級你已經通過了！可以挑戰等級 ${currentLevel + 1} 了！`;
+            levelUpBanner.classList.add('show');
+        } else if (score >= 8 && currentLevel === 10) {
+            levelUpBanner.textContent = `🏆 太強了！你已經完全理解所有廣東話跟發音！`;
+            levelUpBanner.classList.add('show');
+        }
+
+        // 按鈕狀態
+        submitBtn.disabled = true;
+        submitBtn.textContent = '已評分';
+        resetBtn.style.display = 'inline-block';
+
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // 重新作答
+    function resetQuiz() {
+        submitted = false;
+        form.reset();
+        document.querySelectorAll('.quiz-item').forEach(item => {
+            item.classList.remove('correct', 'wrong');
+        });
+        document.querySelectorAll('.option').forEach(opt => {
+            opt.classList.remove('selected', 'correct-answer', 'wrong-answer', 'disabled');
+        });
+        document.querySelectorAll('.answer-box').forEach(box => {
+            box.classList.remove('show');
+            const userAns = box.querySelector('.user-answer');
+            if (userAns) userAns.remove();
+        });
+        resultPanel.classList.remove('show');
+        levelUpBanner.classList.remove('show');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '提交評分';
+        resetBtn.style.display = 'none';
+        answeredCountSpan.textContent = '0';
+        progressFill.style.width = '0%';
+
+        // 重新準備題目（再次打亂選項）
+        currentQuestions = prepareQuestions(currentLevel);
+        renderQuestions();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ============================================================
+    // 初始化
+    // ============================================================
+    function init() {
+        // 初始載入等級 1
+        switchLevel(1);
+
+        submitBtn.addEventListener('click', submitQuiz);
+        resetBtn.addEventListener('click', resetQuiz);
+    }
+
+    init();
+})();
+</script>
+</body>
+</html>
