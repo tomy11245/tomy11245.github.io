@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>網頁聊天室</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 90px;
+      background: #f7f7f8;
+    }
+    h2 { margin: 8px 0; font-size: 20px; }
+    #status {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 12px;
+      min-height: 18px;
+    }
+    #status.connected { color: #1a7f37; }
+    #status.disconnected { color: #cf222e; }
+    #messages {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #messages li {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      word-break: break-word;
+    }
+    #messages li .meta {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    #messages li .meta .name {
+      color: #0969da;
+      font-weight: 600;
+    }
+    form {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      background: #fff;
+      border-top: 1px solid #e5e5e5;
+    }
+    form input {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 16px;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      outline: none;
+    }
+    form input:focus { border-color: #0969da; }
+    form button {
+      padding: 10px 18px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #0969da;
+      color: #fff;
+      cursor: pointer;
+    }
+    form button:disabled { background: #b0b8c1; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <h2>網頁聊天室</h2>
+  <div id="status">連線中…</div>
+  <ul id="messages"></ul>
+
+  <form id="form">
+    <input id="input" autocomplete="off" placeholder="輸入訊息，按 Enter 送出" />
+    <button id="send" disabled>送出</button>
+  </form>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    // 把這裡換成你目前的 cloudflared 隧道位址，結尾不要加斜線
+    const SERVER_URL = "https://picnic-beginner-championships-payments.trycloudflare.co";
+
+    const statusEl = document.getElementById('status');
+    const messagesEl = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+
+    let socket = null;
+    let nickname = '';
+
+    function getNickname() {
+      let n = localStorage.getItem('chat_nickname');
+      if (!n) {
+        n = prompt('輸入一個暱稱：') || '匿名';
+        n = n.trim().slice(0, 20) || '匿名';
+        localStorage.setItem('chat_nickname', n);
+      }
+      return n;
+    }
+
+    function renderMessage(record) {
+      const li = document.createElement('li');
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = record.user || '匿名';
+
+      const time = document.createElement('span');
+      time.textContent = ' · ' + new Date(record.time).toLocaleTimeString();
+
+      meta.appendChild(name);
+      meta.appendChild(time);
+
+      const body = document.createElement('div');
+      body.textContent = record.text;
+
+      li.appendChild(meta);
+      li.appendChild(body);
+      messagesEl.appendChild(li);
+    }
+
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      statusEl.className = cls || '';
+    }
+
+    function init() {
+      if (!window.io) {
+        setStatus('Socket.IO 客戶端載入失敗，請檢查 CDN 是否可達', 'disconnected');
+        return;
+      }
+
+      nickname = getNickname();
+
+      socket = io(SERVER_URL, {
+        transports: ['websocket', 'polling'],
+        auth: { nickname: nickname }
+      });
+
+      socket.on('connect', () => {
+        setStatus('已連線 · ' + nickname, 'connected');
+        sendBtn.disabled = false;
+        input.focus();
+      });
+
+      socket.on('disconnect', (reason) => {
+        setStatus('連線斷開（' + reason + '），正在重連…', 'disconnected');
+        sendBtn.disabled = true;
+      });
+
+      socket.on('connect_error', (err) => {
+        setStatus('連線失敗：' + err.message, 'disconnected');
+        sendBtn.disabled = true;
+      });
+
+      socket.on('chat history', (history) => {
+        messagesEl.innerHTML = '';
+        if (Array.isArray(history)) {
+          history.forEach(renderMessage);
+        }
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on('chat message', (record) => {
+        renderMessage(record);
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text || !socket || !socket.connected) return;
+        socket.emit('chat message', text);
+        input.value = '';
+        input.focus();
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
