@@ -26,6 +26,16 @@
     #messages li img {
       max-width: 100%; border-radius: 6px; margin-top: 6px; display: block;
     }
+    /* 檔案下載樣式 */
+    .file-attachment {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 8px; padding: 8px 12px;
+      background: #f0f7ff; border: 1px solid #cce5ff;
+      border-radius: 6px; color: #0969da; text-decoration: none;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .file-attachment:hover { background: #e0efff; }
+    
     .toolbar {
       display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
     }
@@ -63,59 +73,25 @@
     }
     form button:disabled { background: #b0b8c1; cursor: not-allowed; }
 
-    /* ===== 右上角版本號 ===== */
     #versionBadge {
-      position: fixed;
-      top: 12px; right: 12px; z-index: 10000;
-      font-size: 12px; color: #666;
-      background: rgba(255,255,255,0.9);
-      border: 1px solid #e5e5e5;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      position: fixed; top: 12px; right: 12px; z-index: 10000;
+      font-size: 12px; color: #666; background: rgba(255,255,255,0.9);
+      border: 1px solid #e5e5e5; border-radius: 999px;
+      padding: 4px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
 
-    /* ===== 全屏截圖遮罩 ===== */
-    #captureOverlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 9999;
-      background: #000;
-      cursor: crosshair;
-      user-select: none;
-      overflow: hidden;
-    }
+    /* 截圖遮罩 CSS */
+    #captureOverlay { display: none; position: fixed; inset: 0; z-index: 9999; background: #000; cursor: crosshair; user-select: none; overflow: hidden; }
     #captureOverlay.active { display: block; }
-    
-    /* Canvas 強制填滿，圖片由 JS 運算繪製 */
-    #captureCanvas {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: contain;
-    }
-    
-    #selectionBox {
-      position: absolute;
-      border: 2px dashed #00e0ff;
-      background: rgba(0,224,255,0.12);
-      pointer-events: none;
-      display: none;
-    }
-    #captureHint {
-      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.7); color: #fff; padding: 8px 16px;
-      border-radius: 8px; font-size: 14px; pointer-events: none;
-    }
-    #captureCancel {
-      position: absolute; top: 16px; right: 16px;
-      padding: 6px 14px; background: #cf222e; color: #fff;
-      border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
-    }
-
+    #captureCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+    #selectionBox { position: absolute; border: 2px dashed #00e0ff; background: rgba(0,224,255,0.12); pointer-events: none; display: none; }
+    #captureHint { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 14px; pointer-events: none; }
+    #captureCancel { position: absolute; top: 16px; right: 16px; padding: 6px 14px; background: #cf222e; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
     body.capture-mode { overflow: hidden; }
   </style>
 </head>
 <body>
-  <div id="versionBadge">v1.0.2</div>
+  <div id="versionBadge">v1.2.0</div>
 
   <h2>即時留言聊天室</h2>
   <div id="status">連線中…</div>
@@ -126,6 +102,10 @@
       <input type="file" id="fileInput" accept="image/*" style="display:none" />
     </label>
     <button id="captureBtn" type="button">截取畫面</button>
+    <label id="docLabel">
+      上傳文件
+      <input type="file" id="docInput" style="display:none" />
+    </label>
   </div>
 
   <div id="preview">
@@ -151,8 +131,11 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
   <script>
-    const APP_VERSION = "v1.0.2";
+    const APP_VERSION = "v1.2.0";
     document.getElementById('versionBadge').textContent = APP_VERSION;
+
+    // 這裡填入你的 Worker 網址
+    const WORKER_URL = "https://r2-worker.keybe11245.workers.dev";
 
     const firebaseConfig = {
       databaseURL: "https://chatroom-415a9-default-rtdb.firebaseio.com"
@@ -164,6 +147,7 @@
     const input = document.getElementById('input');
     const sendBtn = document.getElementById('send');
     const fileInput = document.getElementById('fileInput');
+    const docInput = document.getElementById('docInput');
     const captureBtn = document.getElementById('captureBtn');
     const preview = document.getElementById('preview');
     const previewImg = document.getElementById('previewImg');
@@ -177,9 +161,9 @@
     let pendingImage = null;
     let messagesRef = null;
 
-    // 截圖專用變數
+    // 截圖變數
     let sourceImage = null; 
-    let renderRect = { x: 0, y: 0, w: 0, h: 0 }; // 圖片在 Canvas 上的真實渲染區域
+    let renderRect = { x: 0, y: 0, w: 0, h: 0 };
     let isDragging = false;
     let dragStart = { x: 0, y: 0 };
 
@@ -220,6 +204,7 @@
       previewImg.src = '';
       preview.style.display = 'none';
       fileInput.value = '';
+      docInput.value = '';
     }
 
     removePreview.addEventListener('click', clearPreview);
@@ -236,7 +221,51 @@
       }
     });
 
-    // ===== 全屏抓取 + 自訂範圍 =====
+    // 上傳文件處理
+    docInput.addEventListener('change', async () => {
+      const file = docInput.files[0];
+      if (!file) return;
+      
+      const text = input.value.trim();
+      input.value = '';
+
+      setStatus('文件上傳中，請稍候…', '');
+      
+      try {
+        // 1. 跟 Worker 請求上傳網址
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName: file.name, fileType: file.type })
+        });
+        
+        if (!res.ok) throw new Error('無法取得上傳授權');
+        const { uploadUrl, key } = await res.json();
+
+        // 2. 把檔案直接 PUT 到 R2
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type || 'application/octet-stream' }
+        });
+        
+        if (!uploadRes.ok) throw new Error('上傳至 R2 失敗，請檢查 CORS');
+
+        // 3. 將資料寫入 Firebase
+        const payload = { name: '匿名', time: Date.now(), fileKey: key, fileName: file.name };
+        if (text) payload.text = text.slice(0, 500);
+        
+        await messagesRef.push(payload);
+        
+        setStatus('已連線 · 即時同步中', 'ok');
+        docInput.value = '';
+      } catch (err) {
+        console.error('文件上傳失敗:', err);
+        setStatus('文件上傳失敗：' + err.message, 'err');
+      }
+    });
+
+    // ===== 截圖功能 =====
     function resetCaptureState() {
       overlay.classList.remove('active');
       document.body.classList.remove('capture-mode');
@@ -261,21 +290,17 @@
         await video.play();
         await new Promise(r => setTimeout(r, 200));
 
-        // 抓取原始畫面
         const off = document.createElement('canvas');
         off.width = video.videoWidth;
         off.height = video.videoHeight;
         off.getContext('2d').drawImage(video, 0, 0);
         
-        // 將原始畫面轉成 Image 物件，準備繪製到遮罩上
         sourceImage = new Image();
         sourceImage.src = off.toDataURL('image/png');
         
         sourceImage.onload = () => {
           document.body.classList.add('capture-mode');
           overlay.classList.add('active');
-          
-          // 等待瀏覽器把遮罩層渲染出來後，再進行精準繪製
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               drawCanvasToFit();
@@ -290,20 +315,17 @@
       }
     }
 
-    // 將圖片等比例繪製到 Canvas 中，並記錄真實的位置
     function drawCanvasToFit() {
       const dpr = window.devicePixelRatio || 1;
       const viewW = overlay.clientWidth;
       const viewH = overlay.clientHeight;
       
-      // 設定 Canvas 的物理像素大小，避免模糊
       captureCanvas.width = viewW * dpr;
       captureCanvas.height = viewH * dpr;
       
       const ctx = captureCanvas.getContext('2d');
       ctx.scale(dpr, dpr);
       
-      // 計算等比例縮放
       const imgW = sourceImage.width;
       const imgH = sourceImage.height;
       const scale = Math.min(viewW / imgW, viewH / imgH);
@@ -313,7 +335,6 @@
       const drawX = (viewW - drawW) / 2;
       const drawY = (viewH - drawH) / 2;
       
-      // 紀錄圖片實際渲染的區域（CSS像素座標）
       renderRect = { x: drawX, y: drawY, w: drawW, h: drawH };
       
       ctx.fillStyle = '#000';
@@ -323,7 +344,6 @@
 
     captureBtn.addEventListener('click', captureFullScreen);
 
-    // 限制滑鼠只能在圖片區域內拉框
     function clampCoords(x, y) {
       return {
         x: Math.max(renderRect.x, Math.min(x, renderRect.x + renderRect.w)),
@@ -333,12 +353,9 @@
 
     overlay.addEventListener('mousedown', (e) => {
       if (e.target === captureCancel) return;
-      
-      // 取得滑鼠相對於視窗的座標
       const mouseX = e.clientX;
       const mouseY = e.clientY;
 
-      // 如果點在黑邊，就不觸發
       if (mouseX < renderRect.x || mouseX > renderRect.x + renderRect.w ||
           mouseY < renderRect.y || mouseY > renderRect.y + renderRect.h) {
         return;
@@ -356,10 +373,7 @@
 
     overlay.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
-      
-      // 限制滑鼠不能超出圖片區域
       const cur = clampCoords(e.clientX, e.clientY);
-
       const left = Math.min(dragStart.x, cur.x);
       const top = Math.min(dragStart.y, cur.y);
       const width = Math.abs(cur.x - dragStart.x);
@@ -374,9 +388,7 @@
     overlay.addEventListener('mouseup', (e) => {
       if (!isDragging) return;
       isDragging = false;
-
       const cur = clampCoords(e.clientX, e.clientY);
-
       const left = Math.min(dragStart.x, cur.x);
       const top = Math.min(dragStart.y, cur.y);
       const width = Math.abs(cur.x - dragStart.x);
@@ -387,26 +399,23 @@
         return;
       }
 
-      // 計算這塊紅框佔了「渲染後的圖片」多少比例
       const relX = (left - renderRect.x) / renderRect.w;
       const relY = (top - renderRect.y) / renderRect.h;
       const relW = width / renderRect.w;
       const relH = height / renderRect.h;
 
-      // 根據比例，換算回「原始圖片的真實像素座標」
       const realX = relX * sourceImage.width;
       const realY = relY * sourceImage.height;
       const realW = relW * sourceImage.width;
       const realH = relH * sourceImage.height;
 
-      // 進行裁切
       const crop = document.createElement('canvas');
       crop.width = Math.round(realW);
       crop.height = Math.round(realH);
       crop.getContext('2d').drawImage(
         sourceImage, 
-        realX, realY, realW, realH, // 來源範圍
-        0, 0, crop.width, crop.height // 目標範圍
+        realX, realY, realW, realH,
+        0, 0, crop.width, crop.height
       );
 
       const base64 = crop.toDataURL('image/jpeg', 0.8);
@@ -414,14 +423,27 @@
       resetCaptureState();
     });
 
-    // 監聽視窗大小改變，即時重繪截圖
     window.addEventListener('resize', () => {
       if (overlay.classList.contains('active') && sourceImage) {
         drawCanvasToFit();
       }
     });
 
-    // ===== Firebase =====
+    // ===== 點擊下載檔案 =====
+    async function downloadFile(key, originalName) {
+      setStatus('正在準備下載…', '');
+      try {
+        // 因為 Worker 目前只寫了 POST，我們借用 POST 請求傳遞 key 來要下載網址 (或者直接在前端提示無法下載)
+        // 為了簡化，這裡我們假設 R2 可以直接用瀏覽器打開（如果你有設定的話）。
+        // 但如果是私有的，你需要 Worker 再寫一個 GET 路由。
+        // 這裡採用最簡單的提示，因為目前 Worker 沒有處理下載邏輯。
+        alert('私有 R2 檔案下載需要 Worker 額外支援，請先參考程式碼註解。');
+      } catch (e) {
+        alert('下載失敗');
+      }
+    }
+
+    // ===== Firebase 初始化與渲染 =====
     try {
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
@@ -461,6 +483,15 @@
               li.appendChild(img);
             }
 
+            // 顯示 R2 檔案連結
+            if (msg.fileKey) {
+              const a = document.createElement('a');
+              a.className = 'file-attachment';
+              a.innerHTML = `📄 ${msg.fileName || '下載檔案'}`;
+              a.onclick = () => downloadFile(msg.fileKey, msg.fileName);
+              li.appendChild(a);
+            }
+
             messagesEl.appendChild(li);
           });
         }
@@ -468,7 +499,8 @@
         window.scrollTo(0, document.body.scrollHeight);
         setStatus('已連線 · 即時同步中', 'ok');
         sendBtn.disabled = false;
-        uploadLabel.classList.remove('disabled');
+        document.getElementById('uploadLabel').classList.remove('disabled');
+        document.getElementById('docLabel').classList.remove('disabled');
         captureBtn.disabled = false;
       }, (error) => {
         console.error('監聽失敗:', error);
