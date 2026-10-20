@@ -157,8 +157,7 @@
 
     let sourceImageData = null;
     let isDragging = false;
-    let startX = 0, startY = 0;
-    let displayStartX = 0, displayStartY = 0;
+    let dragStartDisplay = { x: 0, y: 0 };
 
     function setStatus(text, cls) {
       statusEl.textContent = text;
@@ -223,7 +222,6 @@
 
     captureCancel.addEventListener('click', resetCaptureState);
 
-    // 抓整個螢幕（需使用者授權一次）
     async function captureFullScreen() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
         setStatus('此瀏覽器不支援螢幕擷取', 'err');
@@ -244,7 +242,6 @@
         off.getContext('2d').drawImage(video, 0, 0);
         sourceImageData = off;
 
-        // 顯示到遮罩 canvas
         captureCanvas.width = off.width;
         captureCanvas.height = off.height;
         captureCanvas.getContext('2d').drawImage(off, 0, 0);
@@ -279,15 +276,14 @@
       if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
 
       isDragging = true;
-      const p = toImageCoords(e.clientX, e.clientY);
-      startX = p.x;
-      startY = p.y;
-      displayStartX = e.clientX;
-      displayStartY = e.clientY;
+      dragStartDisplay = {
+        x: Math.min(Math.max(e.clientX, rect.left), rect.right),
+        y: Math.min(Math.max(e.clientY, rect.top), rect.bottom)
+      };
 
       selectionBox.style.display = 'block';
-      selectionBox.style.left = e.clientX + 'px';
-      selectionBox.style.top = e.clientY + 'px';
+      selectionBox.style.left = dragStartDisplay.x + 'px';
+      selectionBox.style.top = dragStartDisplay.y + 'px';
       selectionBox.style.width = '0px';
       selectionBox.style.height = '0px';
     });
@@ -296,34 +292,51 @@
       if (!isDragging) return;
       const rect = getCanvasRect();
 
-      const left = Math.max(rect.left, Math.min(e.clientX, rect.right));
-      const top = Math.max(rect.top, Math.min(e.clientY, rect.bottom));
+      const curX = Math.min(Math.max(e.clientX, rect.left), rect.right);
+      const curY = Math.min(Math.max(e.clientY, rect.top), rect.bottom);
 
-      selectionBox.style.left = Math.min(left, displayStartX) + 'px';
-      selectionBox.style.top = Math.min(top, displayStartY) + 'px';
-      selectionBox.style.width = Math.abs(left - displayStartX) + 'px';
-      selectionBox.style.height = Math.abs(top - displayStartY) + 'px';
+      const left = Math.min(dragStartDisplay.x, curX);
+      const top = Math.min(dragStartDisplay.y, curY);
+      const width = Math.abs(curX - dragStartDisplay.x);
+      const height = Math.abs(curY - dragStartDisplay.y);
+
+      selectionBox.style.left = left + 'px';
+      selectionBox.style.top = top + 'px';
+      selectionBox.style.width = width + 'px';
+      selectionBox.style.height = height + 'px';
     });
 
     overlay.addEventListener('mouseup', (e) => {
       if (!isDragging) return;
       isDragging = false;
 
-      const p = toImageCoords(e.clientX, e.clientY);
-      const x = Math.min(p.x, startX);
-      const y = Math.min(p.y, startY);
-      const w = Math.abs(p.x - startX);
-      const h = Math.abs(p.y - startY);
+      const rect = getCanvasRect();
+      const endX = Math.min(Math.max(e.clientX, rect.left), rect.right);
+      const endY = Math.min(Math.max(e.clientY, rect.top), rect.bottom);
 
-      if (w < 5 || h < 5) {
+      const left = Math.min(dragStartDisplay.x, endX);
+      const top = Math.min(dragStartDisplay.y, endY);
+      const width = Math.abs(endX - dragStartDisplay.x);
+      const height = Math.abs(endY - dragStartDisplay.y);
+
+      if (width < 5 || height < 5) {
         resetCaptureState();
         return;
       }
 
+      // 用选框两个角换算成图片像素坐标，避免黑边导致偏移
+      const p1 = toImageCoords(left, top);
+      const p2 = toImageCoords(left + width, top + height);
+
+      const x = Math.min(p1.x, p2.x);
+      const y = Math.min(p1.y, p2.y);
+      const w = Math.abs(p2.x - p1.x);
+      const h = Math.abs(p2.y - p1.y);
+
       const crop = document.createElement('canvas');
-      crop.width = w;
-      crop.height = h;
-      crop.getContext('2d').drawImage(sourceImageData, x, y, w, h, 0, 0, w, h);
+      crop.width = Math.round(w);
+      crop.height = Math.round(h);
+      crop.getContext('2d').drawImage(sourceImageData, x, y, w, h, 0, 0, crop.width, crop.height);
 
       const base64 = crop.toDataURL('image/jpeg', 0.7);
       showPreview(base64);
