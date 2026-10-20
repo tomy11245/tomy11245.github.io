@@ -62,6 +62,37 @@
       border-radius: 8px; background: #0969da; color: #fff; cursor: pointer;
     }
     form button:disabled { background: #b0b8c1; cursor: not-allowed; }
+
+    /* ===== 截圖選取遮罩層 ===== */
+    #captureOverlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.85);
+      cursor: crosshair;
+      user-select: none;
+    }
+    #captureOverlay.active { display: block; }
+    #captureCanvas {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: contain;
+    }
+    #selectionBox {
+      position: absolute;
+      border: 2px dashed #00e0ff;
+      background: rgba(0,224,255,0.12);
+      pointer-events: none;
+      display: none;
+    }
+    #captureHint {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.7); color: #fff; padding: 8px 16px;
+      border-radius: 8px; font-size: 14px; pointer-events: none;
+    }
+    #captureCancel {
+      position: absolute; top: 16px; right: 16px;
+      padding: 6px 14px; background: #cf222e; color: #fff;
+      border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -73,7 +104,7 @@
       上傳圖片
       <input type="file" id="fileInput" accept="image/*" style="display:none" />
     </label>
-    <button id="captureBtn" type="button">截取螢幕</button>
+    <button id="captureBtn" type="button">截取畫面範圍</button>
   </div>
 
   <div id="preview">
@@ -87,6 +118,14 @@
     <input id="input" autocomplete="off" placeholder="輸入留言，按 Enter 送出" />
     <button id="send" disabled>送出</button>
   </form>
+
+  <!-- 截圖遮罩層 -->
+  <div id="captureOverlay">
+    <canvas id="captureCanvas"></canvas>
+    <div id="selectionBox"></div>
+    <div id="captureHint">按住滑鼠拖曳，框選要截取的範圍</div>
+    <button id="captureCancel" type="button">取消</button>
+  </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
@@ -108,15 +147,25 @@
     const previewImg = document.getElementById('previewImg');
     const removePreview = document.getElementById('removePreview');
 
-    let pendingImage = null;   // 待送出的 Base64 圖片
+    const overlay = document.getElementById('captureOverlay');
+    const captureCanvas = document.getElementById('captureCanvas');
+    const selectionBox = document.getElementById('selectionBox');
+    const captureCancel = document.getElementById('captureCancel');
+
+    let pendingImage = null;
     let messagesRef = null;
+
+    // 截圖狀態
+    let fullImage = null;        // 目前抓到的完整畫面（Image 物件）
+    let sourceImageData = null;  // 用來裁切的原始 canvas
+    let isDragging = false;
+    let startX = 0, startY = 0;
 
     function setStatus(text, cls) {
       statusEl.textContent = text;
       statusEl.className = cls || '';
     }
 
-    // 把圖片壓縮成 Base64，控制大小避免超過 Firebase 單筆限制
     function compressImage(fileOrBlob, maxWidth = 800, quality = 0.7) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -127,8 +176,7 @@
             const canvas = document.createElement('canvas');
             canvas.width = Math.round(img.width * scale);
             canvas.height = Math.round(img.height * scale);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
             resolve(canvas.toDataURL('image/jpeg', quality));
           };
           img.onerror = reject;
@@ -167,10 +215,20 @@
       }
     });
 
-    // 截取螢幕畫面
+    // ===== 截取自訂範圍 =====
+    function resetCaptureState() {
+      overlay.classList.remove('active');
+      selectionBox.style.display = 'none';
+      isDragging = false;
+      fullImage = null;
+      sourceImageData = null;
+    }
+
+    captureCancel.addEventListener('click', resetCaptureState);
+
     captureBtn.addEventListener('click', async () => {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-        setStatus('此瀏覽器不支援螢幕截取', 'err');
+        setStatus('此瀏覽器不支援螢幕擷取', 'err');
         return;
       }
       let stream = null;
@@ -180,27 +238,118 @@
         const video = document.createElement('video');
         video.srcObject = stream;
         await video.play();
-
-        // 等一幀畫面穩定
         await new Promise(r => setTimeout(r, 200));
 
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
+        // 把整張畫面畫到離屏 canvas
+        const off = document.createElement('canvas');
+        off.width = video.videoWidth;
+        off.height = video.videoHeight;
+        off.getContext('2d').drawImage(video, 0, 0);
+        sourceImageData = off;
 
-        const base64 = canvas.toDataURL('image/jpeg', 0.7);
-        showPreview(base64);
+        // 顯示到遮罩上的 canvas
+        fullImage = new Image();
+        fullImage.onload = () => {
+          captureCanvas.width = fullImage.width;
+          captureCanvas.height = fullImage.height;
+          captureCanvas.getContext('2d').drawImage(fullImage, 0, 0);
+          overlay.classList.add('active');
+        };
+        fullImage.src = off.toDataURL('image/png');
       } catch (e) {
         console.error('截圖失敗:', e);
-        if (e.name !== 'NotAllowedError') {
-          setStatus('截圖失敗：' + e.message, 'err');
-        }
+        if (e.name !== 'NotAllowedError') setStatus('截圖失敗：' + e.message, 'err');
       } finally {
         if (stream) stream.getTracks().forEach(t => t.stop());
       }
     });
 
+    // 讓 canvas 依容器大小等比例縮放，取得實際顯示座標
+    function getCanvasRect() {
+      return captureCanvas.getBoundingClientRect();
+    }
+
+    // 把滑鼠座標換算成原始圖片的像素座標
+    function toImageCoords(clientX, clientY) {
+      const rect = getCanvasRect();
+      const scaleX = captureCanvas.width / rect.width;
+      const scaleY = captureCanvas.height / rect.height;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    overlay.addEventListener('mousedown', (e) => {
+      if (e.target === captureCancel) return;
+      const rect = getCanvasRect();
+      // 點在圖片顯示區外就不開始
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+
+      isDragging = true;
+      const p = toImageCoords(e.clientX, e.clientY);
+      startX = p.x;
+      startY = p.y;
+
+      selectionBox.style.display = 'block';
+      selectionBox.style.left = (e.clientX - rect.left) + 'px';
+      selectionBox.style.top = (e.clientY - rect.top) + 'px';
+      selectionBox.style.width = '0px';
+      selectionBox.style.height = '0px';
+    });
+
+    overlay.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const rect = getCanvasRect();
+      const p = toImageCoords(e.clientX, e.clientY);
+      const displayX = Math.min(e.clientX, rect.left + (startX / (captureCanvas.width / rect.width)));
+      const displayY = Math.min(e.clientY, rect.top + (startY / (captureCanvas.height / rect.height)));
+
+      const x = Math.min(p.x, startX);
+      const y = Math.min(p.y, startY);
+      const w = Math.abs(p.x - startX);
+      const h = Math.abs(p.y - startY);
+
+      // 以顯示座標畫框，範圍限制在圖片區內
+      const left = Math.max(rect.left, Math.min(e.clientX, rect.left + rect.width));
+      const top = Math.max(rect.top, Math.min(e.clientY, rect.top + rect.height));
+      const startDisplayX = rect.left + (startX / (captureCanvas.width / rect.width));
+      const startDisplayY = rect.top + (startY / (captureCanvas.height / rect.height));
+
+      selectionBox.style.left = Math.min(left, startDisplayX) + 'px';
+      selectionBox.style.top = Math.min(top, startDisplayY) + 'px';
+      selectionBox.style.width = Math.abs(left - startDisplayX) + 'px';
+      selectionBox.style.height = Math.abs(top - startDisplayY) + 'px';
+    });
+
+    overlay.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+
+      const p = toImageCoords(e.clientX, e.clientY);
+      const x = Math.min(p.x, startX);
+      const y = Math.min(p.y, startY);
+      const w = Math.abs(p.x - startX);
+      const h = Math.abs(p.y - startY);
+
+      if (w < 5 || h < 5) {
+        // 太小視為誤點，取消
+        resetCaptureState();
+        return;
+      }
+
+      // 從原始畫面裁切
+      const crop = document.createElement('canvas');
+      crop.width = w;
+      crop.height = h;
+      crop.getContext('2d').drawImage(sourceImageData, x, y, w, h, 0, 0, w, h);
+
+      const base64 = crop.toDataURL('image/jpeg', 0.7);
+      showPreview(base64);
+      resetCaptureState();
+    });
+
+    // ===== Firebase =====
     try {
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
@@ -213,22 +362,25 @@
         if (data) {
           Object.entries(data).forEach(([id, msg]) => {
             const li = document.createElement('li');
-
             const meta = document.createElement('div');
             meta.className = 'meta';
+
             const name = document.createElement('span');
             name.className = 'name';
             name.textContent = '匿名';
+
             const time = document.createElement('span');
             time.textContent = ' · ' + new Date(msg.time || Date.now()).toLocaleTimeString();
+
             meta.appendChild(name);
             meta.appendChild(time);
-
-            const body = document.createElement('div');
-            if (msg.text) body.textContent = msg.text;
-
             li.appendChild(meta);
-            li.appendChild(body);
+
+            if (msg.text) {
+              const body = document.createElement('div');
+              body.textContent = msg.text;
+              li.appendChild(body);
+            }
 
             if (msg.image) {
               const img = document.createElement('img');
@@ -257,10 +409,7 @@
         const text = input.value.trim();
         if (!text && !pendingImage) return;
 
-        const payload = {
-          name: '匿名',
-          time: Date.now()
-        };
+        const payload = { name: '匿名', time: Date.now() };
         if (text) payload.text = text.slice(0, 500);
         if (pendingImage) payload.image = pendingImage;
 
