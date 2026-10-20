@@ -242,14 +242,17 @@
         if (!res.ok) throw new Error('無法取得上傳授權');
         const { uploadUrl, key } = await res.json();
 
-        // 2. 把檔案直接 PUT 到 R2
-        const uploadRes = await fetch(uploadUrl, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type || 'application/octet-stream' }
+        // 2. 直接把檔案傳給 Worker，讓 Worker 幫我們傳到 R2
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('uploadUrl', uploadUrl);
+
+        const uploadRes = await fetch(WORKER_URL + "/upload", {
+          method: 'POST',
+          body: formData
         });
         
-        if (!uploadRes.ok) throw new Error('上傳至 R2 失敗，請檢查 CORS');
+        if (!uploadRes.ok) throw new Error('上傳至 R2 失敗，請檢查 Worker');
 
         // 3. 將資料寫入 Firebase
         const payload = { name: '匿名', time: Date.now(), fileKey: key, fileName: file.name };
