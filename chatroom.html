@@ -66,11 +66,8 @@
     /* ===== 右上角版本號 ===== */
     #versionBadge {
       position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 10000;
-      font-size: 12px;
-      color: #666;
+      top: 12px; right: 12px; z-index: 10000;
+      font-size: 12px; color: #666;
       background: rgba(255,255,255,0.9);
       border: 1px solid #e5e5e5;
       border-radius: 999px;
@@ -85,12 +82,17 @@
       background: #000;
       cursor: crosshair;
       user-select: none;
+      overflow: hidden;
     }
     #captureOverlay.active { display: block; }
+    
+    /* Canvas 強制填滿，圖片由 JS 運算繪製 */
     #captureCanvas {
-      position: absolute; inset: 0; width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
       object-fit: contain;
     }
+    
     #selectionBox {
       position: absolute;
       border: 2px dashed #00e0ff;
@@ -108,10 +110,12 @@
       padding: 6px 14px; background: #cf222e; color: #fff;
       border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
     }
+
+    body.capture-mode { overflow: hidden; }
   </style>
 </head>
 <body>
-  <div id="versionBadge">v0.0.0</div>
+  <div id="versionBadge">v1.0.2</div>
 
   <h2>即時留言聊天室</h2>
   <div id="status">連線中…</div>
@@ -136,7 +140,6 @@
     <button id="send" disabled>送出</button>
   </form>
 
-  <!-- 截圖遮罩層 -->
   <div id="captureOverlay">
     <canvas id="captureCanvas"></canvas>
     <div id="selectionBox"></div>
@@ -148,8 +151,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
   <script>
-    // ===== 版本號：每次改前端時更新這裡 =====
-    const APP_VERSION = "v1.0.0";
+    const APP_VERSION = "v1.0.2";
     document.getElementById('versionBadge').textContent = APP_VERSION;
 
     const firebaseConfig = {
@@ -162,7 +164,6 @@
     const input = document.getElementById('input');
     const sendBtn = document.getElementById('send');
     const fileInput = document.getElementById('fileInput');
-    const uploadLabel = document.getElementById('uploadLabel');
     const captureBtn = document.getElementById('captureBtn');
     const preview = document.getElementById('preview');
     const previewImg = document.getElementById('previewImg');
@@ -176,9 +177,11 @@
     let pendingImage = null;
     let messagesRef = null;
 
-    let sourceImageData = null;
+    // 截圖專用變數
+    let sourceImage = null; 
+    let renderRect = { x: 0, y: 0, w: 0, h: 0 }; // 圖片在 Canvas 上的真實渲染區域
     let isDragging = false;
-    let dragStartDisplay = { x: 0, y: 0 };
+    let dragStart = { x: 0, y: 0 };
 
     function setStatus(text, cls) {
       statusEl.textContent = text;
@@ -236,9 +239,10 @@
     // ===== 全屏抓取 + 自訂範圍 =====
     function resetCaptureState() {
       overlay.classList.remove('active');
+      document.body.classList.remove('capture-mode');
       selectionBox.style.display = 'none';
       isDragging = false;
-      sourceImageData = null;
+      sourceImage = null;
     }
 
     captureCancel.addEventListener('click', resetCaptureState);
@@ -257,16 +261,27 @@
         await video.play();
         await new Promise(r => setTimeout(r, 200));
 
+        // 抓取原始畫面
         const off = document.createElement('canvas');
         off.width = video.videoWidth;
         off.height = video.videoHeight;
         off.getContext('2d').drawImage(video, 0, 0);
-        sourceImageData = off;
-
-        captureCanvas.width = off.width;
-        captureCanvas.height = off.height;
-        captureCanvas.getContext('2d').drawImage(off, 0, 0);
-        overlay.classList.add('active');
+        
+        // 將原始畫面轉成 Image 物件，準備繪製到遮罩上
+        sourceImage = new Image();
+        sourceImage.src = off.toDataURL('image/png');
+        
+        sourceImage.onload = () => {
+          document.body.classList.add('capture-mode');
+          overlay.classList.add('active');
+          
+          // 等待瀏覽器把遮罩層渲染出來後，再進行精準繪製
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              drawCanvasToFit();
+            });
+          });
+        };
       } catch (e) {
         console.error('截圖失敗:', e);
         if (e.name !== 'NotAllowedError') setStatus('截圖失敗：' + e.message, 'err');
@@ -275,51 +290,80 @@
       }
     }
 
-    captureBtn.addEventListener('click', captureFullScreen);
-
-    function getCanvasRect() {
-      return captureCanvas.getBoundingClientRect();
+    // 將圖片等比例繪製到 Canvas 中，並記錄真實的位置
+    function drawCanvasToFit() {
+      const dpr = window.devicePixelRatio || 1;
+      const viewW = overlay.clientWidth;
+      const viewH = overlay.clientHeight;
+      
+      // 設定 Canvas 的物理像素大小，避免模糊
+      captureCanvas.width = viewW * dpr;
+      captureCanvas.height = viewH * dpr;
+      
+      const ctx = captureCanvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      
+      // 計算等比例縮放
+      const imgW = sourceImage.width;
+      const imgH = sourceImage.height;
+      const scale = Math.min(viewW / imgW, viewH / imgH);
+      
+      const drawW = imgW * scale;
+      const drawH = imgH * scale;
+      const drawX = (viewW - drawW) / 2;
+      const drawY = (viewH - drawH) / 2;
+      
+      // 紀錄圖片實際渲染的區域（CSS像素座標）
+      renderRect = { x: drawX, y: drawY, w: drawW, h: drawH };
+      
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, viewW, viewH);
+      ctx.drawImage(sourceImage, drawX, drawY, drawW, drawH);
     }
 
-    function toImageCoords(clientX, clientY) {
-      const rect = getCanvasRect();
-      const scaleX = captureCanvas.width / rect.width;
-      const scaleY = captureCanvas.height / rect.height;
+    captureBtn.addEventListener('click', captureFullScreen);
+
+    // 限制滑鼠只能在圖片區域內拉框
+    function clampCoords(x, y) {
       return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY
+        x: Math.max(renderRect.x, Math.min(x, renderRect.x + renderRect.w)),
+        y: Math.max(renderRect.y, Math.min(y, renderRect.y + renderRect.h))
       };
     }
 
     overlay.addEventListener('mousedown', (e) => {
       if (e.target === captureCancel) return;
-      const rect = getCanvasRect();
-      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      
+      // 取得滑鼠相對於視窗的座標
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      // 如果點在黑邊，就不觸發
+      if (mouseX < renderRect.x || mouseX > renderRect.x + renderRect.w ||
+          mouseY < renderRect.y || mouseY > renderRect.y + renderRect.h) {
+        return;
+      }
 
       isDragging = true;
-      dragStartDisplay = {
-        x: Math.min(Math.max(e.clientX, rect.left), rect.right),
-        y: Math.min(Math.max(e.clientY, rect.top), rect.bottom)
-      };
+      dragStart = { x: mouseX, y: mouseY };
 
       selectionBox.style.display = 'block';
-      selectionBox.style.left = dragStartDisplay.x + 'px';
-      selectionBox.style.top = dragStartDisplay.y + 'px';
+      selectionBox.style.left = mouseX + 'px';
+      selectionBox.style.top = mouseY + 'px';
       selectionBox.style.width = '0px';
       selectionBox.style.height = '0px';
     });
 
     overlay.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
-      const rect = getCanvasRect();
+      
+      // 限制滑鼠不能超出圖片區域
+      const cur = clampCoords(e.clientX, e.clientY);
 
-      const curX = Math.min(Math.max(e.clientX, rect.left), rect.right);
-      const curY = Math.min(Math.max(e.clientY, rect.top), rect.bottom);
-
-      const left = Math.min(dragStartDisplay.x, curX);
-      const top = Math.min(dragStartDisplay.y, curY);
-      const width = Math.abs(curX - dragStartDisplay.x);
-      const height = Math.abs(curY - dragStartDisplay.y);
+      const left = Math.min(dragStart.x, cur.x);
+      const top = Math.min(dragStart.y, cur.y);
+      const width = Math.abs(cur.x - dragStart.x);
+      const height = Math.abs(cur.y - dragStart.y);
 
       selectionBox.style.left = left + 'px';
       selectionBox.style.top = top + 'px';
@@ -331,36 +375,50 @@
       if (!isDragging) return;
       isDragging = false;
 
-      const rect = getCanvasRect();
-      const endX = Math.min(Math.max(e.clientX, rect.left), rect.right);
-      const endY = Math.min(Math.max(e.clientY, rect.top), rect.bottom);
+      const cur = clampCoords(e.clientX, e.clientY);
 
-      const left = Math.min(dragStartDisplay.x, endX);
-      const top = Math.min(dragStartDisplay.y, endY);
-      const width = Math.abs(endX - dragStartDisplay.x);
-      const height = Math.abs(endY - dragStartDisplay.y);
+      const left = Math.min(dragStart.x, cur.x);
+      const top = Math.min(dragStart.y, cur.y);
+      const width = Math.abs(cur.x - dragStart.x);
+      const height = Math.abs(cur.y - dragStart.y);
 
       if (width < 5 || height < 5) {
         resetCaptureState();
         return;
       }
 
-      const p1 = toImageCoords(left, top);
-      const p2 = toImageCoords(left + width, top + height);
+      // 計算這塊紅框佔了「渲染後的圖片」多少比例
+      const relX = (left - renderRect.x) / renderRect.w;
+      const relY = (top - renderRect.y) / renderRect.h;
+      const relW = width / renderRect.w;
+      const relH = height / renderRect.h;
 
-      const x = Math.min(p1.x, p2.x);
-      const y = Math.min(p1.y, p2.y);
-      const w = Math.abs(p2.x - p1.x);
-      const h = Math.abs(p2.y - p1.y);
+      // 根據比例，換算回「原始圖片的真實像素座標」
+      const realX = relX * sourceImage.width;
+      const realY = relY * sourceImage.height;
+      const realW = relW * sourceImage.width;
+      const realH = relH * sourceImage.height;
 
+      // 進行裁切
       const crop = document.createElement('canvas');
-      crop.width = Math.round(w);
-      crop.height = Math.round(h);
-      crop.getContext('2d').drawImage(sourceImageData, x, y, w, h, 0, 0, crop.width, crop.height);
+      crop.width = Math.round(realW);
+      crop.height = Math.round(realH);
+      crop.getContext('2d').drawImage(
+        sourceImage, 
+        realX, realY, realW, realH, // 來源範圍
+        0, 0, crop.width, crop.height // 目標範圍
+      );
 
-      const base64 = crop.toDataURL('image/jpeg', 0.7);
+      const base64 = crop.toDataURL('image/jpeg', 0.8);
       showPreview(base64);
       resetCaptureState();
+    });
+
+    // 監聽視窗大小改變，即時重繪截圖
+    window.addEventListener('resize', () => {
+      if (overlay.classList.contains('active') && sourceImage) {
+        drawCanvasToFit();
+      }
     });
 
     // ===== Firebase =====
