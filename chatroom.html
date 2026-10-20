@@ -436,7 +436,7 @@
     async function downloadFile(key, originalName) {
       setStatus('正在準備下載…', '');
       try {
-        // 向 Worker 請求臨時下載網址
+        // 1. 向 Worker 請求臨時下載網址
         const res = await fetch(WORKER_URL + "/download", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -446,13 +446,22 @@
         if (!res.ok) throw new Error('取得下載網址失敗');
         const { downloadUrl } = await res.json();
 
-        // 建立一個隱藏的 a 標籤來觸發下載
+        // 2. 用 fetch 把檔案抓下來，轉成 Blob
+        const fileRes = await fetch(downloadUrl);
+        if (!fileRes.ok) throw new Error('檔案下載失敗');
+        const blob = await fileRes.blob();
+        
+        // 3. 把 Blob 轉成瀏覽器本地網址並強制下載
+        const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = originalName; // 提示瀏覽器下載時使用的檔名
+        a.href = blobUrl;
+        a.download = originalName; // 強制使用原始檔名下載
         document.body.appendChild(a);
         a.click();
+        
+        // 清理記憶體
         document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
 
         setStatus('已連線 · 即時同步中', 'ok');
       } catch (e) {
