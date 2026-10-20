@@ -436,13 +436,29 @@
     async function downloadFile(key, originalName) {
       setStatus('正在準備下載…', '');
       try {
-        // 因為 Worker 目前只寫了 POST，我們借用 POST 請求傳遞 key 來要下載網址 (或者直接在前端提示無法下載)
-        // 為了簡化，這裡我們假設 R2 可以直接用瀏覽器打開（如果你有設定的話）。
-        // 但如果是私有的，你需要 Worker 再寫一個 GET 路由。
-        // 這裡採用最簡單的提示，因為目前 Worker 沒有處理下載邏輯。
-        alert('私有 R2 檔案下載需要 Worker 額外支援，請先參考程式碼註解。');
+        // 向 Worker 請求臨時下載網址
+        const res = await fetch(WORKER_URL + "/download", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: key })
+        });
+
+        if (!res.ok) throw new Error('取得下載網址失敗');
+        const { downloadUrl } = await res.json();
+
+        // 建立一個隱藏的 a 標籤來觸發下載
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = originalName; // 提示瀏覽器下載時使用的檔名
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        setStatus('已連線 · 即時同步中', 'ok');
       } catch (e) {
-        alert('下載失敗');
+        console.error('下載失敗:', e);
+        setStatus('下載失敗', 'err');
+        alert('下載失敗：' + e.message);
       }
     }
 
