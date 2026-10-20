@@ -63,17 +63,17 @@
     }
     form button:disabled { background: #b0b8c1; cursor: not-allowed; }
 
-    /* ===== 截圖選取遮罩層 ===== */
+    /* ===== 全屏截圖遮罩 ===== */
     #captureOverlay {
       display: none;
       position: fixed; inset: 0; z-index: 9999;
-      background: rgba(0,0,0,0.85);
+      background: #000;
       cursor: crosshair;
       user-select: none;
     }
     #captureOverlay.active { display: block; }
     #captureCanvas {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: contain;
     }
     #selectionBox {
@@ -104,7 +104,7 @@
       上傳圖片
       <input type="file" id="fileInput" accept="image/*" style="display:none" />
     </label>
-    <button id="captureBtn" type="button">截取畫面範圍</button>
+    <button id="captureBtn" type="button">截取畫面</button>
   </div>
 
   <div id="preview">
@@ -155,11 +155,10 @@
     let pendingImage = null;
     let messagesRef = null;
 
-    // 截圖狀態
-    let fullImage = null;        // 目前抓到的完整畫面（Image 物件）
-    let sourceImageData = null;  // 用來裁切的原始 canvas
+    let sourceImageData = null;
     let isDragging = false;
     let startX = 0, startY = 0;
+    let displayStartX = 0, displayStartY = 0;
 
     function setStatus(text, cls) {
       statusEl.textContent = text;
@@ -202,7 +201,6 @@
 
     removePreview.addEventListener('click', clearPreview);
 
-    // 上傳本地圖片
     fileInput.addEventListener('change', async () => {
       const file = fileInput.files[0];
       if (!file) return;
@@ -215,18 +213,18 @@
       }
     });
 
-    // ===== 截取自訂範圍 =====
+    // ===== 全屏抓取 + 自訂範圍 =====
     function resetCaptureState() {
       overlay.classList.remove('active');
       selectionBox.style.display = 'none';
       isDragging = false;
-      fullImage = null;
       sourceImageData = null;
     }
 
     captureCancel.addEventListener('click', resetCaptureState);
 
-    captureBtn.addEventListener('click', async () => {
+    // 抓整個螢幕（需使用者授權一次）
+    async function captureFullScreen() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
         setStatus('此瀏覽器不支援螢幕擷取', 'err');
         return;
@@ -240,36 +238,31 @@
         await video.play();
         await new Promise(r => setTimeout(r, 200));
 
-        // 把整張畫面畫到離屏 canvas
         const off = document.createElement('canvas');
         off.width = video.videoWidth;
         off.height = video.videoHeight;
         off.getContext('2d').drawImage(video, 0, 0);
         sourceImageData = off;
 
-        // 顯示到遮罩上的 canvas
-        fullImage = new Image();
-        fullImage.onload = () => {
-          captureCanvas.width = fullImage.width;
-          captureCanvas.height = fullImage.height;
-          captureCanvas.getContext('2d').drawImage(fullImage, 0, 0);
-          overlay.classList.add('active');
-        };
-        fullImage.src = off.toDataURL('image/png');
+        // 顯示到遮罩 canvas
+        captureCanvas.width = off.width;
+        captureCanvas.height = off.height;
+        captureCanvas.getContext('2d').drawImage(off, 0, 0);
+        overlay.classList.add('active');
       } catch (e) {
         console.error('截圖失敗:', e);
         if (e.name !== 'NotAllowedError') setStatus('截圖失敗：' + e.message, 'err');
       } finally {
         if (stream) stream.getTracks().forEach(t => t.stop());
       }
-    });
+    }
 
-    // 讓 canvas 依容器大小等比例縮放，取得實際顯示座標
+    captureBtn.addEventListener('click', captureFullScreen);
+
     function getCanvasRect() {
       return captureCanvas.getBoundingClientRect();
     }
 
-    // 把滑鼠座標換算成原始圖片的像素座標
     function toImageCoords(clientX, clientY) {
       const rect = getCanvasRect();
       const scaleX = captureCanvas.width / rect.width;
@@ -283,17 +276,18 @@
     overlay.addEventListener('mousedown', (e) => {
       if (e.target === captureCancel) return;
       const rect = getCanvasRect();
-      // 點在圖片顯示區外就不開始
       if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
 
       isDragging = true;
       const p = toImageCoords(e.clientX, e.clientY);
       startX = p.x;
       startY = p.y;
+      displayStartX = e.clientX;
+      displayStartY = e.clientY;
 
       selectionBox.style.display = 'block';
-      selectionBox.style.left = (e.clientX - rect.left) + 'px';
-      selectionBox.style.top = (e.clientY - rect.top) + 'px';
+      selectionBox.style.left = e.clientX + 'px';
+      selectionBox.style.top = e.clientY + 'px';
       selectionBox.style.width = '0px';
       selectionBox.style.height = '0px';
     });
@@ -301,25 +295,14 @@
     overlay.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
       const rect = getCanvasRect();
-      const p = toImageCoords(e.clientX, e.clientY);
-      const displayX = Math.min(e.clientX, rect.left + (startX / (captureCanvas.width / rect.width)));
-      const displayY = Math.min(e.clientY, rect.top + (startY / (captureCanvas.height / rect.height)));
 
-      const x = Math.min(p.x, startX);
-      const y = Math.min(p.y, startY);
-      const w = Math.abs(p.x - startX);
-      const h = Math.abs(p.y - startY);
+      const left = Math.max(rect.left, Math.min(e.clientX, rect.right));
+      const top = Math.max(rect.top, Math.min(e.clientY, rect.bottom));
 
-      // 以顯示座標畫框，範圍限制在圖片區內
-      const left = Math.max(rect.left, Math.min(e.clientX, rect.left + rect.width));
-      const top = Math.max(rect.top, Math.min(e.clientY, rect.top + rect.height));
-      const startDisplayX = rect.left + (startX / (captureCanvas.width / rect.width));
-      const startDisplayY = rect.top + (startY / (captureCanvas.height / rect.height));
-
-      selectionBox.style.left = Math.min(left, startDisplayX) + 'px';
-      selectionBox.style.top = Math.min(top, startDisplayY) + 'px';
-      selectionBox.style.width = Math.abs(left - startDisplayX) + 'px';
-      selectionBox.style.height = Math.abs(top - startDisplayY) + 'px';
+      selectionBox.style.left = Math.min(left, displayStartX) + 'px';
+      selectionBox.style.top = Math.min(top, displayStartY) + 'px';
+      selectionBox.style.width = Math.abs(left - displayStartX) + 'px';
+      selectionBox.style.height = Math.abs(top - displayStartY) + 'px';
     });
 
     overlay.addEventListener('mouseup', (e) => {
@@ -333,12 +316,10 @@
       const h = Math.abs(p.y - startY);
 
       if (w < 5 || h < 5) {
-        // 太小視為誤點，取消
         resetCaptureState();
         return;
       }
 
-      // 從原始畫面裁切
       const crop = document.createElement('canvas');
       crop.width = w;
       crop.height = h;
