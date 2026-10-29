@@ -13,12 +13,9 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;}
-body{
-  background:var(--bg); color:var(--text);
-  padding:0 10px 140px;
+body{background:var(--bg);color:var(--text);padding:0 10px 140px;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
-  -webkit-text-size-adjust:100%; font-size:15px;
-}
+  -webkit-text-size-adjust:100%;font-size:15px;}
 button,select,input{touch-action:manipulation;-webkit-user-select:none;user-select:none;font-family:inherit;}
 h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weight:500;}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;}
@@ -28,11 +25,9 @@ h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weig
 .title-row .title{font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:1px;}
 .title-row .status{margin-left:auto;font-size:11px;color:var(--muted);}
 .machine-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;}
-.machine-tab{
-  display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 8px;
+.machine-tab{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 8px;
   border-radius:8px;background:#21262d;border:1px solid var(--line);color:var(--muted);
-  font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;
-}
+  font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .machine-tab .nm{overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .machine-tab .count{padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.2);font-size:11px;}
 .machine-tab.active{background:var(--gold);color:#0d1117;border-color:var(--gold);}
@@ -46,7 +41,9 @@ h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weig
 .stat .v.p{color:var(--player);}
 .stat .v.t{color:var(--tie);}
 
-/* 算牌面板 */
+.cc-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
+.cc-section:first-child{margin-top:0;padding-top:0;border-top:none;}
+.cc-section h3{font-size:13px;color:#e6edf3;margin:0 0 8px;font-weight:700;letter-spacing:1px;}
 .cc-current{background:#0d1117;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;}
 .cc-head{font-size:14px;color:var(--text);margin-bottom:6px;}
 .cc-head b{color:var(--gold);font-size:18px;font-variant-numeric:tabular-nums;}
@@ -73,6 +70,25 @@ h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weig
 .cc-banner{background:rgba(240,185,11,.1);border:1px solid rgba(240,185,11,.4);border-radius:6px;padding:10px;margin-bottom:10px;font-size:13px;color:var(--text);}
 .cc-banner b{color:var(--gold);}
 
+.cc-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text);margin-bottom:6px;}
+.cc-legend span{display:flex;align-items:center;gap:6px;}
+.cc-legend i{display:inline-block;width:14px;height:2px;border-radius:1px;}
+.cc-legend i.p{background:var(--player);}
+.cc-legend i.b{background:var(--banker);}
+.cc-legend i.ref{border-top:2px dashed #6e7681;height:0;}
+.strength-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.strength-stats .box{background:#0d1117;border-radius:6px;padding:8px 10px;line-height:1.6;}
+.strength-stats .box .title{font-size:12px;color:var(--muted);margin-bottom:4px;}
+.strength-stats .box .title b{font-size:14px;}
+.strength-stats .box.p .title b{color:var(--player);}
+.strength-stats .box.b .title b{color:var(--banker);}
+.strength-stats .box .row{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;}
+.strength-stats .box .row b{color:#e6edf3;font-variant-numeric:tabular-nums;font-size:13px;}
+.strength-chart{position:relative;margin:8px 0 4px;min-height:180px;}
+.strength-chart svg{display:block;max-width:100%;}
+.strength-tip{position:absolute;background:#0d1117;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);white-space:nowrap;pointer-events:none;display:none;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.5);}
+.strength-tip .k{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;}
+
 .table-scroll{overflow-x:auto;}
 .cc-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;}
 .cc-table th{font-size:11px;color:var(--muted);font-weight:500;text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);white-space:nowrap;}
@@ -80,10 +96,11 @@ h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weig
 .cc-table td.num{text-align:right;}
 .cc-table td.pos{color:var(--pos);}
 .cc-table td.neg{color:var(--neg);}
+.cc-table td.p{color:var(--player);}
+.cc-table td.b{color:var(--banker);}
 .cc-table small{color:var(--muted);font-size:11px;margin-left:2px;}
 .cc-table tr.last{background:rgba(240,185,11,.08);}
 
-/* 輸入區 */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#11161d;border-top:1px solid var(--line);padding:6px 8px calc(env(safe-area-inset-bottom) + 8px);box-shadow:0 -6px 20px rgba(0,0,0,.5);}
 .dock-inner{max-width:560px;margin:0 auto;}
 .dock-top{display:flex;align-items:center;gap:6px;min-height:34px;margin-bottom:6px;}
@@ -119,7 +136,6 @@ h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weig
 .key.rec.ready{background:var(--gold);color:#0d1117;border-color:var(--gold);animation:ready 1.2s ease-in-out infinite;}
 @keyframes ready{50%{box-shadow:0 0 0 4px rgba(240,185,11,.35);}}
 
-/* 設定 */
 .settings-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
 .settings-row label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;}
 .num-input{width:100px;height:40px;background:#21262d;color:#e6edf3;border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:15px;text-align:right;}
@@ -187,7 +203,7 @@ h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weig
     <label>檔位2 <input type="number" inputmode="numeric" min="0" step="100" id="cc-t2" class="num-input"></label>
     <label>檔位3 <input type="number" inputmode="numeric" min="0" step="100" id="cc-t3" class="num-input"></label>
   </div>
-  <div class="hint">檔位1：EV 在閾值～2×閾值；檔位2：2×閾值～4×閾值；檔位3：≥ 4×閾值。EV 未達閾值觀望。</div>
+  <div class="hint">檔位1：EV 在閾值～2×閾值；檔位2：2×～4×；檔位3：≥4×。EV 未達閾值觀望。</div>
   <div class="settings-row" style="margin-top:12px;">
     <button class="dock-btn danger" id="clear-all" style="height:40px;">清空所有紀錄</button>
   </div>
@@ -224,21 +240,12 @@ h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weig
 const STORAGE_KEY = 'baccarat.cc.v1';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
-// ============================================================
-// 狀態
-// ============================================================
 let state = loadState();
 
 function defaultState(){
   const m = newMachine('機台 1');
-  return {
-    machines: [m],
-    activeId: m.id,
-    prefs: {
-      ccRebate: 2.4, ccThresh: 0.05,
-      ccT1: 500, ccT2: 1000, ccT3: 2000, ccMax: 60
-    }
-  };
+  return { machines: [m], activeId: m.id,
+    prefs: { ccRebate: 2.4, ccThresh: 0.05, ccT1: 500, ccT2: 1000, ccT3: 2000, ccMax: 60 } };
 }
 function newMachine(name){
   return { id:'m_' + Date.now() + '_' + Math.floor(Math.random()*1000), name, decks: 8, hands: [], shoes: [] };
@@ -260,21 +267,11 @@ function loadState(){
   }catch(e){}
   return defaultState();
 }
-function saveState(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
-}
-function activeMachine(){
-  return state.machines.find(m => m.id === state.activeId) || state.machines[0];
-}
-function getPref(key, def){
-  const v = state.prefs[key];
-  return (v != null && v !== '') ? +v : def;
-}
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function activeMachine(){ return state.machines.find(m => m.id === state.activeId) || state.machines[0]; }
+function getPref(key, def){ const v = state.prefs[key]; return (v != null && v !== '') ? +v : def; }
 function setPref(key, v){ state.prefs[key] = v; saveState(); }
 
-// ============================================================
-// 牌點數與手牌
-// ============================================================
 function rankValue(r){
   if(r === 'A') return 1;
   if(r === '10' || r === 'J' || r === 'Q' || r === 'K') return 0;
@@ -291,9 +288,7 @@ function getWinner(pCards, bCards){
   if(b > p) return 'B';
   return 'T';
 }
-function isPair(cards){
-  return cards.length >= 2 && cards[0].rank === cards[1].rank;
-}
+function isPair(cards){ return cards.length >= 2 && cards[0].rank === cards[1].rank; }
 function valueCounts(machine, upTo){
   const c = new Array(10).fill(0);
   for(let v = 1; v <= 9; v++) c[v] = machine.decks * 4;
@@ -305,13 +300,8 @@ function valueCounts(machine, upTo){
   }
   return c;
 }
-function remainingCount(machine){
-  return valueCounts(machine).reduce((a,b)=>a+b,0);
-}
+function remainingCount(machine){ return valueCounts(machine).reduce((a,b)=>a+b,0); }
 
-// ============================================================
-// 精確概率（組合數學，零誤差）
-// ============================================================
 const oddsCache = new Map();
 function bankerDrawsVal(bv, v){
   if(v === null) return bv <= 5;
@@ -329,15 +319,12 @@ function exactOdds(cnt){
   const N = c.reduce((a, b) => a + b, 0);
   if(N < 6){ oddsCache.set(key, null); return null; }
   let B = 0, P = 0, T = 0;
-  const sgn = (p, b) => p > b ? 1 : p < b ? -1 : 0;
-  let pv0 = 0, bv0 = 0;
   const add = (pv, bv, pr) => { if(pv > bv) P += pr; else if(bv > pv) B += pr; else T += pr; };
   for(let a = 0; a < 10; a++){ if(!c[a]) continue; const pa = c[a] / N; c[a]--;
   for(let b = 0; b < 10; b++){ if(!c[b]) continue; const pb = pa * c[b] / (N - 1); c[b]--;
   for(let x = a; x < 10; x++){ if(!c[x]) continue; const pc = pb * c[x] / (N - 2) * (x === a ? 1 : 2); c[x]--;
   for(let y = b; y < 10; y++){ if(!c[y]) continue; const pd = pc * c[y] / (N - 3) * (y === b ? 1 : 2); c[y]--;
     const pv = (a + x) % 10, bv = (b + y) % 10;
-    pv0 = pv; bv0 = bv;
     if(pv >= 8 || bv >= 8){
       add(pv, bv, pd);
     } else if(pv <= 5){
@@ -359,15 +346,9 @@ function exactOdds(cnt){
   return r;
 }
 
-// ============================================================
-// 算牌 + 下注決策
-// ============================================================
 function ccRebate(){ return getPref('ccRebate', 2.4); }
 function ccThresh(){ return getPref('ccThresh', 0.05); }
-function ccTier(n){
-  const defs = [0, 500, 1000, 2000];
-  return getPref('ccT'+n, defs[n]);
-}
+function ccTier(n){ const defs = [0, 500, 1000, 2000]; return getPref('ccT'+n, defs[n]); }
 function ccMaxHands(){ return getPref('ccMax', 60); }
 
 function ccCompute(machine, upTo){
@@ -401,9 +382,173 @@ function ccPnl(dec, winner, rebate){
   return -dec.stake;
 }
 
-// ============================================================
-// 渲染
-// ============================================================
+function analyzeStrength(h){
+  const pDrew = h.player.length > 2;
+  const bDrew = h.banker.length > 2;
+  const pInit = handValue(h.player.slice(0,2));
+  const bInit = handValue(h.banker.slice(0,2));
+  const pFinal = handValue(h.player);
+  const bFinal = handValue(h.banker);
+  return {
+    pDrew, bDrew,
+    pDrawRank: pDrew ? rankValue(h.player[2].rank) : null,
+    bDrawRank: bDrew ? rankValue(h.banker[2].rank) : null,
+    pInit, bInit, pFinal, bFinal
+  };
+}
+
+function drawStrengthChart(container, handsList){
+  if(!container) return;
+  try{
+    requestAnimationFrame(() => {
+      const rect = container.getBoundingClientRect();
+      let W = Math.floor(rect.width);
+      if(W < 100){
+        const pRect = container.parentElement ? container.parentElement.getBoundingClientRect() : null;
+        W = pRect ? Math.floor(pRect.width) : 0;
+      }
+      if(W < 100) W = Math.min(window.innerWidth - 40, 400);
+      if(W < 100) W = 320;
+      const H = 180;
+      const ml = 26, mr = 14, mt = 12, mb = 22;
+      const pw = W - ml - mr, ph = H - mt - mb;
+      const N = handsList.length;
+      if(N === 0){ container.innerHTML = '<div class="empty">還沒有紀錄</div>'; return; }
+
+      // 改為畫最終點數（pFinal / bFinal）
+      const pts = handsList.map((h, i) => {
+        const a = analyzeStrength(h);
+        return { 
+          n: i+1, 
+          p: a.pFinal, 
+          b: a.bFinal,
+          pDrew: a.pDrew, bDrew: a.bDrew,
+          pDrawRank: a.pDrawRank, bDrawRank: a.bDrawRank,
+          pInit: a.pInit, bInit: a.bInit
+        };
+      });
+
+      const x = n => ml + (N <= 1 ? pw/2 : (n - 1) / (N - 1) * pw);
+      const y = v => mt + (1 - v / 9) * ph;
+
+      let svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;">';
+      [0, 3, 6, 9].forEach(v => {
+        svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#30363d" stroke-width="1"/>';
+        svg += '<text x="' + (ml - 4) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="10" fill="#8b949e">' + v + '</text>';
+      });
+      svg += '<line x1="' + ml + '" x2="' + (ml + pw) + '" y1="' + y(4.5) + '" y2="' + y(4.5) + '" stroke="#6e7681" stroke-width="1" stroke-dasharray="3 3"/>';
+      svg += '<text x="' + (ml + 4) + '" y="' + (y(4.5) - 3) + '" font-size="10" fill="#6e7681">均值 4.5</text>';
+      svg += '<text x="' + ml + '" y="' + (H - 4) + '" font-size="10" fill="#8b949e">#1</text>';
+      svg += '<text x="' + (ml + pw) + '" y="' + (H - 4) + '" text-anchor="end" font-size="10" fill="#8b949e">#' + N + '</text>';
+
+      function drawLine(key, color){
+        let d = '', pen = false;
+        const dots = [];
+        pts.forEach(p => {
+          const v = p[key];
+          if(v == null){ pen = false; return; }
+          d += (pen ? 'L' : 'M') + x(p.n).toFixed(1) + ',' + y(v).toFixed(1);
+          pen = true;
+          dots.push({ x: x(p.n), y: y(v) });
+        });
+        if(d) svg += '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+        dots.forEach(dt => {
+          svg += '<circle cx="' + dt.x + '" cy="' + dt.y + '" r="3.2" fill="' + color + '" stroke="#161b22" stroke-width="1.5"/>';
+        });
+      }
+      drawLine('p', '#3498db');
+      drawLine('b', '#e74c3c');
+
+      svg += '<rect x="' + ml + '" y="0" width="' + pw + '" height="' + H + '" fill="transparent"/>';
+      svg += '<line class="xh" y1="' + mt + '" y2="' + (mt + ph) + '" stroke="#8b949e" stroke-width="1" visibility="hidden"/>';
+      svg += '<circle class="h1" r="4.5" fill="#3498db" stroke="#161b22" stroke-width="2" visibility="hidden"/>';
+      svg += '<circle class="h2" r="4.5" fill="#e74c3c" stroke="#161b22" stroke-width="2" visibility="hidden"/>';
+      svg += '</svg><div class="strength-tip"></div>';
+      container.innerHTML = svg;
+
+      const el = container.querySelector('svg');
+      const tip = container.querySelector('.strength-tip');
+      if(!el || !tip) return;
+      const xh = el.querySelector('.xh'), h1 = el.querySelector('.h1'), h2 = el.querySelector('.h2');
+      function show(ev){
+        const r = el.getBoundingClientRect();
+        if(!r.width) return;
+        const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+        const px = (clientX - r.left) * (W / r.width);
+        const i = Math.max(0, Math.min(N - 1, Math.round(N === 1 ? 0 : (px - ml) / pw * (N - 1))));
+        const p = pts[i], cx = x(p.n);
+        xh.setAttribute('x1', cx); xh.setAttribute('x2', cx); xh.setAttribute('visibility', 'visible');
+        const dot = (c, v) => { if(v == null){ c.setAttribute('visibility','hidden'); return; } c.setAttribute('cx', cx); c.setAttribute('cy', y(v)); c.setAttribute('visibility','visible'); };
+        dot(h1, p.p); dot(h2, p.b);
+        
+        let html = '<b>#' + p.n + '</b>';
+        html += '<br><span class="k" style="background:#3498db"></span>閒：' + 
+                (p.pDrew ? '初始 ' + p.pInit + ' 補' + p.pDrawRank + '點 → <b>最終 ' + p.p + ' 點</b>' : '未補（<b>最終 ' + p.p + ' 點</b>）');
+        html += '<br><span class="k" style="background:#e74c3c"></span>莊：' + 
+                (p.bDrew ? '初始 ' + p.bInit + ' 補' + p.bDrawRank + '點 → <b>最終 ' + p.b + ' 點</b>' : '未補（<b>最終 ' + p.b + ' 點</b>）');
+                
+        tip.innerHTML = html;
+        tip.style.display = 'block';
+        const left = cx / W * r.width;
+        const tw = tip.offsetWidth;
+        tip.style.left = Math.max(0, Math.min(r.width - tw, left - tw / 2)) + 'px';
+        tip.style.top = (-tip.offsetHeight - 6) + 'px';
+      }
+      function hide(){ tip.style.display = 'none'; [xh,h1,h2].forEach(e => e.setAttribute('visibility','hidden')); }
+      el.addEventListener('pointermove', show);
+      el.addEventListener('pointerdown', show);
+      el.addEventListener('pointerleave', hide);
+      el.addEventListener('pointercancel', hide);
+    });
+  }catch(err){
+    console.error('drawStrengthChart error:', err);
+  }
+}
+
+function renderStrengthStats(container, handsList){
+  if(!container) return;
+  const n = handsList.length;
+  if(n === 0){ container.innerHTML = ''; return; }
+  let pDrew = 0, bDrew = 0, bothDrew = 0, noneDrew = 0;
+  let pDrawSum = 0, bDrawSum = 0, pFinalSum = 0, bFinalSum = 0, pInitSum = 0, bInitSum = 0;
+  let pWinAfterDraw = 0, bWinAfterDraw = 0;
+  handsList.forEach(h => {
+    const a = analyzeStrength(h);
+    if(a.pDrew) pDrew++;
+    if(a.bDrew) bDrew++;
+    if(a.pDrew && a.bDrew) bothDrew++;
+    if(!a.pDrew && !a.bDrew) noneDrew++;
+    if(a.pDrew) pDrawSum += a.pDrawRank;
+    if(a.bDrew) bDrawSum += a.bDrawRank;
+    pInitSum += a.pInit;
+    bInitSum += a.bInit;
+    pFinalSum += a.pFinal;
+    bFinalSum += a.bFinal;
+    const w = getWinner(h.player, h.banker);
+    if(a.pDrew && w === 'P') pWinAfterDraw++;
+    if(a.bDrew && w === 'B') bWinAfterDraw++;
+  });
+  const fmt1 = v => (Math.round(v * 100) / 100).toFixed(1);
+  let html = '<div class="strength-stats">';
+  html += '<div class="box p"><div class="title"><b>閒</b> 家</div>';
+  html += '<div class="row"><span>補牌次數</span><b>' + pDrew + ' / ' + n + '</b></div>';
+  html += '<div class="row"><span>初始兩張平均</span><b>' + fmt1(pInitSum / n) + '</b></div>';
+  html += '<div class="row"><span>補牌平均點數</span><b>' + (pDrew ? fmt1(pDrawSum / pDrew) : '—') + '</b></div>';
+  html += '<div class="row"><span>最終點數平均</span><b>' + fmt1(pFinalSum / n) + '</b></div>';
+  html += '<div class="row"><span>補牌後贏</span><b>' + pWinAfterDraw + ' 次</b></div>';
+  html += '</div>';
+  html += '<div class="box b"><div class="title"><b>莊</b> 家</div>';
+  html += '<div class="row"><span>補牌次數</span><b>' + bDrew + ' / ' + n + '</b></div>';
+  html += '<div class="row"><span>初始兩張平均</span><b>' + fmt1(bInitSum / n) + '</b></div>';
+  html += '<div class="row"><span>補牌平均點數</span><b>' + (bDrew ? fmt1(bDrawSum / bDrew) : '—') + '</b></div>';
+  html += '<div class="row"><span>最終點數平均</span><b>' + fmt1(bFinalSum / n) + '</b></div>';
+  html += '<div class="row"><span>補牌後贏</span><b>' + bWinAfterDraw + ' 次</b></div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="cc-summary" style="margin-top:8px">補牌形態：都補 <b>' + bothDrew + '</b> 手　只閒補 <b>' + (pDrew - bothDrew) + '</b> 手　只莊補 <b>' + (bDrew - bothDrew) + '</b> 手　都不補 <b>' + noneDrew + '</b> 手</div>';
+  container.innerHTML = html;
+}
+
 function renderMachineBar(){
   const bar = document.getElementById('machine-bar');
   bar.innerHTML = '';
@@ -460,6 +605,8 @@ function renderCc(){
   const curN = m.hands.length + 1;
   let html = '';
 
+  // ===== 1. 下一手建议 =====
+  html += '<div class="cc-section"><h3>下一手建議</h3>';
   if(curN > MAX){
     html += '<div class="cc-banner">本靴已滿 <b>' + MAX + '</b> 局，請按「新靴」</div>';
   } else if(remainingCount(m) < 6){
@@ -486,8 +633,16 @@ function renderCc(){
       html += '</div>';
     }
   }
+  html += '</div>';
 
-  // 歷史統計
+  // ===== 2. 补牌强度走势 =====
+  html += '<div class="cc-section"><h3>補第 3 張牌強度走勢</h3>';
+  html += '<div class="cc-legend"><span><i class="p"></i>閒家強度（最終點數）</span><span><i class="b"></i>莊家強度（最終點數）</span><span><i class="ref"></i>均值 4.5</span></div>';
+  html += '<div class="strength-chart" id="cc-strength-chart"></div>';
+  html += '<div id="cc-strength-stats"></div>';
+  html += '</div>';
+
+  // ===== 3. 历史明细 =====
   const total = Math.min(m.hands.length, MAX);
   let cum = 0, wins = 0, losses = 0, pushes = 0, bets = 0, staked = 0, evSum = 0;
   const R = ccRebate() / 100;
@@ -504,41 +659,53 @@ function renderCc(){
       else losses++;
     }
     cum += pnl;
-    recs.push({ n: i + 1, dec, w, pnl, cum });
+    recs.push({ n: i + 1, dec, w, pnl, cum, strength: analyzeStrength(m.hands[i]) });
   }
 
-  if(recs.length === 0){
-    box.innerHTML = html + '<div class="empty">還沒有紀錄</div>';
-    return;
+  if(recs.length > 0){
+    html += '<div class="cc-section"><h3>歷史明細</h3>';
+    html += '<div class="cc-summary">';
+    html += '下注 <b>' + bets + '</b> 手　勝 <b>' + wins + '</b>　負 <b>' + losses + '</b>　和退 <b>' + pushes + '</b>';
+    if(wins + losses > 0) html += '　勝率 <b>' + (wins / (wins + losses) * 100).toFixed(1) + '%</b>';
+    html += '<br>總下注額 <b>$' + Math.round(staked).toLocaleString('en-US') + '</b>　累計盈虧 <b class="' + (cum > 0 ? 'pos' : cum < 0 ? 'neg' : '') + '">' + (cum > 0 ? '+' : '') + '$' + Math.round(cum).toLocaleString('en-US') + '</b>';
+    if(staked > 0){
+      html += '　ROI <b class="' + (cum > 0 ? 'pos' : cum < 0 ? 'neg' : '') + '">' + ((cum / staked) * 100).toFixed(2) + '%</b>';
+      if(bets > 0) html += '　平均 EV <b>' + (evSum / bets * 100).toFixed(3) + '%</b>';
+    }
+    html += '</div>';
+
+    html += '<div class="table-scroll"><table class="cc-table"><thead><tr><th>#</th><th>建議</th><th>實際</th><th>閒補3</th><th>莊補3</th><th class="num">下注</th><th class="num">盈虧</th><th class="num">累計</th></tr></thead><tbody>';
+    for(let i = recs.length - 1; i >= 0; i--){
+      const r = recs[i];
+      const sideName = r.dec.side ? (r.dec.side === 'B' ? '莊' : '閒') : '—';
+      const wName = r.w === 'B' ? '莊' : r.w === 'P' ? '閒' : '和';
+      const winMark = r.dec.side ? (r.w === 'T' ? ' <small>和退</small>' : r.w === r.dec.side ? ' <small style="color:#3fb950">✓</small>' : ' <small style="color:#f85149">✗</small>') : '';
+      const pDrawStr = r.strength.pDrew ? String(r.strength.pDrawRank) : '—';
+      const bDrawStr = r.strength.bDrew ? String(r.strength.bDrawRank) : '—';
+      html += '<tr' + (i === recs.length - 1 ? ' class="last"' : '') + '>';
+      html += '<td>' + r.n + '</td>';
+      html += '<td>' + sideName + (r.dec.level && r.dec.level !== '无' ? '<small>' + r.dec.level + '</small>' : '') + '</td>';
+      html += '<td>' + wName + winMark + '</td>';
+      html += '<td class="p">' + pDrawStr + '</td>';
+      html += '<td class="b">' + bDrawStr + '</td>';
+      html += '<td class="num">' + (r.dec.stake ? '$' + r.dec.stake.toLocaleString('en-US') : '—') + '</td>';
+      html += '<td class="num ' + (r.pnl > 0 ? 'pos' : r.pnl < 0 ? 'neg' : '') + '">' + (r.pnl > 0 ? '+' : r.pnl < 0 ? '−' : '') + '$' + Math.round(Math.abs(r.pnl)).toLocaleString('en-US') + '</td>';
+      html += '<td class="num ' + (r.cum > 0 ? 'pos' : r.cum < 0 ? 'neg' : '') + '">' + (r.cum > 0 ? '+' : r.cum < 0 ? '−' : '') + '$' + Math.round(Math.abs(r.cum)).toLocaleString('en-US') + '</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    html += '</div>';
+  } else {
+    html += '<div class="empty">還沒有紀錄</div>';
   }
 
-  html += '<div class="cc-summary">';
-  html += '下注 <b>' + bets + '</b> 手　勝 <b>' + wins + '</b>　負 <b>' + losses + '</b>　和退 <b>' + pushes + '</b>';
-  if(wins + losses > 0) html += '　勝率 <b>' + (wins / (wins + losses) * 100).toFixed(1) + '%</b>';
-  html += '<br>總下注額 <b>$' + Math.round(staked).toLocaleString('en-US') + '</b>　累計盈虧 <b class="' + (cum > 0 ? 'pos' : cum < 0 ? 'neg' : '') + '">' + (cum > 0 ? '+' : '') + '$' + Math.round(cum).toLocaleString('en-US') + '</b>';
-  if(staked > 0){
-    html += '　ROI <b class="' + (cum > 0 ? 'pos' : cum < 0 ? 'neg' : '') + '">' + ((cum / staked) * 100).toFixed(2) + '%</b>';
-    if(bets > 0) html += '　平均 EV <b>' + (evSum / bets * 100).toFixed(3) + '%</b>';
-  }
-  html += '</div>';
-
-  html += '<div class="table-scroll"><table class="cc-table"><thead><tr><th>#</th><th>建議</th><th>實際</th><th class="num">下注</th><th class="num">盈虧</th><th class="num">累計</th></tr></thead><tbody>';
-  for(let i = recs.length - 1; i >= 0; i--){
-    const r = recs[i];
-    const sideName = r.dec.side ? (r.dec.side === 'B' ? '莊' : '閒') : '—';
-    const wName = r.w === 'B' ? '莊' : r.w === 'P' ? '閒' : '和';
-    const winMark = r.dec.side ? (r.w === 'T' ? ' <small>和退</small>' : r.w === r.dec.side ? ' <small style="color:#3fb950">✓</small>' : ' <small style="color:#f85149">✗</small>') : '';
-    html += '<tr' + (i === recs.length - 1 ? ' class="last"' : '') + '>';
-    html += '<td>' + r.n + '</td>';
-    html += '<td>' + sideName + (r.dec.level && r.dec.level !== '无' ? '<small>' + r.dec.level + '</small>' : '') + '</td>';
-    html += '<td>' + wName + winMark + '</td>';
-    html += '<td class="num">' + (r.dec.stake ? '$' + r.dec.stake.toLocaleString('en-US') : '—') + '</td>';
-    html += '<td class="num ' + (r.pnl > 0 ? 'pos' : r.pnl < 0 ? 'neg' : '') + '">' + (r.pnl > 0 ? '+' : r.pnl < 0 ? '−' : '') + '$' + Math.round(Math.abs(r.pnl)).toLocaleString('en-US') + '</td>';
-    html += '<td class="num ' + (r.cum > 0 ? 'pos' : r.cum < 0 ? 'neg' : '') + '">' + (r.cum > 0 ? '+' : r.cum < 0 ? '−' : '') + '$' + Math.round(Math.abs(r.cum)).toLocaleString('en-US') + '</td>';
-    html += '</tr>';
-  }
-  html += '</tbody></table></div>';
   box.innerHTML = html;
+
+  // 在 innerHTML 设置后画图和统计
+  const chartBox = document.getElementById('cc-strength-chart');
+  if(chartBox) drawStrengthChart(chartBox, m.hands);
+  const statsBox = document.getElementById('cc-strength-stats');
+  if(statsBox) renderStrengthStats(statsBox, m.hands);
 }
 
 function renderHistory(){
@@ -578,7 +745,6 @@ function render(){
   renderHistory();
   updateLastHint();
   document.getElementById('decks').value = activeMachine().decks;
-  // 設定輸入框同步
   ['cc-max','cc-rebate','cc-thresh','cc-t1','cc-t2','cc-t3'].forEach(id => {
     if(document.activeElement === document.getElementById(id)) return;
     const key = {'cc-max':'ccMax','cc-rebate':'ccRebate','cc-thresh':'ccThresh','cc-t1':'ccT1','cc-t2':'ccT2','cc-t3':'ccT3'}[id];
@@ -587,13 +753,8 @@ function render(){
   });
 }
 
-function escapeHtml(t){
-  const d = document.createElement('div'); d.textContent = t; return d.innerHTML;
-}
+function escapeHtml(t){ const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-// ============================================================
-// 輸入
-// ============================================================
 const emptyInput = () => ({ p: [null,null,null], b: [null,null,null] });
 let input = emptyInput();
 let activeSlot = { side: 'p', idx: 0 };
@@ -616,17 +777,13 @@ function requiredSlots(inp){
   }
   return req;
 }
-function isRequired(inp, side, idx){
-  return requiredSlots(inp).some(s => s.side === side && s.idx === idx);
-}
+function isRequired(inp, side, idx){ return requiredSlots(inp).some(s => s.side === side && s.idx === idx); }
 function pruneInput(){
   for(const side of ['p','b']){
     if(input[side][2] && !isRequired(input, side, 2)) input[side][2] = null;
   }
 }
-function nextEmptySlot(){
-  return requiredSlots(input).find(s => !input[s.side][s.idx]) || null;
-}
+function nextEmptySlot(){ return requiredSlots(input).find(s => !input[s.side][s.idx]) || null; }
 function inputComplete(){ return nextEmptySlot() === null; }
 function thirdSkipped(side){
   const inp = input;
@@ -723,11 +880,7 @@ function renderInput(){
   }
   document.getElementById('record').classList.toggle('ready', done);
 }
-function clearInput(){
-  input = emptyInput();
-  activeSlot = { side: 'p', idx: 0 };
-  renderInput();
-}
+function clearInput(){ input = emptyInput(); activeSlot = { side: 'p', idx: 0 }; renderInput(); }
 
 function recordHand(){
   if(!inputComplete()){
@@ -756,9 +909,6 @@ function showToast(text){
   toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
 }
 
-// ============================================================
-// 按鈕
-// ============================================================
 document.getElementById('undo').addEventListener('click', () => {
   const m = activeMachine();
   if(!m.hands.length) return;
@@ -809,9 +959,6 @@ document.getElementById('decks').addEventListener('change', function(){
   });
 });
 
-// ============================================================
-// 鍵盤快速輸入
-// ============================================================
 document.addEventListener('keydown', e => {
   if(e.ctrlKey || e.metaKey || e.altKey) return;
   const tag = (e.target.tagName || '').toLowerCase();
@@ -824,9 +971,16 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Enter' && tag !== 'button'){ e.preventDefault(); recordHand(); }
 });
 
-// ============================================================
-// 初始化
-// ============================================================
+// 視窗大小改變時重畫走勢圖
+let _ccResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_ccResizeTimer);
+  _ccResizeTimer = setTimeout(() => {
+    const chartBox = document.getElementById('cc-strength-chart');
+    if(chartBox) drawStrengthChart(chartBox, activeMachine().hands);
+  }, 200);
+});
+
 buildSlots();
 buildKeypad();
 clearInput();
