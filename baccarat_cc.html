@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>百家樂・算牌下注策略</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --line:#30363d;
+  --banker:#e74c3c; --player:#3498db; --tie:#f4d03f;
+  --text:#c9d1d9; --muted:#8b949e; --gold:#f0b90b;
+  --pos:#3fb950; --neg:#f85149;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{
+  background:var(--bg); color:var(--text);
+  padding:0 10px 140px;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  -webkit-text-size-adjust:100%; font-size:15px;
+}
+button,select,input{touch-action:manipulation;-webkit-user-select:none;user-select:none;font-family:inherit;}
+h2{font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:2px;font-weight:500;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;}
+
+.topbar{padding:calc(env(safe-area-inset-top) + 8px) 0 8px;border-bottom:1px solid var(--line);margin-bottom:10px;}
+.title-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.title-row .title{font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:1px;}
+.title-row .status{margin-left:auto;font-size:11px;color:var(--muted);}
+.machine-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;}
+.machine-tab{
+  display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 8px;
+  border-radius:8px;background:#21262d;border:1px solid var(--line);color:var(--muted);
+  font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+.machine-tab .nm{overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.machine-tab .count{padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.2);font-size:11px;}
+.machine-tab.active{background:var(--gold);color:#0d1117;border-color:var(--gold);}
+.machine-tab.add{background:transparent;border:1px dashed var(--line);font-weight:500;}
+
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 2px;text-align:center;}
+.stat .k{display:block;font-size:10px;color:var(--muted);margin-bottom:2px;}
+.stat .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;}
+.stat .v.b{color:var(--banker);}
+.stat .v.p{color:var(--player);}
+.stat .v.t{color:var(--tie);}
+
+/* 算牌面板 */
+.cc-current{background:#0d1117;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;}
+.cc-head{font-size:14px;color:var(--text);margin-bottom:6px;}
+.cc-head b{color:var(--gold);font-size:18px;font-variant-numeric:tabular-nums;}
+.cc-probs{font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.7;}
+.cc-probs b{color:#e6edf3;font-variant-numeric:tabular-nums;}
+.cc-ev{font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.7;}
+.cc-ev b{font-variant-numeric:tabular-nums;}
+.cc-ev b.pos{color:var(--pos);}
+.cc-ev b.neg{color:var(--neg);}
+.cc-advice{font-size:15px;padding:12px;background:#21262d;border-radius:6px;border:1px solid var(--line);line-height:1.7;}
+.cc-advice b{color:var(--gold);font-size:20px;font-variant-numeric:tabular-nums;}
+.cc-advice .side{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;margin-right:6px;}
+.cc-advice .side.B{background:var(--banker);}
+.cc-advice .side.P{background:var(--player);}
+.cc-advice .lv{padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700;margin-left:6px;}
+.cc-advice .lv-弱{background:rgba(240,185,11,.15);color:var(--gold);}
+.cc-advice .lv-中{background:rgba(231,76,60,.2);color:#ff7b72;}
+.cc-advice .lv-强{background:rgba(46,204,113,.25);color:#3fb950;}
+.cc-advice .lv-wait{background:rgba(139,148,158,.15);color:var(--muted);}
+.cc-summary{font-size:13px;color:var(--muted);margin-bottom:10px;padding:10px;background:#0d1117;border-radius:6px;line-height:1.8;}
+.cc-summary b{color:#e6edf3;font-variant-numeric:tabular-nums;}
+.cc-summary b.pos{color:var(--pos);}
+.cc-summary b.neg{color:var(--neg);}
+.cc-banner{background:rgba(240,185,11,.1);border:1px solid rgba(240,185,11,.4);border-radius:6px;padding:10px;margin-bottom:10px;font-size:13px;color:var(--text);}
+.cc-banner b{color:var(--gold);}
+
+.table-scroll{overflow-x:auto;}
+.cc-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;}
+.cc-table th{font-size:11px;color:var(--muted);font-weight:500;text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);white-space:nowrap;}
+.cc-table td{padding:7px 4px;border-bottom:1px solid #21262d;white-space:nowrap;}
+.cc-table td.num{text-align:right;}
+.cc-table td.pos{color:var(--pos);}
+.cc-table td.neg{color:var(--neg);}
+.cc-table small{color:var(--muted);font-size:11px;margin-left:2px;}
+.cc-table tr.last{background:rgba(240,185,11,.08);}
+
+/* 輸入區 */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#11161d;border-top:1px solid var(--line);padding:6px 8px calc(env(safe-area-inset-bottom) + 8px);box-shadow:0 -6px 20px rgba(0,0,0,.5);}
+.dock-inner{max-width:560px;margin:0 auto;}
+.dock-top{display:flex;align-items:center;gap:6px;min-height:34px;margin-bottom:6px;}
+.last-hint{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.last-hint b{color:var(--text);}
+.dock-btn{flex:0 0 auto;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#21262d;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;}
+.dock-btn.danger{color:#ff7b72;border-color:rgba(231,76,60,.35);}
+.dock-btn.newshoe{color:var(--gold);border-color:rgba(240,185,11,.45);}
+.hands{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0;}
+.hand{border-radius:10px;padding:6px;border:1px solid var(--line);background:#0d1117;}
+.hand.p{border-color:rgba(52,152,219,.45);}
+.hand.b{border-color:rgba(231,76,60,.45);}
+.hand-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;padding:0 2px;}
+.hand-name{font-size:16px;font-weight:800;}
+.hand.p .hand-name{color:var(--player);}
+.hand.b .hand-name{color:var(--banker);}
+.hand-total{font-size:24px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1;}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.slot{height:44px;border-radius:7px;background:#161b22;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:23px;font-weight:800;color:var(--text);cursor:pointer;}
+.slot.filled{border-style:solid;border-color:#57606a;background:#1c2128;}
+.slot.active{border-style:solid;border-color:var(--gold);box-shadow:0 0 0 2px rgba(240,185,11,.35);}
+.slot.skip{opacity:.3;cursor:default;font-size:12px;color:var(--muted);}
+.tip{font-size:14px;color:var(--muted);text-align:center;margin:2px 0 6px;min-height:20px;}
+.tip b{color:var(--gold);}
+.tip .res-B{color:var(--banker);font-weight:800;}
+.tip .res-P{color:var(--player);font-weight:800;}
+.tip .res-T{color:var(--tie);font-weight:800;}
+.keypad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.key{height:48px;border-radius:9px;border:1px solid var(--line);background:#21262d;color:var(--text);font-size:21px;font-weight:800;cursor:pointer;}
+.key:active{transform:scale(.94);filter:brightness(1.25);}
+.key.back{color:var(--muted);font-size:18px;}
+.key.rec{background:#2d333b;color:#6e7681;font-size:15px;font-weight:700;}
+.key.rec.ready{background:var(--gold);color:#0d1117;border-color:var(--gold);animation:ready 1.2s ease-in-out infinite;}
+@keyframes ready{50%{box-shadow:0 0 0 4px rgba(240,185,11,.35);}}
+
+/* 設定 */
+.settings-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.settings-row label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.num-input{width:100px;height:40px;background:#21262d;color:#e6edf3;border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:15px;text-align:right;}
+.hint{flex-basis:100%;font-size:11px;color:#6e7681;line-height:1.5;}
+
+.history-list{max-height:280px;overflow-y:auto;font-size:14px;color:var(--muted);}
+.history-item{padding:7px 0;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;}
+.history-item:last-child{border-bottom:none;}
+.history-item .idx{flex:0 0 32px;color:#484f58;}
+.history-item .cards{flex:1;font-size:13px;}
+.history-item .res{font-weight:700;flex:0 0 18px;text-align:center;}
+.res.B{color:var(--banker);}
+.res.P{color:var(--player);}
+.res.T{color:var(--tie);}
+.empty{color:#484f58;font-size:12px;padding:8px 2px;text-align:center;}
+
+.toast{position:fixed;left:50%;bottom:calc(180px);transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:45;max-width:calc(100% - 40px);padding:10px 16px;border-radius:10px;background:#e6edf3;color:#0d1117;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:opacity .2s,transform .2s;}
+.toast.on{opacity:1;transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title-row">
+    <span class="title">百家樂・算牌下注策略</span>
+    <span class="status" id="status">就緒</span>
+  </div>
+  <div class="machine-bar" id="machine-bar"></div>
+</div>
+
+<div class="stats" id="stats">
+  <div class="stat"><span class="k">局數</span><span class="v" id="s-total">0</span></div>
+  <div class="stat"><span class="k">莊</span><span class="v b" id="s-b">0</span></div>
+  <div class="stat"><span class="k">閒</span><span class="v p" id="s-p">0</span></div>
+  <div class="stat"><span class="k">和</span><span class="v t" id="s-t">0</span></div>
+  <div class="stat"><span class="k">莊對</span><span class="v b" id="s-bp">0</span></div>
+  <div class="stat"><span class="k">閒對</span><span class="v p" id="s-pp">0</span></div>
+</div>
+
+<div class="panel">
+  <h2>算牌下注策略</h2>
+  <div id="cc-content"></div>
+</div>
+
+<div class="panel">
+  <h2>歷史紀錄</h2>
+  <div class="history-list" id="history"></div>
+</div>
+
+<div class="panel">
+  <h2>設定</h2>
+  <div class="settings-row">
+    <label>副數 <select id="decks" class="num-input" style="width:80px">
+      <option value="6">6 副</option>
+      <option value="8" selected>8 副</option>
+    </select></label>
+    <label>每靴局數 <input type="number" inputmode="numeric" min="1" step="1" id="cc-max" class="num-input"></label>
+  </div>
+  <div class="settings-row">
+    <label>返點率 <input type="number" inputmode="decimal" step="0.1" min="0" max="20" id="cc-rebate" class="num-input">%</label>
+    <label>EV 閾值 <input type="number" inputmode="decimal" step="0.01" min="0" id="cc-thresh" class="num-input">%</label>
+  </div>
+  <div class="settings-row">
+    <label>檔位1 <input type="number" inputmode="numeric" min="0" step="100" id="cc-t1" class="num-input"></label>
+    <label>檔位2 <input type="number" inputmode="numeric" min="0" step="100" id="cc-t2" class="num-input"></label>
+    <label>檔位3 <input type="number" inputmode="numeric" min="0" step="100" id="cc-t3" class="num-input"></label>
+  </div>
+  <div class="hint">檔位1：EV 在閾值～2×閾值；檔位2：2×閾值～4×閾值；檔位3：≥ 4×閾值。EV 未達閾值觀望。</div>
+  <div class="settings-row" style="margin-top:12px;">
+    <button class="dock-btn danger" id="clear-all" style="height:40px;">清空所有紀錄</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="dock">
+  <div class="dock-inner">
+    <div class="dock-top">
+      <div class="last-hint" id="last-hint">尚無紀錄</div>
+      <button class="dock-btn newshoe" id="newshoe">新靴</button>
+      <button class="dock-btn danger" id="undo">撤銷</button>
+    </div>
+    <div class="hands">
+      <div class="hand p">
+        <div class="hand-head"><span class="hand-name">閒</span><span class="hand-total" id="p-score">–</span></div>
+        <div class="slots" id="p-slots"></div>
+      </div>
+      <div class="hand b">
+        <div class="hand-head"><span class="hand-name">莊</span><span class="hand-total" id="b-score">–</span></div>
+        <div class="slots" id="b-slots"></div>
+      </div>
+    </div>
+    <div class="tip" id="tip"></div>
+    <div class="keypad" id="keypad"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const STORAGE_KEY = 'baccarat.cc.v1';
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+// ============================================================
+// 狀態
+// ============================================================
+let state = loadState();
+
+function defaultState(){
+  const m = newMachine('機台 1');
+  return {
+    machines: [m],
+    activeId: m.id,
+    prefs: {
+      ccRebate: 2.4, ccThresh: 0.05,
+      ccT1: 500, ccT2: 1000, ccT3: 2000, ccMax: 60
+    }
+  };
+}
+function newMachine(name){
+  return { id:'m_' + Date.now() + '_' + Math.floor(Math.random()*1000), name, decks: 8, hands: [], shoes: [] };
+}
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(s && Array.isArray(s.machines) && s.machines.length){
+      s.machines.forEach(m => {
+        if(!Array.isArray(m.hands)) m.hands = [];
+        if(!Array.isArray(m.shoes)) m.shoes = [];
+        if(typeof m.decks !== 'number') m.decks = 8;
+        if(!m.name) m.name = '機台';
+      });
+      if(!s.prefs) s.prefs = {};
+      if(!s.activeId || !s.machines.find(m=>m.id===s.activeId)) s.activeId = s.machines[0].id;
+      return s;
+    }
+  }catch(e){}
+  return defaultState();
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function activeMachine(){
+  return state.machines.find(m => m.id === state.activeId) || state.machines[0];
+}
+function getPref(key, def){
+  const v = state.prefs[key];
+  return (v != null && v !== '') ? +v : def;
+}
+function setPref(key, v){ state.prefs[key] = v; saveState(); }
+
+// ============================================================
+// 牌點數與手牌
+// ============================================================
+function rankValue(r){
+  if(r === 'A') return 1;
+  if(r === '10' || r === 'J' || r === 'Q' || r === 'K') return 0;
+  return parseInt(r, 10);
+}
+function handValue(cards){
+  let s = 0;
+  for(const c of cards) s += rankValue(c.rank);
+  return s % 10;
+}
+function getWinner(pCards, bCards){
+  const p = handValue(pCards), b = handValue(bCards);
+  if(p > b) return 'P';
+  if(b > p) return 'B';
+  return 'T';
+}
+function isPair(cards){
+  return cards.length >= 2 && cards[0].rank === cards[1].rank;
+}
+function valueCounts(machine, upTo){
+  const c = new Array(10).fill(0);
+  for(let v = 1; v <= 9; v++) c[v] = machine.decks * 4;
+  c[0] = machine.decks * 16;
+  const hands = machine.hands.slice(0, upTo == null ? machine.hands.length : upTo);
+  for(const h of hands) for(const card of [...h.player, ...h.banker]){
+    const v = rankValue(card.rank);
+    if(c[v] > 0) c[v]--;
+  }
+  return c;
+}
+function remainingCount(machine){
+  return valueCounts(machine).reduce((a,b)=>a+b,0);
+}
+
+// ============================================================
+// 精確概率（組合數學，零誤差）
+// ============================================================
+const oddsCache = new Map();
+function bankerDrawsVal(bv, v){
+  if(v === null) return bv <= 5;
+  if(bv <= 2) return true;
+  if(bv === 3) return v !== 8;
+  if(bv === 4) return v >= 2 && v <= 7;
+  if(bv === 5) return v >= 4 && v <= 7;
+  if(bv === 6) return v === 6 || v === 7;
+  return false;
+}
+function exactOdds(cnt){
+  const key = cnt.join(',');
+  if(oddsCache.has(key)) return oddsCache.get(key);
+  const c = cnt.slice();
+  const N = c.reduce((a, b) => a + b, 0);
+  if(N < 6){ oddsCache.set(key, null); return null; }
+  let B = 0, P = 0, T = 0;
+  const sgn = (p, b) => p > b ? 1 : p < b ? -1 : 0;
+  let pv0 = 0, bv0 = 0;
+  const add = (pv, bv, pr) => { if(pv > bv) P += pr; else if(bv > pv) B += pr; else T += pr; };
+  for(let a = 0; a < 10; a++){ if(!c[a]) continue; const pa = c[a] / N; c[a]--;
+  for(let b = 0; b < 10; b++){ if(!c[b]) continue; const pb = pa * c[b] / (N - 1); c[b]--;
+  for(let x = a; x < 10; x++){ if(!c[x]) continue; const pc = pb * c[x] / (N - 2) * (x === a ? 1 : 2); c[x]--;
+  for(let y = b; y < 10; y++){ if(!c[y]) continue; const pd = pc * c[y] / (N - 3) * (y === b ? 1 : 2); c[y]--;
+    const pv = (a + x) % 10, bv = (b + y) % 10;
+    pv0 = pv; bv0 = bv;
+    if(pv >= 8 || bv >= 8){
+      add(pv, bv, pd);
+    } else if(pv <= 5){
+      for(let e = 0; e < 10; e++){ if(!c[e]) continue; const pe = pd * c[e] / (N - 4); c[e]--;
+        const pv3 = (pv + e) % 10;
+        if(bankerDrawsVal(bv, e)){
+          for(let f = 0; f < 10; f++){ if(c[f]) add(pv3, (bv + f) % 10, pe * c[f] / (N - 5)); }
+        } else add(pv3, bv, pe);
+        c[e]++;
+      }
+    } else if(bv <= 5){
+      for(let f = 0; f < 10; f++){ if(c[f]) add(pv, (bv + f) % 10, pd * c[f] / (N - 4)); }
+    } else {
+      add(pv, bv, pd);
+    }
+  c[y]++; } c[x]++; } c[b]++; } c[a]++; }
+  const r = { banker: B, player: P, tie: T };
+  oddsCache.set(key, r);
+  return r;
+}
+
+// ============================================================
+// 算牌 + 下注決策
+// ============================================================
+function ccRebate(){ return getPref('ccRebate', 2.4); }
+function ccThresh(){ return getPref('ccThresh', 0.05); }
+function ccTier(n){
+  const defs = [0, 500, 1000, 2000];
+  return getPref('ccT'+n, defs[n]);
+}
+function ccMaxHands(){ return getPref('ccMax', 60); }
+
+function ccCompute(machine, upTo){
+  const o = exactOdds(valueCounts(machine, upTo));
+  if(!o) return null;
+  const R = ccRebate() / 100;
+  const evB = o.banker * 0.95 * (1 + R) - o.player;
+  const evP = o.player * 1.00 * (1 + R) - o.banker;
+  return { o, evB, evP };
+}
+function ccDecide(cc){
+  if(!cc) return { side: null, ev: 0, stake: 0, level: '无' };
+  const th = ccThresh() / 100;
+  let side, ev;
+  if(cc.evB >= cc.evP){ side = 'B'; ev = cc.evB; }
+  else { side = 'P'; ev = cc.evP; }
+  if(ev < th) return { side: null, ev, stake: 0, level: '无' };
+  let stake, level;
+  if(ev < th * 2){ stake = ccTier(1); level = '弱'; }
+  else if(ev < th * 4){ stake = ccTier(2); level = '中'; }
+  else { stake = ccTier(3); level = '强'; }
+  return { side, ev, stake, level };
+}
+function ccPnl(dec, winner, rebate){
+  if(!dec.side || !dec.stake) return 0;
+  if(winner === 'T') return 0;
+  if(winner === dec.side){
+    const gain = dec.side === 'B' ? 0.95 : 1.0;
+    return dec.stake * (gain + gain * rebate);
+  }
+  return -dec.stake;
+}
+
+// ============================================================
+// 渲染
+// ============================================================
+function renderMachineBar(){
+  const bar = document.getElementById('machine-bar');
+  bar.innerHTML = '';
+  state.machines.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'machine-tab' + (m.id === state.activeId ? ' active' : '');
+    btn.innerHTML = '<span class="nm">' + escapeHtml(m.name) + '</span><span class="count">' + m.hands.length + '</span>';
+    btn.addEventListener('click', () => {
+      if(m.id === state.activeId) return;
+      state.activeId = m.id;
+      saveState();
+      clearInput();
+      render();
+    });
+    bar.appendChild(btn);
+  });
+  const add = document.createElement('button');
+  add.className = 'machine-tab add';
+  add.textContent = '+ 新增';
+  add.addEventListener('click', () => {
+    const name = prompt('機台名稱：', '機台 ' + (state.machines.length + 1));
+    if(name === null) return;
+    const m = newMachine(name.trim() || ('機台 ' + (state.machines.length + 1)));
+    state.machines.push(m);
+    state.activeId = m.id;
+    saveState();
+    clearInput();
+    render();
+  });
+  bar.appendChild(add);
+}
+
+function renderStats(){
+  const m = activeMachine();
+  let b = 0, p = 0, t = 0, bp = 0, pp = 0;
+  for(const h of m.hands){
+    const w = getWinner(h.player, h.banker);
+    if(w === 'B') b++; else if(w === 'P') p++; else t++;
+    if(isPair(h.banker)) bp++;
+    if(isPair(h.player)) pp++;
+  }
+  document.getElementById('s-total').textContent = m.hands.length;
+  document.getElementById('s-b').textContent = b;
+  document.getElementById('s-p').textContent = p;
+  document.getElementById('s-t').textContent = t;
+  document.getElementById('s-bp').textContent = bp;
+  document.getElementById('s-pp').textContent = pp;
+}
+
+function renderCc(){
+  const box = document.getElementById('cc-content');
+  const m = activeMachine();
+  const MAX = ccMaxHands();
+  const curN = m.hands.length + 1;
+  let html = '';
+
+  if(curN > MAX){
+    html += '<div class="cc-banner">本靴已滿 <b>' + MAX + '</b> 局，請按「新靴」</div>';
+  } else if(remainingCount(m) < 6){
+    html += '<div class="cc-banner">剩餘牌不足 6 張，請按「新靴」</div>';
+  } else {
+    const cc = ccCompute(m, m.hands.length);
+    if(cc){
+      const dec = ccDecide(cc);
+      const o = cc.o, rem = remainingCount(m);
+      const evB = cc.evB * 100, evP = cc.evP * 100;
+      html += '<div class="cc-current">';
+      html += '<div class="cc-head">第 <b>' + curN + '</b> 手 / ' + MAX + '　剩餘 <b>' + rem + '</b> 張</div>';
+      html += '<div class="cc-probs">精確概率：莊 <b>' + (o.banker*100).toFixed(2) + '%</b>　閒 <b>' + (o.player*100).toFixed(2) + '%</b>　和 <b>' + (o.tie*100).toFixed(2) + '%</b></div>';
+      html += '<div class="cc-ev">押莊 EV <b class="' + (evB > 0 ? 'pos' : 'neg') + '">' + (evB >= 0 ? '+' : '') + evB.toFixed(3) + '%</b>　押閒 EV <b class="' + (evP > 0 ? 'pos' : 'neg') + '">' + (evP >= 0 ? '+' : '') + evP.toFixed(3) + '%</b>　<span style="color:#6e7681">（含返點 ' + ccRebate() + '%）</span></div>';
+      let advice;
+      if(dec.side){
+        const name = dec.side === 'B' ? '莊' : '閒';
+        const cls = dec.side === 'B' ? 'B' : 'P';
+        advice = '<span class="side ' + cls + '"></span>押 <b>' + name + '</b>　下注 <b>$' + dec.stake.toLocaleString('en-US') + '</b><span class="lv lv-' + dec.level + '">' + dec.level + '</span>';
+      } else {
+        advice = '觀望<span class="lv lv-wait">無</span>　<span style="color:#6e7681;font-size:12px;">EV 未達閾值 ' + ccThresh() + '%</span>';
+      }
+      html += '<div class="cc-advice">建議：' + advice + '</div>';
+      html += '</div>';
+    }
+  }
+
+  // 歷史統計
+  const total = Math.min(m.hands.length, MAX);
+  let cum = 0, wins = 0, losses = 0, pushes = 0, bets = 0, staked = 0, evSum = 0;
+  const R = ccRebate() / 100;
+  const recs = [];
+  for(let i = 0; i < total; i++){
+    const cc = ccCompute(m, i);
+    const dec = ccDecide(cc);
+    const w = getWinner(m.hands[i].player, m.hands[i].banker);
+    const pnl = ccPnl(dec, w, R);
+    if(dec.side){
+      bets++; staked += dec.stake; evSum += dec.ev;
+      if(w === 'T') pushes++;
+      else if(w === dec.side) wins++;
+      else losses++;
+    }
+    cum += pnl;
+    recs.push({ n: i + 1, dec, w, pnl, cum });
+  }
+
+  if(recs.length === 0){
+    box.innerHTML = html + '<div class="empty">還沒有紀錄</div>';
+    return;
+  }
+
+  html += '<div class="cc-summary">';
+  html += '下注 <b>' + bets + '</b> 手　勝 <b>' + wins + '</b>　負 <b>' + losses + '</b>　和退 <b>' + pushes + '</b>';
+  if(wins + losses > 0) html += '　勝率 <b>' + (wins / (wins + losses) * 100).toFixed(1) + '%</b>';
+  html += '<br>總下注額 <b>$' + Math.round(staked).toLocaleString('en-US') + '</b>　累計盈虧 <b class="' + (cum > 0 ? 'pos' : cum < 0 ? 'neg' : '') + '">' + (cum > 0 ? '+' : '') + '$' + Math.round(cum).toLocaleString('en-US') + '</b>';
+  if(staked > 0){
+    html += '　ROI <b class="' + (cum > 0 ? 'pos' : cum < 0 ? 'neg' : '') + '">' + ((cum / staked) * 100).toFixed(2) + '%</b>';
+    if(bets > 0) html += '　平均 EV <b>' + (evSum / bets * 100).toFixed(3) + '%</b>';
+  }
+  html += '</div>';
+
+  html += '<div class="table-scroll"><table class="cc-table"><thead><tr><th>#</th><th>建議</th><th>實際</th><th class="num">下注</th><th class="num">盈虧</th><th class="num">累計</th></tr></thead><tbody>';
+  for(let i = recs.length - 1; i >= 0; i--){
+    const r = recs[i];
+    const sideName = r.dec.side ? (r.dec.side === 'B' ? '莊' : '閒') : '—';
+    const wName = r.w === 'B' ? '莊' : r.w === 'P' ? '閒' : '和';
+    const winMark = r.dec.side ? (r.w === 'T' ? ' <small>和退</small>' : r.w === r.dec.side ? ' <small style="color:#3fb950">✓</small>' : ' <small style="color:#f85149">✗</small>') : '';
+    html += '<tr' + (i === recs.length - 1 ? ' class="last"' : '') + '>';
+    html += '<td>' + r.n + '</td>';
+    html += '<td>' + sideName + (r.dec.level && r.dec.level !== '无' ? '<small>' + r.dec.level + '</small>' : '') + '</td>';
+    html += '<td>' + wName + winMark + '</td>';
+    html += '<td class="num">' + (r.dec.stake ? '$' + r.dec.stake.toLocaleString('en-US') : '—') + '</td>';
+    html += '<td class="num ' + (r.pnl > 0 ? 'pos' : r.pnl < 0 ? 'neg' : '') + '">' + (r.pnl > 0 ? '+' : r.pnl < 0 ? '−' : '') + '$' + Math.round(Math.abs(r.pnl)).toLocaleString('en-US') + '</td>';
+    html += '<td class="num ' + (r.cum > 0 ? 'pos' : r.cum < 0 ? 'neg' : '') + '">' + (r.cum > 0 ? '+' : r.cum < 0 ? '−' : '') + '$' + Math.round(Math.abs(r.cum)).toLocaleString('en-US') + '</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  box.innerHTML = html;
+}
+
+function renderHistory(){
+  const el = document.getElementById('history');
+  const m = activeMachine();
+  if(!m.hands.length){ el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
+  let html = '';
+  const start = Math.max(0, m.hands.length - 40);
+  for(let i = start; i < m.hands.length; i++){
+    const h = m.hands[i];
+    const w = getWinner(h.player, h.banker);
+    const pStr = h.player.map(c => c.rank).join(' ');
+    const bStr = h.banker.map(c => c.rank).join(' ');
+    const pairs = [isPair(h.banker) ? '莊對' : '', isPair(h.player) ? '閒對' : ''].filter(Boolean).join('・');
+    html += '<div class="history-item">' +
+      '<span class="idx">#' + (i + 1) + '</span>' +
+      '<span class="cards">閒 ' + pStr + '　莊 ' + bStr + (pairs ? '　' + pairs : '') + '</span>' +
+      '<span class="res ' + w + '">' + w + '</span></div>';
+  }
+  el.innerHTML = html;
+}
+
+function updateLastHint(){
+  const el = document.getElementById('last-hint');
+  const m = activeMachine();
+  if(!m.hands.length){ el.textContent = '尚無紀錄'; return; }
+  const last = m.hands[m.hands.length - 1];
+  const w = getWinner(last.player, last.banker);
+  const wTxt = w === 'B' ? '莊贏' : w === 'P' ? '閒贏' : '和局';
+  el.innerHTML = '#' + m.hands.length + '　' + last.player.map(c=>c.rank).join(' ') + ' vs ' + last.banker.map(c=>c.rank).join(' ') + ' → <b>' + wTxt + '</b>';
+}
+
+function render(){
+  renderMachineBar();
+  renderStats();
+  renderCc();
+  renderHistory();
+  updateLastHint();
+  document.getElementById('decks').value = activeMachine().decks;
+  // 設定輸入框同步
+  ['cc-max','cc-rebate','cc-thresh','cc-t1','cc-t2','cc-t3'].forEach(id => {
+    if(document.activeElement === document.getElementById(id)) return;
+    const key = {'cc-max':'ccMax','cc-rebate':'ccRebate','cc-thresh':'ccThresh','cc-t1':'ccT1','cc-t2':'ccT2','cc-t3':'ccT3'}[id];
+    const def = {'cc-max':60,'cc-rebate':2.4,'cc-thresh':0.05,'cc-t1':500,'cc-t2':1000,'cc-t3':2000}[id];
+    document.getElementById(id).value = getPref(key, def);
+  });
+}
+
+function escapeHtml(t){
+  const d = document.createElement('div'); d.textContent = t; return d.innerHTML;
+}
+
+// ============================================================
+// 輸入
+// ============================================================
+const emptyInput = () => ({ p: [null,null,null], b: [null,null,null] });
+let input = emptyInput();
+let activeSlot = { side: 'p', idx: 0 };
+
+function cardsOf(ranks){ return ranks.filter(Boolean).map(r => ({ rank: r, suit: '♠' })); }
+function bankerDraws(bv, p3){ return bankerDrawsVal(bv, p3 === null ? null : rankValue(p3)); }
+
+function requiredSlots(inp){
+  const req = [{side:'p',idx:0},{side:'p',idx:1},{side:'b',idx:0},{side:'b',idx:1}];
+  if(!inp.p[0] || !inp.p[1] || !inp.b[0] || !inp.b[1]) return req;
+  const pv = handValue(cardsOf(inp.p.slice(0,2)));
+  const bv = handValue(cardsOf(inp.b.slice(0,2)));
+  if(pv >= 8 || bv >= 8) return req;
+  if(pv <= 5){
+    req.push({side:'p',idx:2});
+    if(!inp.p[2]) return req;
+    if(bankerDraws(bv, inp.p[2])) req.push({side:'b',idx:2});
+  } else if(bankerDraws(bv, null)){
+    req.push({side:'b',idx:2});
+  }
+  return req;
+}
+function isRequired(inp, side, idx){
+  return requiredSlots(inp).some(s => s.side === side && s.idx === idx);
+}
+function pruneInput(){
+  for(const side of ['p','b']){
+    if(input[side][2] && !isRequired(input, side, 2)) input[side][2] = null;
+  }
+}
+function nextEmptySlot(){
+  return requiredSlots(input).find(s => !input[s.side][s.idx]) || null;
+}
+function inputComplete(){ return nextEmptySlot() === null; }
+function thirdSkipped(side){
+  const inp = input;
+  if(!inp.p[0] || !inp.p[1] || !inp.b[0] || !inp.b[1]) return false;
+  if(isRequired(inp, side, 2)) return false;
+  if(side === 'b' && isRequired(inp, 'p', 2) && !inp.p[2]) return false;
+  return true;
+}
+function buzz(){ try{ navigator.vibrate && navigator.vibrate(8); }catch(e){} }
+
+function buildSlots(){
+  ['p', 'b'].forEach(side => {
+    const container = document.getElementById(side + '-slots');
+    container.innerHTML = '';
+    for(let i = 0; i < 3; i++){
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.addEventListener('click', () => {
+        const next = nextEmptySlot();
+        const isNext = next && next.side === side && next.idx === i;
+        if(!input[side][i] && !isNext) return;
+        activeSlot = { side, idx: i };
+        buzz();
+        renderInput();
+      });
+      container.appendChild(slot);
+    }
+  });
+}
+function buildKeypad(){
+  const pad = document.getElementById('keypad');
+  pad.innerHTML = '';
+  RANKS.forEach(r => {
+    const k = document.createElement('button');
+    k.className = 'key rank';
+    k.textContent = r;
+    k.addEventListener('click', () => enterRank(r));
+    pad.appendChild(k);
+  });
+  const back = document.createElement('button');
+  back.className = 'key back';
+  back.textContent = '⌫';
+  back.addEventListener('click', backspace);
+  pad.appendChild(back);
+  const rec = document.createElement('button');
+  rec.className = 'key rec';
+  rec.id = 'record';
+  rec.textContent = '記錄';
+  rec.addEventListener('click', recordHand);
+  pad.appendChild(rec);
+}
+function enterRank(r){
+  if(!activeSlot){ buzz(); return; }
+  input[activeSlot.side][activeSlot.idx] = r;
+  pruneInput();
+  activeSlot = nextEmptySlot();
+  buzz();
+  renderInput();
+}
+function backspace(){
+  const filled = requiredSlots(input).filter(s => input[s.side][s.idx]);
+  if(!filled.length){ buzz(); return; }
+  const last = filled[filled.length - 1];
+  input[last.side][last.idx] = null;
+  pruneInput();
+  activeSlot = last;
+  buzz();
+  renderInput();
+}
+function renderInput(){
+  ['p','b'].forEach(side => {
+    const slots = document.getElementById(side + '-slots').querySelectorAll('.slot');
+    slots.forEach((slot, i) => {
+      const val = input[side][i];
+      const skip = i === 2 && !val && thirdSkipped(side);
+      slot.textContent = val || (skip ? '不補' : '');
+      slot.className = 'slot' + (val ? ' filled' : '') + (skip ? ' skip' : '') +
+        (activeSlot && activeSlot.side === side && activeSlot.idx === i ? ' active' : '');
+    });
+  });
+  const pCards = cardsOf(input.p), bCards = cardsOf(input.b);
+  document.getElementById('p-score').textContent = pCards.length >= 2 ? handValue(pCards) : '–';
+  document.getElementById('b-score').textContent = bCards.length >= 2 ? handValue(bCards) : '–';
+  const done = inputComplete();
+  const tip = document.getElementById('tip');
+  if(done){
+    const w = getWinner(pCards, bCards);
+    const wTxt = w === 'B' ? '莊贏' : w === 'P' ? '閒贏' : '和局';
+    const pairs = [isPair(bCards) ? '莊對' : '', isPair(pCards) ? '閒對' : ''].filter(Boolean);
+    tip.innerHTML = '<span class="res-' + w + '">' + wTxt + '</span>' + (pairs.length ? '　' + pairs.join('、') : '') + '　按 <b>記錄</b>';
+  } else if(activeSlot){
+    const who = activeSlot.side === 'p' ? '閒家' : '莊家';
+    tip.innerHTML = '輸入 <b>' + who + '第 ' + (activeSlot.idx + 1) + ' 張</b>' + (activeSlot.idx === 2 ? '（補牌）' : '');
+  }
+  document.getElementById('record').classList.toggle('ready', done);
+}
+function clearInput(){
+  input = emptyInput();
+  activeSlot = { side: 'p', idx: 0 };
+  renderInput();
+}
+
+function recordHand(){
+  if(!inputComplete()){
+    const n = nextEmptySlot();
+    alert('還沒輸入完：' + (n.side === 'p' ? '閒家' : '莊家') + '第 ' + (n.idx + 1) + ' 張');
+    return;
+  }
+  const m = activeMachine();
+  if(m.hands.length >= ccMaxHands()){ alert('已達每靴 ' + ccMaxHands() + ' 局上限，請按「新靴」'); return; }
+  const pCards = cardsOf(input.p), bCards = cardsOf(input.b);
+  m.hands.push({ player: pCards, banker: bCards });
+  saveState();
+  buzz();
+  clearInput();
+  render();
+  const w = getWinner(pCards, bCards);
+  showToast('已記錄 #' + m.hands.length + '　' + (w === 'B' ? '莊贏' : w === 'P' ? '閒贏' : '和局'));
+}
+
+let toastTimer = null;
+function showToast(text){
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+// ============================================================
+// 按鈕
+// ============================================================
+document.getElementById('undo').addEventListener('click', () => {
+  const m = activeMachine();
+  if(!m.hands.length) return;
+  if(!confirm('撤銷第 ' + m.hands.length + ' 局？')) return;
+  m.hands.pop();
+  saveState();
+  render();
+});
+document.getElementById('newshoe').addEventListener('click', () => {
+  const m = activeMachine();
+  if(!m.hands.length){ showToast('這一靴還沒有紀錄'); return; }
+  if(!confirm('結束第 ' + (m.shoes.length + 1) + ' 靴（' + m.hands.length + ' 局）並開新靴？')) return;
+  m.shoes.push({ no: m.shoes.length + 1, decks: m.decks, endedAt: Date.now(), hands: m.hands });
+  m.hands = [];
+  saveState();
+  clearInput();
+  render();
+  showToast('已開第 ' + (m.shoes.length + 1) + ' 靴');
+});
+document.getElementById('clear-all').addEventListener('click', () => {
+  if(!confirm('清空所有機台與紀錄？此動作無法復原。')) return;
+  if(!confirm('再次確認：全部資料將永久刪除。')) return;
+  state = defaultState();
+  saveState();
+  clearInput();
+  render();
+  showToast('已清空');
+});
+
+document.getElementById('decks').addEventListener('change', function(){
+  const m = activeMachine();
+  const newDecks = parseInt(this.value, 10);
+  if(newDecks < m.decks && m.hands.length){
+    if(!confirm('減少副數可能導致已記錄的牌超出牌靴，確定？')){ this.value = m.decks; return; }
+  }
+  m.decks = newDecks;
+  saveState();
+  render();
+});
+
+['cc-max','cc-rebate','cc-thresh','cc-t1','cc-t2','cc-t3'].forEach(id => {
+  document.getElementById(id).addEventListener('change', function(){
+    const map = {'cc-max':'ccMax','cc-rebate':'ccRebate','cc-thresh':'ccThresh','cc-t1':'ccT1','cc-t2':'ccT2','cc-t3':'ccT3'};
+    const isFloat = id === 'cc-rebate' || id === 'cc-thresh';
+    const v = isFloat ? +this.value : Math.round(+this.value);
+    setPref(map[id], Math.max(0, v || 0));
+    render();
+  });
+});
+
+// ============================================================
+// 鍵盤快速輸入
+// ============================================================
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if(tag === 'input' || tag === 'select' || tag === 'textarea') return;
+  const k = e.key.toUpperCase();
+  const map = { A:'A', '1':'A', '0':'10', T:'10', J:'J', Q:'Q', K:'K' };
+  const rank = map[k] || (/^[2-9]$/.test(k) ? k : null);
+  if(rank){ e.preventDefault(); enterRank(rank); return; }
+  if(e.key === 'Backspace'){ e.preventDefault(); backspace(); return; }
+  if(e.key === 'Enter' && tag !== 'button'){ e.preventDefault(); recordHand(); }
+});
+
+// ============================================================
+// 初始化
+// ============================================================
+buildSlots();
+buildKeypad();
+clearInput();
+render();
+
+})();
+</script>
+</body>
+</html>
