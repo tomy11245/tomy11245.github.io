@@ -26,13 +26,26 @@
     #messages li {
       background: #fff; border-radius: 8px; padding: 10px 12px;
       margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.06);
-      word-break: break-word;
+      word-break: break-word; position: relative;
     }
-    #messages li .meta { font-size: 12px; color: #888; margin-bottom: 4px; }
+    #messages li .meta { font-size: 12px; color: #888; margin-bottom: 4px; padding-right: 28px; }
     #messages li .meta .name { color: #0969da; font-weight: 600; }
     #messages li img {
       max-width: 100%; border-radius: 6px; margin-top: 6px; display: block;
     }
+    /* 刪除按鈕 */
+    #messages li .delete-btn {
+      position: absolute; top: 6px; right: 6px;
+      width: 26px; height: 26px; padding: 0;
+      border: none; border-radius: 50%;
+      background: transparent; color: #999;
+      font-size: 16px; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    #messages li .delete-btn:hover { background: #ffecec; color: #cf222e; }
+    #messages li .delete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .file-attachment {
       display: inline-flex; align-items: center; gap: 8px;
       margin-top: 8px; padding: 8px 12px;
@@ -123,7 +136,7 @@
       </svg>
       安裝
     </button>
-    <div id="versionBadge">v1.3.2</div>
+    <div id="versionBadge">v1.3.3</div>
   </div>
 
   <h2>即時留言聊天室</h2>
@@ -164,7 +177,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
   <script>
-    const APP_VERSION = "v1.3.2";
+    const APP_VERSION = "v1.3.3";
     document.getElementById('versionBadge').textContent = APP_VERSION;
 
     // ===== PWA 註冊與右上角安裝按鈕 =====
@@ -543,6 +556,28 @@
       }
     }
 
+    // ===== 刪除留言 =====
+    async function deleteMessage(id, btn) {
+      if (!confirm('確定要刪除這則留言嗎？此操作無法復原。')) return;
+      btn.disabled = true;
+      const originalStatus = statusEl.textContent;
+      setStatus('刪除中…', '');
+      try {
+        await messagesRef.child(id).remove();
+        setStatus('已刪除留言', 'ok');
+        setTimeout(() => {
+          setStatus('已連線 · 即時同步中', 'ok');
+        }, 800);
+      } catch (err) {
+        console.error('刪除失敗:', err);
+        setStatus('刪除失敗：' + err.message, 'err');
+        btn.disabled = false;
+        setTimeout(() => {
+          if (statusEl.classList.contains('err')) setStatus(originalStatus, 'ok');
+        }, 2000);
+      }
+    }
+
     // ===== Firebase 初始化與渲染 =====
     try {
       firebase.initializeApp(firebaseConfig);
@@ -556,6 +591,7 @@
         if (data) {
           Object.entries(data).forEach(([id, msg]) => {
             const li = document.createElement('li');
+
             const meta = document.createElement('div');
             meta.className = 'meta';
 
@@ -591,6 +627,19 @@
               a.onclick = () => downloadFile(msg.fileKey, msg.fileName);
               li.appendChild(a);
             }
+
+            // 刪除按鈕
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.type = 'button';
+            delBtn.title = '刪除此留言';
+            delBtn.setAttribute('aria-label', '刪除此留言');
+            delBtn.textContent = '✕';
+            delBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              deleteMessage(id, delBtn);
+            });
+            li.appendChild(delBtn);
 
             messagesEl.appendChild(li);
           });
