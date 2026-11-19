@@ -1,5 +1,5 @@
 {
-  "name": "即時留言聊天室",
+  "name": "KeyBe聊天室",
   "short_name": "KeyBe聊天室",
   "description": "即時同步的匿名留言聊天室，支援圖片、文件與截圖。",
   "start_url": "./chatroom.html",
